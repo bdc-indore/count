@@ -11,9 +11,6 @@
     <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <!-- PWA Manifest Link -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4B1D24">
     <style>
         .report-header { background-color: #4B1D24; color: #ffffff; }
         .report-subhead { background-color: #FDF3E6; color: #2b1d0c; }
@@ -35,10 +32,9 @@
             <div class="flex items-center flex-wrap gap-3">
                 <span id="masterStatus" class="bg-amber-700 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow animate-pulse">Loading Master Offices...</span>
                 
-                <!-- Global Share & Download Buttons -->
                 <div class="flex items-center gap-2">
                     <button onclick="exportAllToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📥 Excel</button>
-                    <button onclick="exportAllToPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📄 PDF</button>
+                    <button onclick="exportAllToPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📄 Single-Page PDF</button>
                     <button onclick="handleNativeShare()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📤 Share</button>
                 </div>
             </div>
@@ -96,17 +92,15 @@
         <!-- Section 1: Summary Report -->
         <div class="bg-white rounded-2xl shadow-md border border-amber-200 overflow-hidden">
             <div class="px-6 py-4 report-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div>
-                    <h2 class="font-bold text-base flex items-center gap-2"><span>📊</span> Division & Sub-Division Category Summary Report</h2>
-                </div>
+                <h2 class="font-bold text-base">Division & Sub-Division Category Summary Report</h2>
                 <div class="flex items-center gap-2 flex-wrap">
                     <select id="summaryViewType" onchange="updateDashboard()" class="bg-[#361318] text-white text-xs font-bold px-3 py-1.5 rounded-lg border-0 outline-none cursor-pointer">
                         <option value="subdivision">Sub-Division Wise</option>
                         <option value="division">Division Wise</option>
                     </select>
-                    <button onclick="exportTableToExcel('tableDivisionSummary', 'Summary_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportSingleTableToPDF('tableDivisionSummary', 'Summary Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF</button>
-                    <button onclick="shareSingleTable('tableDivisionSummary', 'Summary Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
+                    <button onclick="exportTableToExcel('tableDivisionSummary', 'Summary_Report.xlsx')" class="bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
+                    <button onclick="exportSingleTableToPDF('tableDivisionSummary', 'Summary Report')" class="bg-rose-800 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 1-Page PDF</button>
+                    <button onclick="shareSingleTable('tableDivisionSummary', 'Summary Report')" class="bg-indigo-700 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -121,17 +115,15 @@
         <!-- Section 2: Office Activity Status -->
         <div class="bg-white rounded-2xl shadow-md border border-amber-200 overflow-hidden">
             <div class="px-6 py-4 report-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div>
-                    <h2 class="font-bold text-base flex items-center gap-2"><span>🏢</span> Office Activity Status (Active, Nil Booking & >10 Articles)</h2>
-                </div>
+                <h2 class="font-bold text-base">Office Activity Status (Active, Nil Booking & >10 Articles)</h2>
                 <div class="flex items-center gap-2 flex-wrap">
                     <select id="activityViewType" onchange="updateDashboard()" class="bg-[#361318] text-white text-xs font-bold px-3 py-1.5 rounded-lg border-0 outline-none cursor-pointer">
                         <option value="subdivision">Sub-Division Wise</option>
                         <option value="division">Division Wise</option>
                     </select>
-                    <button onclick="exportTableToExcel('tableActivitySummary', 'Activity_Status_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportSingleTableToPDF('tableActivitySummary', 'Activity Status Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF</button>
-                    <button onclick="shareSingleTable('tableActivitySummary', 'Activity Status Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
+                    <button onclick="exportTableToExcel('tableActivitySummary', 'Activity_Status_Report.xlsx')" class="bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
+                    <button onclick="exportSingleTableToPDF('tableActivitySummary', 'Activity Status Report')" class="bg-rose-800 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 1-Page PDF</button>
+                    <button onclick="shareSingleTable('tableActivitySummary', 'Activity Status Report')" class="bg-indigo-700 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -149,9 +141,9 @@
                 <div class="px-5 py-3.5 bg-[#0B6623] text-white flex justify-between items-center">
                     <h3 class="font-bold text-sm">🏆 Top 10 Performing Offices</h3>
                     <div class="flex gap-1.5">
-                        <button onclick="exportTableToExcel('tableTop10', 'Top_10.xlsx')" class="bg-emerald-950 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
-                        <button onclick="exportSingleTableToPDF('tableTop10', 'Top 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 PDF</button>
-                        <button onclick="shareSingleTable('tableTop10', 'Top 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📤 Share</button>
+                        <button onclick="exportTableToExcel('tableTop10', 'Top_10.xlsx')" class="bg-emerald-950 text-white text-[11px] px-2 py-1 rounded shadow cursor-pointer">📥 Excel</button>
+                        <button onclick="exportSingleTableToPDF('tableTop10', 'Top 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2 py-1 rounded shadow cursor-pointer">📄 1-Page PDF</button>
+                        <button onclick="shareSingleTable('tableTop10', 'Top 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2 py-1 rounded shadow cursor-pointer">📤 Share</button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -165,9 +157,9 @@
                 <div class="px-5 py-3.5 bg-[#8B0000] text-white flex justify-between items-center">
                     <h3 class="font-bold text-sm">⚠️ Bottom 10 / Nil Booking Offices</h3>
                     <div class="flex gap-1.5">
-                        <button onclick="exportTableToExcel('tableBottom10', 'Bottom_10.xlsx')" class="bg-rose-950 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
-                        <button onclick="exportSingleTableToPDF('tableBottom10', 'Bottom 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 PDF</button>
-                        <button onclick="shareSingleTable('tableBottom10', 'Bottom 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📤 Share</button>
+                        <button onclick="exportTableToExcel('tableBottom10', 'Bottom_10.xlsx')" class="bg-rose-950 text-white text-[11px] px-2 py-1 rounded shadow cursor-pointer">📥 Excel</button>
+                        <button onclick="exportSingleTableToPDF('tableBottom10', 'Bottom 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2 py-1 rounded shadow cursor-pointer">📄 1-Page PDF</button>
+                        <button onclick="shareSingleTable('tableBottom10', 'Bottom 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2 py-1 rounded shadow cursor-pointer">📤 Share</button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -187,11 +179,10 @@
             <div class="report-header px-6 py-4 flex justify-between items-center">
                 <div>
                     <h3 id="modalTitle" class="font-bold text-lg">Office Details List</h3>
-                    <p id="modalSubtitle" class="text-xs text-amber-200">Complete office list with category breakdown & postage (Rupye)</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button onclick="exportModalToExcel()" class="bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportSingleTableToPDF('tableModalOffices', 'Office Details')" class="bg-rose-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF</button>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportModalToExcel()" class="bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
+                    <button onclick="exportSingleTableToPDF('tableModalOffices', 'Office Details')" class="bg-rose-800 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 1-Page PDF</button>
                     <button onclick="closeModal()" class="bg-amber-950 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer">✕</button>
                 </div>
             </div>
@@ -330,7 +321,6 @@
         function renderSummaryTable(filteredRows, viewType) {
             const thead = document.querySelector('#tableDivisionSummary thead');
             const tbody = document.querySelector('#tableDivisionSummary tbody');
-            const tfoot = document.querySelector('#tableDivisionSummary tfoot');
             tbody.innerHTML = ""; tfoot.innerHTML = "";
 
             if (viewType === 'division') {
@@ -450,23 +440,25 @@
         function exportModalToExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(modalExportData), "Details"), "Office_Details.xlsx"); }
         function exportAllToExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.table_to_book(document.getElementById('tableDivisionSummary')).Sheets["Sheet1"], "Summary"), XLSX.utils.table_to_book(document.getElementById('tableActivitySummary')).Sheets["Sheet1"], "Activity"), "Complete_Report.xlsx"); }
 
-        // PDF single page landscape export with exact theme colors
+        // Enforced Single Page Landscape PDF Export with Exact Theme Styling
         function exportSingleTableToPDF(tableId, titleText) {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-            doc.setFillColor(75, 29, 36); doc.rect(0, 0, 297, 18, "F");
-            doc.setTextColor(255, 255, 255); doc.setFontSize(13); doc.setFont("helvetica", "bold");
-            doc.text("Department of Posts - " + titleText + " (Rupye)", 14, 12);
+            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape A4
+            doc.setFillColor(75, 29, 36); doc.rect(0, 0, 297, 14, "F");
+            doc.setTextColor(255, 255, 255); doc.setFontSize(11); doc.setFont("helvetica", "bold");
+            doc.text("Department of Posts - " + titleText + " (Rupye)", 10, 9);
+            
             doc.autoTable({
                 html: '#' + tableId,
-                startY: 22,
+                startY: 16,
                 theme: 'grid',
-                styles: { fontSize: 8, cellPadding: 2 },
-                headStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold' },
+                styles: { fontSize: 6.5, cellPadding: 1, overflow: 'linebreak' },
+                headStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7, cellPadding: 1.2 },
                 alternateRowStyles: { fillColor: [253, 243, 230] },
-                pageBreak: 'avoid'
+                margin: { top: 16, right: 8, bottom: 8, left: 8 },
+                tableWidth: 'auto'
             });
-            doc.save(titleText.replace(/\s+/g, '_') + "_Report.pdf");
+            doc.save(titleText.replace(/\s+/g, '_') + "_SinglePage_Report.pdf");
         }
 
         function exportAllToPDF() { exportSingleTableToPDF('tableDivisionSummary', 'Summary Report'); }
@@ -474,14 +466,14 @@
         async function shareSingleTable(tableId, titleText) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
-            doc.setFillColor(75, 29, 36); doc.rect(0, 0, 297, 18, "F");
-            doc.setTextColor(255, 255, 255); doc.text("Department of Posts - " + titleText, 14, 12);
-            doc.autoTable({ html: '#' + tableId, startY: 22, theme: 'grid', headStyles: { fillColor: [75, 29, 36] } });
+            doc.setFillColor(75, 29, 36); doc.rect(0, 0, 297, 14, "F");
+            doc.setTextColor(255, 255, 255); doc.text("Department of Posts - " + titleText, 10, 9);
+            doc.autoTable({ html: '#' + tableId, startY: 16, theme: 'grid', styles: { fontSize: 6.5, cellPadding: 1 }, headStyles: { fillColor: [75, 29, 36] } });
             const pdfBlob = doc.output('blob');
             const file = new File([pdfBlob], titleText.replace(/\s+/g, '_') + ".pdf", { type: "application/pdf" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try { await navigator.share({ title: titleText, files: [file] }); } catch (e) {}
-            } else { doc.save(file.name); alert("PDF downloaded for sharing!"); }
+            } else { doc.save(file.name); alert("Single-page PDF downloaded for sharing!"); }
         }
 
         async function handleNativeShare() { shareSingleTable('tableDivisionSummary', 'Summary Report'); }
