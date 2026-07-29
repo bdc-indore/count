@@ -258,33 +258,34 @@
                 const mapText = await mapRes.text();
 
                 const masterParsed = XLSX.read(masterText, {type: 'string'});
-                const masterJson = XLSX.utils.sheet_to_json(masterParsed.Sheets[masterParsed.SheetNames[0]]);
+                const masterRows = XLSX.utils.sheet_to_json(masterParsed.Sheets[masterParsed.SheetNames[0]], {header: 1});
                 
                 masterOfficesMap = {};
-                masterJson.forEach(row => {
-                    const id = String(row["office-id"] || row["Office ID"] || row["office_id"] || Object.values(row)[0] || "").trim();
+                for (let i = 1; i < masterRows.length; i++) {
+                    const row = masterRows[i];
+                    const id = String(row[0] || "").trim();
                     if (id) {
                         masterOfficesMap[id] = {
-                            name: String(row["OFFICE NAME"] || row["office_name"] || Object.values(row)[1] || "").trim(),
-                            class: String(row["CLASS"] || row["class"] || Object.values(row)[2] || "BO").trim().toUpperCase(),
-                            sd: String(row["SD"] || row["Sub Division Name"] || Object.values(row)[3] || "").trim(),
-                            division: String(row["DIVISION"] || row["Division Name"] || Object.values(row)[4] || "").trim().toUpperCase()
+                            name: String(row[1] || "").trim(),
+                            class: String(row[2] || "BO").trim().toUpperCase(),
+                            sd: String(row[3] || "").trim(),
+                            division: String(row[4] || "").trim().toUpperCase()
                         };
                     }
-                });
+                }
 
                 const mapParsed = XLSX.read(mapText, {type: 'string'});
-                const mapJson = XLSX.utils.sheet_to_json(mapParsed.Sheets[mapParsed.SheetNames[0]]);
+                const mapRows = XLSX.utils.sheet_to_json(mapParsed.Sheets[mapParsed.SheetNames[0]], {header: 1});
                 
                 serviceMapping = {};
-                mapJson.forEach(row => {
-                    const keys = Object.keys(row);
-                    const sName = String(row[keys[0]] || "").trim();
-                    const cName = String(row[keys[1]] || "").trim().toUpperCase();
+                for (let i = 1; i < mapRows.length; i++) {
+                    const row = mapRows[i];
+                    const sName = String(row[0] || "").trim();
+                    const cName = String(row[1] || "").trim().toUpperCase();
                     if (sName && cName) {
                         serviceMapping[sName.toLowerCase()] = cName;
                     }
-                });
+                }
 
                 document.getElementById('masterStatus').textContent = `Master Loaded (${Object.keys(masterOfficesMap).length} Offices)`;
                 document.getElementById('masterStatus').className = "bg-emerald-500 text-slate-950 text-xs px-3 py-1.5 rounded-full font-bold shadow";
@@ -342,7 +343,6 @@
             const summaryView = document.getElementById('summaryViewType').value;
             const activityView = document.getElementById('activityViewType').value;
 
-            // 1. Map raw records
             const processed = rawData.map(item => {
                 const master = masterOfficesMap[item.officeId] || { name: "Unknown", class: "BO", sd: "Unknown SD", division: "Unknown Division" };
                 const sKey = String(item.service).trim().toLowerCase();
@@ -367,7 +367,6 @@
                 };
             });
 
-            // 2. Filter Master Offices based on Division and Class (and apply Class/Category filter to activity table)
             const filteredOfficesMap = {};
             Object.entries(masterOfficesMap).forEach(([id, m]) => {
                 if (selDiv !== "All" && m.division !== selDiv) return;
@@ -375,7 +374,6 @@
                 filteredOfficesMap[id] = m;
             });
 
-            // 3. Filter transaction rows
             const filteredRows = processed.filter(item => {
                 if (selDiv !== "All" && item.division !== selDiv) return false;
                 if (selClass !== "All" && item.officeClass !== selClass) return false;
@@ -385,7 +383,6 @@
 
             currentFilteredRows = filteredRows;
 
-            // Office Totals with Category Breakdown (Honoring Class & Category filters for activity status)
             const officeTotals = {};
             Object.keys(filteredOfficesMap).forEach(id => {
                 officeTotals[id] = { 
@@ -419,7 +416,6 @@
             const totalOfficesCount = globalAllFilteredOffices.length;
             const activeOfficesCount = globalAllFilteredOffices.filter(o => o.articles > 0).length;
 
-            // KPIs
             const totalArticles = filteredRows.reduce((acc, curr) => acc + curr.articles, 0);
             const totalPostage = filteredRows.reduce((acc, curr) => acc + curr.postage, 0);
 
@@ -427,7 +423,6 @@
             document.getElementById('kpiPostage').textContent = '₹ ' + totalPostage.toLocaleString('en-IN', {minimumFractionDigits: 2});
             document.getElementById('kpiOffices').textContent = `${activeOfficesCount} / ${totalOfficesCount}`;
 
-            // Render Summary & Activity Tables
             renderSummaryTable(filteredRows, summaryView);
             renderActivityTable(globalAllFilteredOffices, activityView);
             renderTopBottom10(globalAllFilteredOffices);
@@ -901,7 +896,6 @@
             XLSX.writeFile(wb, "Booking_Count_Calculator_Complete_Report.xlsx");
         }
 
-        // Handle File Upload Auto-Detection (Region vs Single Division without Popup)
         document.getElementById('rawFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -925,20 +919,17 @@
                     }).filter(item => item.officeId && item.service);
 
                     if (tempParsedData.length > 0) {
-                        // Automatically find unique divisions present in this uploaded file
                         const uniqueDivisions = [...new Set(tempParsedData.map(item => {
                             const m = masterOfficesMap[item.officeId];
                             return m ? m.division : null;
                         }))].filter(Boolean);
 
-                        // If exactly one division is detected, automatically filter and set it without popup
                         if (uniqueDivisions.length === 1) {
                             const detectedDiv = uniqueDivisions[0];
                             rawData = tempParsedData;
                             document.getElementById('filterDivision').value = detectedDiv;
                             updateDashboard();
                         } else {
-                            // Multiple divisions or regional data -> load all data and set filter to All
                             rawData = tempParsedData;
                             document.getElementById('filterDivision').value = "All";
                             updateDashboard();
