@@ -21,7 +21,7 @@
                 <p class="text-xs md:text-sm text-indigo-200 mt-1">Department of Posts - Advanced Analytics & Reporting Portal</p>
             </div>
             <div class="flex items-center gap-3">
-                <span id="masterStatus" class="bg-amber-500 text-slate-950 text-xs px-3 py-1.5 rounded-full font-bold shadow animate-pulse">Loading Master (2805 Offices)...</span>
+                <span id="masterStatus" class="bg-amber-500 text-slate-950 text-xs px-3 py-1.5 rounded-full font-bold shadow animate-pulse">Loading Master Offices...</span>
                 <button onclick="exportAllToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer">
                     📥 Export All Reports (Excel)
                 </button>
@@ -35,7 +35,8 @@
         <!-- Controls Section: File Upload & Filters -->
         <div class="bg-white p-4 md:p-6 rounded-2xl shadow-md border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">1. Upload Raw Website Excel</label>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">📁 File Upload</label>
+                <p class="text-[11px] text-blue-700 font-medium mb-1">MIS portal se post office wise excel download karke yahan upload karein.</p>
                 <input type="file" id="rawFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50"/>
             </div>
             <div>
@@ -114,12 +115,12 @@
             </div>
         </div>
 
-        <!-- Section 2: Office Activity Status with View Type & Percentages -->
+        <!-- Section 2: Office Activity Status with View Type & Filters -->
         <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
             <div class="px-6 py-4 bg-slate-900 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                     <h2 class="font-bold text-base flex items-center gap-2"><span>🏢</span> Office Activity Status (Active, Nil Booking & >10 Articles)</h2>
-                    <p class="text-xs text-slate-300">Click on Active, Nil, or >10 count numbers to open exact office lists with Excel export.</p>
+                    <p class="text-xs text-slate-300">Filtered by selected Office Class & Category. Click numbers to view office lists.</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <div class="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
@@ -230,6 +231,33 @@
         </div>
     </div>
 
+    <!-- Upload Type Prompt Modal -->
+    <div id="uploadTypeModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-4 border border-slate-200">
+            <div class="w-14 h-14 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">📤</div>
+            <h3 class="text-xl font-bold text-slate-900">Select Upload Type</h3>
+            <p class="text-xs text-slate-600">Kya yeh Excel file poore **Region** ki hai ya kisi ek specific **Division** ki hai?</p>
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="handleUploadChoice('region')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition cursor-pointer">🌍 Whole Region</button>
+                <button onclick="handleUploadChoice('division')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition cursor-pointer">🏢 Specific Division</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Division Select Modal -->
+    <div id="divisionSelectModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-4 border border-slate-200">
+            <div class="w-14 h-14 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">🏢</div>
+            <h3 class="text-xl font-bold text-slate-900">Select Division</h3>
+            <p class="text-xs text-slate-600">Kripya chunen ki yeh excel kis division ki hai:</p>
+            <select id="modalDivisionSelect" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 font-medium outline-none focus:ring-2 focus:ring-indigo-500">
+            </select>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="confirmDivisionChoice()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-5 rounded-xl text-sm transition cursor-pointer w-full">Apply Division Filter</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-slate-900 text-slate-300 text-xs py-4 px-6 text-center border-t border-slate-800 mt-12">
         <p class="font-medium">Developed by <span class="text-white font-bold">Kapil Rajput</span>, PA, Regional Office Indore</p>
@@ -245,6 +273,7 @@
         let currentFilteredRows = [];
         let modalExportData = [];
         let globalAllFilteredOffices = [];
+        let tempParsedData = [];
 
         async function loadMasterData() {
             try {
@@ -323,6 +352,15 @@
                 divSelect.appendChild(opt);
             });
 
+            const modalDivSelect = document.getElementById('modalDivisionSelect');
+            modalDivSelect.innerHTML = "";
+            divs.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.textContent = d;
+                modalDivSelect.appendChild(opt);
+            });
+
             const cats = [...new Set(Object.values(serviceMapping))].filter(Boolean).sort();
             const catSelect = document.getElementById('filterCategory');
             catSelect.innerHTML = '<option value="All">All Categories</option>';
@@ -366,7 +404,7 @@
                 };
             });
 
-            // 2. Filter Master Offices
+            // 2. Filter Master Offices based on Division and Class (and apply Class/Category filter to activity table)
             const filteredOfficesMap = {};
             Object.entries(masterOfficesMap).forEach(([id, m]) => {
                 if (selDiv !== "All" && m.division !== selDiv) return;
@@ -384,7 +422,7 @@
 
             currentFilteredRows = filteredRows;
 
-            // Office Totals with Category Breakdown
+            // Office Totals with Category Breakdown (Honoring Class & Category filters for activity status)
             const officeTotals = {};
             Object.keys(filteredOfficesMap).forEach(id => {
                 officeTotals[id] = { 
@@ -659,11 +697,11 @@
                     tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
                     tr.innerHTML = `
                         <td class="py-3 px-5 font-bold text-slate-900">${item.division}</td>
-                        <td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-700 hover:underline" onclick="openOfficeListModal('${item.division}', 'All Offices', ${JSON.stringify(item.offices).replace(/"/g, '&quot;')})">${tCount}</td>
-                        <td class="py-3 px-3 text-center font-bold text-emerald-700 cursor-pointer hover:underline bg-emerald-50/40" onclick="openOfficeListModal('${item.division}', 'Active Offices (>0)', ${JSON.stringify(item.active).replace(/"/g, '&quot;')})">${item.active.length}</td>
-                        <td class="py-3 px-3 text-center font-bold text-rose-700 cursor-pointer hover:underline bg-rose-50/40" onclick="openOfficeListModal('${item.division}', 'Nil Booking Offices (0)', ${JSON.stringify(item.nil).replace(/"/g, '&quot;')})">${nCount}</td>
+                        <td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-700 hover:underline" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "All Offices", ${JSON.stringify(item.offices)})'>${tCount}</td>
+                        <td class="py-3 px-3 text-center font-bold text-emerald-700 cursor-pointer hover:underline bg-emerald-50/40" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "Active Offices (>0)", ${JSON.stringify(item.active)})'>${item.active.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-rose-700 cursor-pointer hover:underline bg-rose-50/40" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "Nil Booking Offices (0)", ${JSON.stringify(item.nil)})'>${nCount}</td>
                         <td class="py-3 px-3 text-center font-semibold text-rose-800 bg-rose-50/20">${nilPct}</td>
-                        <td class="py-3 px-3 text-center font-bold text-indigo-700 cursor-pointer hover:underline bg-indigo-50/40" onclick="openOfficeListModal('${item.division}', 'Offices > 10 Articles', ${JSON.stringify(item.above10).replace(/"/g, '&quot;')})">${a10Count}</td>
+                        <td class="py-3 px-3 text-center font-bold text-indigo-700 cursor-pointer hover:underline bg-indigo-50/40" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "Offices > 10 Articles", ${JSON.stringify(item.above10)})'>${a10Count}</td>
                         <td class="py-3 px-3 text-center font-semibold text-indigo-800 bg-indigo-50/20">${a10Pct}</td>
                     `;
                     tbody.appendChild(tr);
@@ -722,16 +760,17 @@
                     totalNilSum += nCount;
                     totalAbove10Sum += a10Count;
 
+                    const titlePrefix = `${item.division} - ${item.sd}`;
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
                     tr.innerHTML = `
                         <td class="py-3 px-4 font-semibold text-slate-900">${item.division}</td>
                         <td class="py-3 px-4 font-bold text-blue-700">${item.sd}</td>
-                        <td class="py-3 px-2 text-center font-semibold cursor-pointer text-blue-700 hover:underline" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'All Offices', ${JSON.stringify(item.offices).replace(/"/g, '&quot;')})">${tCount}</td>
-                        <td class="py-3 px-2 text-center font-bold text-emerald-700 cursor-pointer hover:underline bg-emerald-50/40" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'Active Offices', ${JSON.stringify(item.active).replace(/"/g, '&quot;')})">${item.active.length}</td>
-                        <td class="py-3 px-2 text-center font-bold text-rose-700 cursor-pointer hover:underline bg-rose-50/40" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'Nil Booking Offices', ${JSON.stringify(item.nil).replace(/"/g, '&quot;')})">${nCount}</td>
+                        <td class="py-3 px-2 text-center font-semibold cursor-pointer text-blue-700 hover:underline" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "All Offices", ${JSON.stringify(item.offices)})'>${tCount}</td>
+                        <td class="py-3 px-2 text-center font-bold text-emerald-700 cursor-pointer hover:underline bg-emerald-50/40" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "Active Offices", ${JSON.stringify(item.active)})'>${item.active.length}</td>
+                        <td class="py-3 px-2 text-center font-bold text-rose-700 cursor-pointer hover:underline bg-rose-50/40" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "Nil Booking Offices", ${JSON.stringify(item.nil)})'>${nCount}</td>
                         <td class="py-3 px-2 text-center font-semibold text-rose-800 bg-rose-50/20">${nilPct}</td>
-                        <td class="py-3 px-2 text-center font-bold text-indigo-700 cursor-pointer hover:underline bg-indigo-50/40" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'Offices > 10 Articles', ${JSON.stringify(item.above10).replace(/"/g, '&quot;')})">${a10Count}</td>
+                        <td class="py-3 px-2 text-center font-bold text-indigo-700 cursor-pointer hover:underline bg-indigo-50/40" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "Offices > 10 Articles", ${JSON.stringify(item.above10)})'>${a10Count}</td>
                         <td class="py-3 px-2 text-center font-semibold text-indigo-800 bg-indigo-50/20">${a10Pct}</td>
                     `;
                     tbody.appendChild(tr);
@@ -899,6 +938,7 @@
             XLSX.writeFile(wb, "Booking_Count_Calculator_Complete_Report.xlsx");
         }
 
+        // Handle File Upload & Popup Prompt
         document.getElementById('rawFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -912,7 +952,7 @@
                     const worksheet = workbook.Sheets[firstSheetName];
                     const json = XLSX.utils.sheet_to_json(worksheet);
 
-                    const parsedData = json.map(row => {
+                    tempParsedData = json.map(row => {
                         return {
                             officeId: String(row["office-id"] || row["Office ID"] || row["office_id"] || Object.values(row)[0] || "").trim(),
                             service: String(row["product-name"] || row["Service Name"] || row["service"] || Object.values(row)[2] || "").trim(),
@@ -921,10 +961,9 @@
                         };
                     }).filter(item => item.officeId && item.service);
 
-                    if (parsedData.length > 0) {
-                        rawData = parsedData;
-                        alert(`Successfully loaded ${rawData.length} transaction rows!`);
-                        updateDashboard();
+                    if (tempParsedData.length > 0) {
+                        // Show popup modal for Region vs Division
+                        document.getElementById('uploadTypeModal').classList.remove('hidden');
                     } else {
                         alert("Could not detect valid columns. Please check your raw file headers.");
                     }
@@ -934,6 +973,35 @@
             };
             reader.readAsArrayBuffer(file);
         });
+
+        function handleUploadChoice(choice) {
+            document.getElementById('uploadTypeModal').classList.add('hidden');
+            if (choice === 'region') {
+                rawData = tempParsedData;
+                alert(`Successfully loaded ${rawData.length} regional transaction rows!`);
+                updateDashboard();
+            } else {
+                // Show Division selection modal
+                document.getElementById('divisionSelectModal').classList.remove('hidden');
+            }
+        }
+
+        function confirmDivisionChoice() {
+            const selectedDiv = document.getElementById('modalDivisionSelect').value;
+            document.getElementById('divisionSelectModal').classList.add('hidden');
+
+            // Filter tempParsedData strictly for offices belonging to selected Division
+            rawData = tempParsedData.filter(item => {
+                const m = masterOfficesMap[item.officeId];
+                return m && m.division === selectedDiv;
+            });
+
+            // Automatically set the global division filter to this division
+            document.getElementById('filterDivision').value = selectedDiv;
+
+            alert(`Successfully loaded ${rawData.length} transaction rows for ${selectedDiv} Division!`);
+            updateDashboard();
+        }
 
         document.getElementById('filterDivision').addEventListener('change', updateDashboard);
         document.getElementById('filterClass').addEventListener('change', updateDashboard);
