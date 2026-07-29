@@ -103,11 +103,11 @@
                     <button onclick="shareSingleTable('tableDivisionSummary', 'Summary Report')" class="bg-indigo-700 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto p-4">
                 <table class="w-full text-left border-collapse" id="tableDivisionSummary">
-                    <thead><tr class="report-header text-xs font-bold border-b border-amber-900 uppercase"></tr></thead>
-                    <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700"></tbody>
-                    <tfoot class="font-bold text-xs md:text-sm"></tfoot>
+                    <thead></thead>
+                    <tbody></tbody>
+                    <tfoot></tfoot>
                 </table>
             </div>
         </div>
@@ -126,11 +126,11 @@
                     <button onclick="shareSingleTable('tableActivitySummary', 'Activity Status Report')" class="bg-indigo-700 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto p-4">
                 <table class="w-full text-left border-collapse" id="tableActivitySummary">
-                    <thead><tr class="report-header text-xs font-bold border-b border-amber-900 uppercase"></tr></thead>
-                    <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700"></tbody>
-                    <tfoot class="font-bold text-xs md:text-sm"></tfoot>
+                    <thead></thead>
+                    <tbody></tbody>
+                    <tfoot></tfoot>
                 </table>
             </div>
         </div>
@@ -146,10 +146,10 @@
                         <button onclick="shareSingleTable('tableTop10', 'Top 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2 py-1 rounded shadow cursor-pointer">📤 Share</button>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto p-4">
                     <table class="w-full text-left border-collapse" id="tableTop10">
                         <thead><tr class="bg-[#FDF3E6] text-[#4B1D24] text-xs font-bold uppercase"><th class="py-2.5 px-4">Office Name</th><th class="py-2.5 px-4">Division / SD</th><th class="py-2.5 px-4 text-right">Articles</th></tr></thead>
-                        <tbody class="text-xs divide-y divide-amber-100"></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -162,10 +162,10 @@
                         <button onclick="shareSingleTable('tableBottom10', 'Bottom 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2 py-1 rounded shadow cursor-pointer">📤 Share</button>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto p-4">
                     <table class="w-full text-left border-collapse" id="tableBottom10">
                         <thead><tr class="bg-[#FDF3E6] text-[#4B1D24] text-xs font-bold uppercase"><th class="py-2.5 px-4">Office Name</th><th class="py-2.5 px-4">Division / SD</th><th class="py-2.5 px-4 text-right">Articles</th></tr></thead>
-                        <tbody class="text-xs divide-y divide-amber-100"></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -177,9 +177,7 @@
     <div id="drilldownModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-amber-300">
             <div class="report-header px-6 py-4 flex justify-between items-center">
-                <div>
-                    <h3 id="modalTitle" class="font-bold text-lg">Office Details List</h3>
-                </div>
+                <h3 id="modalTitle" class="font-bold text-lg">Office Details List</h3>
                 <div class="flex items-center gap-2">
                     <button onclick="exportModalToExcel()" class="bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
                     <button onclick="exportSingleTableToPDF('tableModalOffices', 'Office Details')" class="bg-rose-800 text-white text-xs px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 1-Page PDF</button>
@@ -201,7 +199,7 @@
                                 <th class="py-3 px-4 text-right">Total Postage (Rupye)</th>
                             </tr>
                         </thead>
-                        <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700"></tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -319,12 +317,14 @@
         }
 
         function renderSummaryTable(filteredRows, viewType) {
-            const thead = document.querySelector('#tableDivisionSummary thead');
-            const tbody = document.querySelector('#tableDivisionSummary tbody');
-            tbody.innerHTML = ""; tfoot.innerHTML = "";
+            const table = document.querySelector('#tableDivisionSummary');
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+            const tfoot = table.querySelector('tfoot');
+            thead.innerHTML = ""; tbody.innerHTML = ""; tfoot.innerHTML = "";
 
             if (viewType === 'division') {
-                thead.innerHTML = `<tr class="report-header text-xs font-bold border-b border-amber-900 uppercase"><th class="py-3 px-5">Division Name</th><th class="py-3 px-3 text-center">Offices</th><th class="py-3 px-3 text-right">Parcel (Art)</th><th class="py-3 px-3 text-right">MO (Art)</th><th class="py-3 px-3 text-right">IRGB (Art)</th><th class="py-3 px-4 text-right">Total Art</th><th class="py-3 px-4 text-right">Total Postage (Rupye)</th></tr>`;
+                thead.innerHTML = `<tr class="report-header text-xs font-bold uppercase"><th class="py-3 px-5">Division Name</th><th class="py-3 px-3 text-center">Offices</th><th class="py-3 px-3 text-right">Parcel (Art)</th><th class="py-3 px-3 text-right">MO (Art)</th><th class="py-3 px-3 text-right">IRGB (Art)</th><th class="py-3 px-4 text-right">Total Art</th><th class="py-3 px-4 text-right">Total Postage (Rupye)</th></tr>`;
                 const divMap = {};
                 filteredRows.forEach(row => {
                     if (!divMap[row.division]) divMap[row.division] = { division: row.division, offices: new Set(), cats: { PARCEL:{a:0}, MO:{a:0}, IRGB:{a:0} }, totalArt: 0, totalPostage: 0 };
@@ -334,12 +334,12 @@
                 });
                 Object.values(divMap).forEach(item => {
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                    tr.className = "hover:bg-amber-50 border-b border-amber-100 text-xs md:text-sm";
                     tr.innerHTML = `<td class="py-3 px-5 font-bold text-[#4B1D24]">${item.division}</td><td class="py-3 px-3 text-center">${item.offices.size}</td><td class="py-3 px-3 text-right">${item.cats.PARCEL.a}</td><td class="py-3 px-3 text-right">${item.cats.MO.a}</td><td class="py-3 px-3 text-right">${item.cats.IRGB.a}</td><td class="py-3 px-4 text-right font-extrabold text-[#4B1D24] bg-[#FDF3E6]">${item.totalArt}</td><td class="py-3 px-4 text-right font-extrabold text-emerald-800">${item.totalPostage.toLocaleString('en-IN')}</td>`;
                     tbody.appendChild(tr);
                 });
             } else {
-                thead.innerHTML = `<tr class="report-header text-xs font-bold border-b border-amber-900 uppercase"><th class="py-3 px-4">Division Name</th><th class="py-3 px-4">Sub-Division (SD)</th><th class="py-3 px-2 text-center">Offices</th><th class="py-3 px-2 text-right">Parcel</th><th class="py-3 px-2 text-right">MO</th><th class="py-3 px-2 text-right">IRGB</th><th class="py-3 px-3 text-right">Total Art</th><th class="py-3 px-3 text-right">Postage (Rupye)</th></tr>`;
+                thead.innerHTML = `<tr class="report-header text-xs font-bold uppercase"><th class="py-3 px-4">Division Name</th><th class="py-3 px-4">Sub-Division (SD)</th><th class="py-3 px-2 text-center">Offices</th><th class="py-3 px-2 text-right">Parcel</th><th class="py-3 px-2 text-right">MO</th><th class="py-3 px-2 text-right">IRGB</th><th class="py-3 px-3 text-right">Total Art</th><th class="py-3 px-3 text-right">Postage (Rupye)</th></tr>`;
                 const divGroups = {};
                 filteredRows.forEach(row => { if (!divGroups[row.division]) divGroups[row.division] = []; divGroups[row.division].push(row); });
                 
@@ -354,7 +354,7 @@
                     const subEntries = Object.entries(subMap);
                     subEntries.forEach(([sdName, data], index) => {
                         const tr = document.createElement('tr');
-                        tr.className = "hover:bg-amber-50 border-b border-amber-100 cursor-pointer";
+                        tr.className = "hover:bg-amber-50 border-b border-amber-100 cursor-pointer text-xs md:text-sm";
                         tr.onclick = () => openDrilldown(sdName, divName);
                         let divisionCellHTML = index === 0 ? `<td rowspan="${subEntries.length}" class="py-3 px-4 font-extrabold text-[#4B1D24] bg-[#FDF3E6] align-middle border-r border-amber-200">${divName}</td>` : '';
                         tr.innerHTML = `${divisionCellHTML}<td class="py-3 px-4 font-bold text-blue-900">${sdName}</td><td class="py-3 px-2 text-center">${data.offices.size}</td><td class="py-3 px-2 text-right">${data.cats.PARCEL.a}</td><td class="py-3 px-2 text-right">${data.cats.MO.a}</td><td class="py-3 px-2 text-right">${data.cats.IRGB.a}</td><td class="py-3 px-3 text-right font-bold text-[#4B1D24] bg-[#FDF3E6]">${data.totalArt}</td><td class="py-3 px-3 text-right font-bold text-emerald-800">${data.totalPostage.toLocaleString('en-IN')}</td>`;
@@ -365,10 +365,11 @@
         }
 
         function renderActivityTable(allOffices, viewType) {
-            const thead = document.querySelector('#tableActivitySummary thead');
-            const tbody = document.querySelector('#tableActivitySummary tbody');
-            tbody.innerHTML = "";
-            thead.innerHTML = `<tr class="report-header text-xs font-bold border-b border-amber-900 uppercase"><th class="py-3 px-5">Division Name</th><th class="py-3 px-4">Sub-Division</th><th class="py-3 px-3 text-center">Total Offices</th><th class="py-3 px-3 text-center text-emerald-300">Active (>0)</th><th class="py-3 px-3 text-center text-rose-300">Nil (0)</th><th class="py-3 px-3 text-center text-indigo-300">> 10 Articles</th></tr>`;
+            const table = document.querySelector('#tableActivitySummary');
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+            thead.innerHTML = ""; tbody.innerHTML = "";
+            thead.innerHTML = `<tr class="report-header text-xs font-bold uppercase"><th class="py-3 px-5">Division Name</th><th class="py-3 px-4">Sub-Division</th><th class="py-3 px-3 text-center">Total Offices</th><th class="py-3 px-3 text-center text-emerald-300">Active (>0)</th><th class="py-3 px-3 text-center text-rose-300">Nil (0)</th><th class="py-3 px-3 text-center text-indigo-300">> 10 Articles</th></tr>`;
             
             const subActMap = {};
             allOffices.forEach(o => {
@@ -381,7 +382,7 @@
 
             Object.values(subActMap).forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                tr.className = "hover:bg-amber-50 border-b border-amber-100 text-xs md:text-sm";
                 tr.innerHTML = `<td class="py-3 px-5 font-bold text-[#4B1D24]">${item.division}</td><td class="py-3 px-4 font-bold text-blue-900">${item.sd}</td><td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-800 hover:underline" onclick='openOfficeListModal("${item.division} - ${item.sd}", "All Offices", ${JSON.stringify(item.offices)})'>${item.offices.length}</td><td class="py-3 px-3 text-center font-bold text-[#0B6623] bg-emerald-50/40" onclick='openOfficeListModal("${item.division} - ${item.sd}", "Active", ${JSON.stringify(item.active)})'>${item.active.length}</td><td class="py-3 px-3 text-center font-bold text-[#8B0000] bg-rose-50/40" onclick='openOfficeListModal("${item.division} - ${item.sd}", "Nil", ${JSON.stringify(item.nil)})'>${item.nil.length}</td><td class="py-3 px-3 text-center font-bold text-indigo-800 bg-indigo-50/40" onclick='openOfficeListModal("${item.division} - ${item.sd}", "> 10", ${JSON.stringify(item.above10)})'>${item.above10.length}</td>`;
                 tbody.appendChild(tr);
             });
@@ -396,7 +397,7 @@
                 tBody.innerHTML = "";
                 (idx === 0 ? top10 : bottom10).forEach(o => {
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                    tr.className = "hover:bg-amber-50 border-b border-amber-100 text-xs";
                     tr.innerHTML = `<td class="py-2.5 px-4 font-medium">${o.name} <span class="text-slate-400 text-[10px]">(${o.officeId})</span></td><td class="py-2.5 px-4 text-slate-600">${o.division} / ${o.sd}</td><td class="py-2.5 px-4 text-right font-bold ${idx === 0 ? 'text-[#0B6623]' : 'text-[#8B0000]'}">${o.articles}</td>`;
                     tBody.appendChild(tr);
                 });
@@ -429,7 +430,7 @@
             modalBody.innerHTML = "";
             dataArray.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                tr.className = "hover:bg-amber-50 border-b border-amber-100 text-xs";
                 tr.innerHTML = `<td class="py-3 px-4 font-semibold">${item.officeName} <span class="text-xs text-slate-400">(${item.officeId})</span></td><td class="py-3 px-4"><span class="bg-amber-100 text-[#4B1D24] text-xs px-2 py-1 rounded font-bold">${item.officeClass || 'BO'}</span></td><td class="py-3 px-4 text-xs text-slate-600">${item.division} / ${item.sd}</td><td class="py-3 px-4 text-center text-xs"><b>${item.cats.PARCEL.articles || item.cats.PARCEL.a || 0}</b></td><td class="py-3 px-4 text-center text-xs"><b>${item.cats.MO.articles || item.cats.MO.a || 0}</b></td><td class="py-3 px-4 text-center text-xs"><b>${item.cats.IRGB.articles || item.cats.IRGB.a || 0}</b></td><td class="py-3 px-4 text-right font-extrabold text-[#4B1D24]">${(item.totalArt || 0)}</td><td class="py-3 px-4 text-right font-extrabold text-emerald-800">${(item.totalPost || item.totalPostage || 0).toLocaleString('en-IN')}</td>`;
                 modalBody.appendChild(tr);
             });
@@ -440,25 +441,25 @@
         function exportModalToExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(modalExportData), "Details"), "Office_Details.xlsx"); }
         function exportAllToExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.table_to_book(document.getElementById('tableDivisionSummary')).Sheets["Sheet1"], "Summary"), XLSX.utils.table_to_book(document.getElementById('tableActivitySummary')).Sheets["Sheet1"], "Activity"), "Complete_Report.xlsx"); }
 
-        // Enforced Single Page Landscape PDF Export with Exact Theme Styling
+        // Strict Single Page Landscape PDF Export
         function exportSingleTableToPDF(tableId, titleText) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4'); // Landscape A4
-            doc.setFillColor(75, 29, 36); doc.rect(0, 0, 297, 14, "F");
-            doc.setTextColor(255, 255, 255); doc.setFontSize(11); doc.setFont("helvetica", "bold");
-            doc.text("Department of Posts - " + titleText + " (Rupye)", 10, 9);
+            doc.setFillColor(75, 29, 36); doc.rect(0, 0, 297, 12, "F");
+            doc.setTextColor(255, 255, 255); doc.setFontSize(10); doc.setFont("helvetica", "bold");
+            doc.text("Department of Posts - " + titleText + " (Rupye)", 8, 8);
             
             doc.autoTable({
                 html: '#' + tableId,
-                startY: 16,
+                startY: 14,
                 theme: 'grid',
-                styles: { fontSize: 6.5, cellPadding: 1, overflow: 'linebreak' },
-                headStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7, cellPadding: 1.2 },
+                styles: { fontSize: 6, cellPadding: 0.8, overflow: 'linebreak' },
+                headStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 6.5, cellPadding: 1 },
                 alternateRowStyles: { fillColor: [253, 243, 230] },
-                margin: { top: 16, right: 8, bottom: 8, left: 8 },
+                margin: { top: 14, right: 6, bottom: 6, left: 6 },
                 tableWidth: 'auto'
             });
-            doc.save(titleText.replace(/\s+/g, '_') + "_SinglePage_Report.pdf");
+            doc.save(titleText.replace(/\s+/g, '_') + "_SinglePage.pdf");
         }
 
         function exportAllToPDF() { exportSingleTableToPDF('tableDivisionSummary', 'Summary Report'); }
@@ -466,9 +467,9 @@
         async function shareSingleTable(tableId, titleText) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
-            doc.setFillColor(75, 29, 36); doc.rect(0, 0, 297, 14, "F");
-            doc.setTextColor(255, 255, 255); doc.text("Department of Posts - " + titleText, 10, 9);
-            doc.autoTable({ html: '#' + tableId, startY: 16, theme: 'grid', styles: { fontSize: 6.5, cellPadding: 1 }, headStyles: { fillColor: [75, 29, 36] } });
+            doc.setFillColor(75, 29, 36); doc.rect(0, 0, 297, 12, "F");
+            doc.setTextColor(255, 255, 255); doc.text("Department of Posts - " + titleText, 8, 8);
+            doc.autoTable({ html: '#' + tableId, startY: 14, theme: 'grid', styles: { fontSize: 6, cellPadding: 0.8 }, headStyles: { fillColor: [75, 29, 36] } });
             const pdfBlob = doc.output('blob');
             const file = new File([pdfBlob], titleText.replace(/\s+/g, '_') + ".pdf", { type: "application/pdf" });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
