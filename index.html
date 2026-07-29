@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department of Posts - Transaction & Office Analytics Portal</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS for parsing uploaded Excel/CSV files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white shadow-md py-4 px-6 mb-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">📮 Postal Transaction & Office Reporting Portal</h1>
+                <p class="text-xs text-slate-300 mt-1">Master Office & Service Mapping Integrated Dashboard</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex items-center space-x-2">
+                <span id="masterStatus" class="bg-amber-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">Loading Master Data...</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 pb-12 space-y-6">
+
+        <!-- Controls Section: File Upload & Filters -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">1. Upload Raw Website Excel</label>
+                <input type="file" id="rawFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-200 rounded-lg p-1"/>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Select Division</label>
+                <select id="filterDivision" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500">
+                    <option value="All">All Divisions</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Select Office Class</label>
+                <select id="filterClass" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500">
+                    <option value="All">All Classes (HO, SO, BO)</option>
+                    <option value="HO">HO</option>
+                    <option value="SO">SO</option>
+                    <option value="BO">BO</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Select Category</label>
+                <select id="filterCategory" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500">
+                    <option value="All">All Categories</option>
+                    <option value="MO">MO</option>
+                    <option value="PARCEL">PARCEL</option>
+                    <option value="IRGB">IRGB</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600">
+                <p class="text-xs font-semibold text-slate-500 uppercase">Total Articles Booked</p>
+                <p id="kpiArticles" class="text-3xl font-bold text-slate-800 mt-2">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-600">
+                <p class="text-xs font-semibold text-slate-500 uppercase">Total Postage Collected</p>
+                <p id="kpiPostage" class="text-3xl font-bold text-slate-800 mt-2">₹ 0.00</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-indigo-600">
+                <p class="text-xs font-semibold text-slate-500 uppercase">Active Offices / Total</p>
+                <p id="kpiOffices" class="text-3xl font-bold text-slate-800 mt-2">0 / 0</p>
+            </div>
+        </div>
+
+        <!-- Section 1: Division & Sub-Division Summary -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-bold text-slate-700 text-base">📊 Division & Sub-Division Wise Summary</h2>
+                <span class="text-xs text-slate-500">Aggregated Article & Postage Totals</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse" id="tableDivisionSummary">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 text-xs font-semibold border-b border-slate-200 uppercase">
+                            <th class="py-3 px-6">Division Name</th>
+                            <th class="py-3 px-6">Sub Division Name</th>
+                            <th class="py-3 px-6 text-center">Total Offices</th>
+                            <th class="py-3 px-6 text-right">Articles Booked</th>
+                            <th class="py-3 px-6 text-right">Postage Collected (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm divide-y divide-slate-100 text-slate-700">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 2: Office Activity & Threshold Status -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-bold text-slate-700 text-base">🏢 Office Activity Status (Active, Nil Booking & >10 Transactions)</h2>
+                <span class="text-xs text-slate-500">Division-wise Office Performance</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse" id="tableActivitySummary">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 text-xs font-semibold border-b border-slate-200 uppercase">
+                            <th class="py-3 px-6">Division Name</th>
+                            <th class="py-3 px-6 text-center">Total Offices</th>
+                            <th class="py-3 px-6 text-center text-emerald-600">Active Offices (>0)</th>
+                            <th class="py-3 px-6 text-center text-rose-600">Nil Booking Offices (0)</th>
+                            <th class="py-3 px-6 text-center text-indigo-600">Offices > 10 Txns</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm divide-y divide-slate-100 text-slate-700">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const MASTER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=0&single=true&output=csv";
+        const MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1575541045&single=true&output=csv";
+
+        let masterOffices = [];
+        let serviceMapping = {};
+        let rawData = [];
+
+        // Fallback sample data if offline
+        const fallbackMaster = [
+            { id: "IND001", name: "Indore G.P.O.", subDn: "Indore City Sub Dn", div: "Indore Division", class: "HO" },
+            { id: "IND002", name: "AB Road S.O.", subDn: "Indore City Sub Dn", div: "Indore Division", class: "SO" },
+            { id: "IND003", name: "Rsapura B.O.", subDn: "Indore City Sub Dn", div: "Indore Division", class: "BO" },
+            { id: "IND004", name: "Vijay Nagar S.O.", subDn: "Indore North Sub Dn", div: "Indore Division", class: "SO" },
+            { id: "IND006", name: "Dewas H.O.", subDn: "Dewas Sub Dn", div: "Dewas Division", class: "HO" },
+            { id: "IND008", name: "Bhopal G.P.O.", subDn: "Bhopal City Sub Dn", div: "Bhopal Division", class: "HO" }
+        ];
+
+        const fallbackMapping = {
+            "Speed Post": "MO",
+            "Speed Post Parcel": "PARCEL",
+            "Retail Parcel": "PARCEL",
+            "International EMS": "IRGB",
+            "Registered Post": "MO"
+        };
+
+        const fallbackRaw = [
+            { officeId: "IND001", service: "Speed Post", articles: 150, postage: 7500 },
+            { officeId: "IND001", service: "Retail Parcel", articles: 25, postage: 3750 },
+            { officeId: "IND002", service: "Speed Post", articles: 45, postage: 2250 },
+            { officeId: "IND006", service: "Speed Post", articles: 200, postage: 10000 },
+            { officeId: "IND008", service: "Speed Post", articles: 350, postage: 17500 }
+        ];
+
+        // Fetch Google Sheet CSVs automatically on load
+        async function loadMasterData() {
+            try {
+                const [masterRes, mapRes] = await Promise.all([
+                    fetch(MASTER_CSV_URL),
+                    fetch(MAPPING_CSV_URL)
+                ]);
+
+                const masterText = await masterRes.text();
+                const mapText = await mapRes.text();
+
+                // Parse Master CSV
+                const masterParsed = XLSX.read(masterText, {type: 'string'});
+                const masterJson = XLSX.utils.sheet_to_json(masterParsed.Sheets[masterParsed.SheetNames[0]]);
+                
+                masterOffices = masterJson.map(row => ({
+                    id: String(row["Office ID"] || row["office_id"] || Object.values(row)[0] || "").trim(),
+                    name: String(row["Post Office Name"] || row["office_name"] || Object.values(row)[1] || "").trim(),
+                    subDn: String(row["Sub Division Name"] || row["subdivision"] || Object.values(row)[2] || "").trim(),
+                    div: String(row["Division Name"] || row["division"] || Object.values(row)[3] || "").trim(),
+                    class: String(row["Class"] || row["class"] || Object.values(row)[4] || "BO").trim()
+                })).filter(o => o.id);
+
+                // Parse Mapping CSV
+                const mapParsed = XLSX.read(mapText, {type: 'string'});
+                const mapJson = XLSX.utils.sheet_to_json(mapParsed.Sheets[mapParsed.SheetNames[0]]);
+                
+                serviceMapping = {};
+                mapJson.forEach(row => {
+                    const sName = String(row["Service Name"] || row["service"] || Object.values(row)[0] || "").trim();
+                    const cName = String(row["Category"] || row["category"] || Object.values(row)[1] || "IRGB").trim();
+                    if (sName) serviceMapping[sName] = cName;
+                });
+
+                document.getElementById('masterStatus').textContent = `Master Loaded (${masterOffices.length} Offices)`;
+                document.getElementById('masterStatus').className = "bg-emerald-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm text-white";
+            } catch (err) {
+                console.warn("Could not fetch Google Sheets directly (CORS/Network). Using built-in sample data.", err);
+                masterOffices = fallbackMaster;
+                serviceMapping = fallbackMapping;
+                rawData = fallbackRaw;
+                document.getElementById('masterStatus').textContent = `Loaded Offline Sample Data`;
+                document.getElementById('masterStatus').className = "bg-blue-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm text-white";
+            }
+
+            initDropdowns();
+            updateDashboard();
+        }
+
+        function initDropdowns() {
+            const divs = [...new Set(masterOffices.map(d => d.div))].sort();
+            const divSelect = document.getElementById('filterDivision');
+            // Keep "All"
+            divSelect.innerHTML = '<option value="All">All Divisions</option>';
+            divs.forEach(d => {
+                if (d) {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = d;
+                    divSelect.appendChild(opt);
+                }
+            });
+        }
+
+        function updateDashboard() {
+            const selDiv = document.getElementById('filterDivision').value;
+            const selClass = document.getElementById('filterClass').value;
+            const selCat = document.getElementById('filterCategory').value;
+
+            // Map raw data with master & category
+            const processed = rawData.map(item => {
+                const master = masterOffices.find(m => m.id === item.officeId) || { name: "Unknown", subDn: "Unknown", div: "Unknown", class: "UNKNOWN" };
+                const cat = serviceMapping[item.service] || "IRGB";
+                return {
+                    ...item,
+                    officeName: master.name,
+                    subDivision: master.subDn,
+                    division: master.div,
+                    officeClass: master.class,
+                    category: cat
+                };
+            });
+
+            // Filter data
+            const filtered = processed.filter(item => {
+                if (selDiv !== "All" && item.division !== selDiv) return false;
+                if (selClass !== "All" && item.officeClass !== selClass) return false;
+                if (selCat !== "All" && item.category !== selCat) return false;
+                return true;
+            });
+
+            // KPIs
+            const totalArticles = filtered.reduce((acc, curr) => acc + curr.articles, 0);
+            const totalPostage = filtered.reduce((acc, curr) => acc + curr.postage, 0);
+
+            document.getElementById('kpiArticles').textContent = totalArticles.toLocaleString('en-IN');
+            document.getElementById('kpiPostage').textContent = '₹ ' + totalPostage.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+            // Office Activity calculation across master offices
+            const officeTotals = {};
+            masterOffices.forEach(m => {
+                officeTotals[m.id] = { ...m, articles: 0, txns: 0 };
+            });
+
+            processed.forEach(item => {
+                if (officeTotals[item.officeId]) {
+                    officeTotals[item.officeId].articles += item.articles;
+                    officeTotals[item.officeId].txns += 1;
+                }
+            });
+
+            const officeArray = Object.values(officeTotals);
+            let activeOfficesCount = officeArray.filter(o => o.articles > 0).length;
+            document.getElementById('kpiOffices').textContent = `${activeOfficesCount} / ${masterOffices.length}`;
+
+            // Table 1: Division & Sub-Division Summary
+            const subDivMap = {};
+            filtered.forEach(item => {
+                const key = item.division + "||" + item.subDivision;
+                if (!subDivMap[key]) {
+                    subDivMap[key] = { division: item.division, subDivision: item.subDivision, offices: new Set(), articles: 0, postage: 0 };
+                }
+                subDivMap[key].offices.add(item.officeId);
+                subDivMap[key].articles += item.articles;
+                subDivMap[key].postage += item.postage;
+            });
+
+            const tbody1 = document.querySelector('#tableDivisionSummary tbody');
+            tbody1.innerHTML = "";
+            
+            if (Object.keys(subDivMap).length === 0) {
+                tbody1.innerHTML = `<tr><td colspan="5" class="py-4 px-6 text-center text-slate-400">No records found for selected filters. Please upload raw website data.</td></tr>`;
+            } else {
+                Object.values(subDivMap).forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
+                    tr.innerHTML = `
+                        <td class="py-3 px-6 font-medium">${row.division}</td>
+                        <td class="py-3 px-6">${row.subDivision}</td>
+                        <td class="py-3 px-6 text-center">${row.offices.size}</td>
+                        <td class="py-3 px-6 text-right font-semibold">${row.articles.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-6 text-right font-semibold">₹ ${row.postage.toLocaleString('en-IN')}</td>
+                    `;
+                    tbody1.appendChild(tr);
+                });
+            }
+
+            // Table 2: Division Activity & Threshold (>10 transactions)
+            const divActivityMap = {};
+            masterOffices.forEach(m => {
+                if (!divActivityMap[m.div]) {
+                    divActivityMap[m.div] = { total: 0, active: 0, nil: 0, above10: 0 };
+                }
+                divActivityMap[m.div].total++;
+                const art = officeTotals[m.id].articles;
+                if (art > 0) {
+                    divActivityMap[m.div].active++;
+                } else {
+                    divActivityMap[m.div].nil++;
+                }
+                if (art > 10) {
+                    divActivityMap[m.div].above10++;
+                }
+            });
+
+            const tbody2 = document.querySelector('#tableActivitySummary tbody');
+            tbody2.innerHTML = "";
+            Object.entries(divActivityMap).forEach(([divName, data]) => {
+                if (selDiv === "All" || selDiv === divName) {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
+                    tr.innerHTML = `
+                        <td class="py-3 px-6 font-medium">${divName}</td>
+                        <td class="py-3 px-6 text-center">${data.total}</td>
+                        <td class="py-3 px-6 text-center text-emerald-600 font-semibold">${data.active}</td>
+                        <td class="py-3 px-6 text-center text-rose-600 font-semibold">${data.nil}</td>
+                        <td class="py-3 px-6 text-center text-indigo-600 font-semibold">${data.above10}</td>
+                    `;
+                    tbody2.appendChild(tr);
+                }
+            });
+        }
+
+        // Handle File Upload via SheetJS
+        document.getElementById('rawFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+
+                    const parsedData = json.map(row => {
+                        return {
+                            officeId: String(row["Office ID"] || row["officeId"] || row["Office_ID"] || Object.values(row)[0] || "").trim(),
+                            service: String(row["Service Name"] || row["service"] || row["Service"] || Object.values(row)[1] || "").trim(),
+                            articles: Number(row["Articles Booked"] || row["articles"] || row["Articles"] || Object.values(row)[2] || 0),
+                            postage: Number(row["Postage Collected"] || row["postage"] || row["Postage"] || Object.values(row)[3] || 0)
+                        };
+                    }).filter(item => item.officeId && item.service);
+
+                    if (parsedData.length > 0) {
+                        rawData = parsedData;
+                        alert(`Successfully loaded ${rawData.length} transaction rows from uploaded file!`);
+                        updateDashboard();
+                    } else {
+                        alert("Could not detect valid columns. Please ensure columns include Office ID, Service Name, Articles Booked, Postage Collected.");
+                    }
+                } catch (err) {
+                    alert("Error reading Excel file: " + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Event Listeners for Filters
+        document.getElementById('filterDivision').addEventListener('change', updateDashboard);
+        document.getElementById('filterClass').addEventListener('change', updateDashboard);
+        document.getElementById('filterCategory').addEventListener('change', updateDashboard);
+
+        // Run on load
+        loadMasterData();
+    </script>
+</body>
+</html>
