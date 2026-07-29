@@ -104,16 +104,17 @@
                 <table class="w-full text-left border-collapse" id="tableDivisionSummary">
                     <thead>
                         <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
-                            <!-- Dynamically populated headers for Category Breakdown -->
                         </tr>
                     </thead>
                     <tbody class="text-xs md:text-sm divide-y divide-slate-100 text-slate-700">
                     </tbody>
+                    <tfoot class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300 text-xs md:text-sm">
+                    </tfoot>
                 </table>
             </div>
         </div>
 
-        <!-- Section 2: Office Activity Status with View Type -->
+        <!-- Section 2: Office Activity Status with View Type & Percentages -->
         <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
             <div class="px-6 py-4 bg-slate-900 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
@@ -137,11 +138,12 @@
                 <table class="w-full text-left border-collapse" id="tableActivitySummary">
                     <thead>
                         <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
-                            <!-- Dynamically populated headers -->
                         </tr>
                     </thead>
                     <tbody class="text-xs md:text-sm divide-y divide-slate-100 text-slate-700">
                     </tbody>
+                    <tfoot class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300 text-xs md:text-sm">
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -190,7 +192,7 @@
 
     </main>
 
-    <!-- Detailed Offices Modal (for Sub-Division Drilldown or Activity Status Counts) -->
+    <!-- Detailed Offices Modal -->
     <div id="drilldownModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-slate-200">
             <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
@@ -242,6 +244,7 @@
         let rawData = [];          
         let currentFilteredRows = [];
         let modalExportData = [];
+        let globalAllFilteredOffices = [];
 
         async function loadMasterData() {
             try {
@@ -253,7 +256,6 @@
                 const masterText = await masterRes.text();
                 const mapText = await mapRes.text();
 
-                // Parse Master CSV (Now 2805 offices, Khudel BO removed)
                 const masterParsed = XLSX.read(masterText, {type: 'string'});
                 const masterJson = XLSX.utils.sheet_to_json(masterParsed.Sheets[masterParsed.SheetNames[0]]);
                 
@@ -270,7 +272,6 @@
                     }
                 });
 
-                // Parse Service Mapping CSV (2nd Sheet)
                 const mapParsed = XLSX.read(mapText, {type: 'string'});
                 const mapJson = XLSX.utils.sheet_to_json(mapParsed.Sheets[mapParsed.SheetNames[0]]);
                 
@@ -355,8 +356,8 @@
                 return {
                     officeId: item.officeId,
                     service: item.service,
-                    articles: item.articles,
-                    postage: item.postage,
+                    articles: Number(item.articles) || 0,
+                    postage: Number(item.postage) || 0,
                     officeName: master.name,
                     officeClass: master.class,
                     subDivision: master.sd,
@@ -413,9 +414,9 @@
                 }
             });
 
-            const allFilteredOffices = Object.values(officeTotals);
-            const totalOfficesCount = allFilteredOffices.length;
-            const activeOfficesCount = allFilteredOffices.filter(o => o.articles > 0).length;
+            globalAllFilteredOffices = Object.values(officeTotals);
+            const totalOfficesCount = globalAllFilteredOffices.length;
+            const activeOfficesCount = globalAllFilteredOffices.filter(o => o.articles > 0).length;
 
             // KPIs
             const totalArticles = filteredRows.reduce((acc, curr) => acc + curr.articles, 0);
@@ -425,20 +426,22 @@
             document.getElementById('kpiPostage').textContent = '₹ ' + totalPostage.toLocaleString('en-IN', {minimumFractionDigits: 2});
             document.getElementById('kpiOffices').textContent = `${activeOfficesCount} / ${totalOfficesCount}`;
 
-            // Render Summary Table (Division Wise or Sub-Division Wise with explicit category columns)
+            // Render Summary & Activity Tables
             renderSummaryTable(filteredRows, summaryView);
-
-            // Render Activity Table (Division Wise or Sub-Division Wise with clickable numbers)
-            renderActivityTable(allFilteredOffices, activityView);
-
-            // Top 10 & Bottom 10
-            renderTopBottom10(allFilteredOffices);
+            renderActivityTable(globalAllFilteredOffices, activityView);
+            renderTopBottom10(globalAllFilteredOffices);
         }
 
         function renderSummaryTable(filteredRows, viewType) {
             const thead = document.querySelector('#tableDivisionSummary thead');
             const tbody = document.querySelector('#tableDivisionSummary tbody');
+            const tfoot = document.querySelector('#tableDivisionSummary tfoot');
             tbody.innerHTML = "";
+            tfoot.innerHTML = "";
+
+            let grandOffices = 0;
+            let grandParcelArt = 0, grandMoArt = 0, grandIrgbArt = 0, grandTotalArt = 0;
+            let grandParcelPost = 0, grandMoPost = 0, grandIrgbPost = 0, grandTotalPost = 0;
 
             if (viewType === 'division') {
                 thead.innerHTML = `
@@ -460,7 +463,7 @@
                 filteredRows.forEach(row => {
                     const div = row.division;
                     if (!divMap[div]) {
-                        divMap[div] = { division: div, offices: new Set(), cats: { PARCEL:{a:0,p:0}, MO:{a:0,p:0}, IRGB:{a:0,p:0} }, totalArt: 0, totalPost: 0 };
+                        divMap[div] = { division: div, offices: new Set(), cats: { PARCEL:{a:0,p:0}, MO:{a:0,p:0}, IRGB:{a:0,p:0} }, totalArt: 0, totalPostage: 0 };
                     }
                     divMap[div].offices.add(row.officeId);
                     if (divMap[div].cats[row.category]) {
@@ -477,6 +480,17 @@
                 }
 
                 Object.values(divMap).forEach(item => {
+                    grandOffices += item.offices.size;
+                    grandParcelArt += item.cats.PARCEL.a;
+                    grandMoArt += item.cats.MO.a;
+                    grandIrgbArt += item.cats.IRGB.a;
+                    grandTotalArt += item.totalArt;
+
+                    grandParcelPost += item.cats.PARCEL.p;
+                    grandMoPost += item.cats.MO.p;
+                    grandIrgbPost += item.cats.IRGB.p;
+                    grandTotalPost += item.totalPostage;
+
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-blue-50/60 transition-colors border-b border-slate-100";
                     tr.innerHTML = `
@@ -489,13 +503,27 @@
                         <td class="py-3 px-3 text-right">₹ ${item.cats.PARCEL.p.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">₹ ${item.cats.MO.p.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">₹ ${item.cats.IRGB.p.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-4 text-right font-extrabold text-emerald-700 bg-emerald-50/50">₹ ${(item.totalPostage || 0).toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-4 text-right font-extrabold text-emerald-700 bg-emerald-50/50">₹ ${item.totalPostage.toLocaleString('en-IN')}</td>
                     `;
                     tbody.appendChild(tr);
                 });
 
+                tfoot.innerHTML = `
+                    <tr class="bg-slate-200 text-slate-900 font-extrabold border-t-2 border-slate-400">
+                        <td class="py-3 px-5">GRAND TOTAL</td>
+                        <td class="py-3 px-3 text-center">${grandOffices}</td>
+                        <td class="py-3 px-3 text-right">${grandParcelArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-right">${grandMoArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-right">${grandIrgbArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-4 text-right text-blue-800">${grandTotalArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-right">₹ ${grandParcelPost.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-right">₹ ${grandMoPost.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-right">₹ ${grandIrgbPost.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-4 text-right text-emerald-800">₹ ${grandTotalPost.toLocaleString('en-IN')}</td>
+                    </tr>
+                `;
+
             } else {
-                // Sub-Division Wise View
                 thead.innerHTML = `
                     <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
                         <th class="py-3 px-4">Division Name</th>
@@ -533,6 +561,17 @@
                 }
 
                 Object.values(subMap).forEach(item => {
+                    grandOffices += item.offices.size;
+                    grandParcelArt += item.cats.PARCEL.a;
+                    grandMoArt += item.cats.MO.a;
+                    grandIrgbArt += item.cats.IRGB.a;
+                    grandTotalArt += item.totalArt;
+
+                    grandParcelPost += item.cats.PARCEL.p;
+                    grandMoPost += item.cats.MO.p;
+                    grandIrgbPost += item.cats.IRGB.p;
+                    grandTotalPost += item.totalPostage;
+
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-blue-50/60 transition-colors border-b border-slate-100 cursor-pointer group";
                     tr.title = "Click to view offices under this Sub-Division";
@@ -548,26 +587,47 @@
                         <td class="py-3 px-2 text-right">₹ ${item.cats.PARCEL.p.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-2 text-right">₹ ${item.cats.MO.p.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-2 text-right">₹ ${item.cats.IRGB.p.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-3 text-right font-extrabold text-emerald-700 bg-emerald-50/50">₹ ${(item.totalPostage || 0).toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-right font-extrabold text-emerald-700 bg-emerald-50/50">₹ ${item.totalPostage.toLocaleString('en-IN')}</td>
                     `;
                     tbody.appendChild(tr);
                 });
+
+                tfoot.innerHTML = `
+                    <tr class="bg-slate-200 text-slate-900 font-extrabold border-t-2 border-slate-400">
+                        <td colspan="2" class="py-3 px-4">GRAND TOTAL</td>
+                        <td class="py-3 px-2 text-center">${grandOffices}</td>
+                        <td class="py-3 px-2 text-right">${grandParcelArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right">${grandMoArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right">${grandIrgbArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-right text-blue-800">${grandTotalArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right">₹ ${grandParcelPost.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right">₹ ${grandMoPost.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right">₹ ${grandIrgbPost.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-right text-emerald-800">₹ ${grandTotalPost.toLocaleString('en-IN')}</td>
+                    </tr>
+                `;
             }
         }
 
         function renderActivityTable(allOffices, viewType) {
             const thead = document.querySelector('#tableActivitySummary thead');
             const tbody = document.querySelector('#tableActivitySummary tbody');
+            const tfoot = document.querySelector('#tableActivitySummary tfoot');
             tbody.innerHTML = "";
+            tfoot.innerHTML = "";
+
+            let totalOfficesSum = 0, totalActiveSum = 0, totalNilSum = 0, totalAbove10Sum = 0;
 
             if (viewType === 'division') {
                 thead.innerHTML = `
                     <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
-                        <th class="py-3 px-6">Division Name</th>
-                        <th class="py-3 px-4 text-center">Total Offices</th>
-                        <th class="py-3 px-4 text-center text-emerald-300">Active Offices (>0)</th>
-                        <th class="py-3 px-4 text-center text-rose-300">Nil Booking (0)</th>
-                        <th class="py-3 px-4 text-center text-indigo-300">Offices > 10 Articles</th>
+                        <th class="py-3 px-5">Division Name</th>
+                        <th class="py-3 px-3 text-center">Total Offices</th>
+                        <th class="py-3 px-3 text-center text-emerald-300">Active (>0)</th>
+                        <th class="py-3 px-3 text-center text-rose-300">Nil (0)</th>
+                        <th class="py-3 px-3 text-center text-rose-200">% Nil</th>
+                        <th class="py-3 px-3 text-center text-indigo-300">> 10 Articles</th>
+                        <th class="py-3 px-3 text-center text-indigo-200">% > 10</th>
                     </tr>
                 `;
 
@@ -584,28 +644,57 @@
                 });
 
                 Object.values(divActMap).forEach(item => {
+                    const tCount = item.offices.length;
+                    const nCount = item.nil.length;
+                    const a10Count = item.above10.length;
+                    const nilPct = tCount > 0 ? ((nCount / tCount) * 100).toFixed(1) + "%" : "0.0%";
+                    const a10Pct = tCount > 0 ? ((a10Count / tCount) * 100).toFixed(1) + "%" : "0.0%";
+
+                    totalOfficesSum += tCount;
+                    totalActiveSum += item.active.length;
+                    totalNilSum += nCount;
+                    totalAbove10Sum += a10Count;
+
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
                     tr.innerHTML = `
-                        <td class="py-3 px-6 font-bold text-slate-900">${item.division}</td>
-                        <td class="py-3 px-4 text-center font-semibold cursor-pointer text-blue-700 hover:underline" onclick="openOfficeListModal('${item.division}', 'All Offices', item.offices)">${item.offices.length}</td>
-                        <td class="py-3 px-4 text-center font-bold text-emerald-700 cursor-pointer hover:underline bg-emerald-50/40" onclick="openOfficeListModal('${item.division}', 'Active Offices (>0)', item.active)">${item.active.length}</td>
-                        <td class="py-3 px-4 text-center font-bold text-rose-700 cursor-pointer hover:underline bg-rose-50/40" onclick="openOfficeListModal('${item.division}', 'Nil Booking Offices (0)', item.nil)">${item.nil.length}</td>
-                        <td class="py-3 px-4 text-center font-bold text-indigo-700 cursor-pointer hover:underline bg-indigo-50/40" onclick="openOfficeListModal('${item.division}', 'Offices > 10 Articles', item.above10)">${item.above10.length}</td>
+                        <td class="py-3 px-5 font-bold text-slate-900">${item.division}</td>
+                        <td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-700 hover:underline" onclick="openOfficeListModal('${item.division}', 'All Offices', ${JSON.stringify(item.offices).replace(/"/g, '&quot;')})">${tCount}</td>
+                        <td class="py-3 px-3 text-center font-bold text-emerald-700 cursor-pointer hover:underline bg-emerald-50/40" onclick="openOfficeListModal('${item.division}', 'Active Offices (>0)', ${JSON.stringify(item.active).replace(/"/g, '&quot;')})">${item.active.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-rose-700 cursor-pointer hover:underline bg-rose-50/40" onclick="openOfficeListModal('${item.division}', 'Nil Booking Offices (0)', ${JSON.stringify(item.nil).replace(/"/g, '&quot;')})">${nCount}</td>
+                        <td class="py-3 px-3 text-center font-semibold text-rose-800 bg-rose-50/20">${nilPct}</td>
+                        <td class="py-3 px-3 text-center font-bold text-indigo-700 cursor-pointer hover:underline bg-indigo-50/40" onclick="openOfficeListModal('${item.division}', 'Offices > 10 Articles', ${JSON.stringify(item.above10).replace(/"/g, '&quot;')})">${a10Count}</td>
+                        <td class="py-3 px-3 text-center font-semibold text-indigo-800 bg-indigo-50/20">${a10Pct}</td>
                     `;
                     tbody.appendChild(tr);
                 });
 
+                const grandNilPct = totalOfficesSum > 0 ? ((totalNilSum / totalOfficesSum) * 100).toFixed(1) + "%" : "0.0%";
+                const grandA10Pct = totalOfficesSum > 0 ? ((totalAbove10Sum / totalOfficesSum) * 100).toFixed(1) + "%" : "0.0%";
+
+                tfoot.innerHTML = `
+                    <tr class="bg-slate-200 text-slate-900 font-extrabold border-t-2 border-slate-400">
+                        <td class="py-3 px-5">GRAND TOTAL</td>
+                        <td class="py-3 px-3 text-center">${totalOfficesSum}</td>
+                        <td class="py-3 px-3 text-center text-emerald-800">${totalActiveSum}</td>
+                        <td class="py-3 px-3 text-center text-rose-800">${totalNilSum}</td>
+                        <td class="py-3 px-3 text-center text-rose-900">${grandNilPct}</td>
+                        <td class="py-3 px-3 text-center text-indigo-800">${totalAbove10Sum}</td>
+                        <td class="py-3 px-3 text-center text-indigo-900">${grandA10Pct}</td>
+                    </tr>
+                `;
+
             } else {
-                // Sub-Division Wise Activity View
                 thead.innerHTML = `
                     <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
-                        <th class="py-3 px-5">Division Name</th>
-                        <th class="py-3 px-5">Sub-Division (SD)</th>
-                        <th class="py-3 px-3 text-center">Total Offices</th>
-                        <th class="py-3 px-3 text-center text-emerald-300">Active (>0)</th>
-                        <th class="py-3 px-3 text-center text-rose-300">Nil (0)</th>
-                        <th class="py-3 px-3 text-center text-indigo-300">> 10 Articles</th>
+                        <th class="py-3 px-4">Division Name</th>
+                        <th class="py-3 px-4">Sub-Division (SD)</th>
+                        <th class="py-3 px-2 text-center">Total Offices</th>
+                        <th class="py-3 px-2 text-center text-emerald-300">Active (>0)</th>
+                        <th class="py-3 px-2 text-center text-rose-300">Nil (0)</th>
+                        <th class="py-3 px-2 text-center text-rose-200">% Nil</th>
+                        <th class="py-3 px-2 text-center text-indigo-300">> 10</th>
+                        <th class="py-3 px-2 text-center text-indigo-200">% > 10</th>
                     </tr>
                 `;
 
@@ -622,18 +711,46 @@
                 });
 
                 Object.values(subActMap).forEach(item => {
+                    const tCount = item.offices.length;
+                    const nCount = item.nil.length;
+                    const a10Count = item.above10.length;
+                    const nilPct = tCount > 0 ? ((nCount / tCount) * 100).toFixed(1) + "%" : "0.0%";
+                    const a10Pct = tCount > 0 ? ((a10Count / tCount) * 100).toFixed(1) + "%" : "0.0%";
+
+                    totalOfficesSum += tCount;
+                    totalActiveSum += item.active.length;
+                    totalNilSum += nCount;
+                    totalAbove10Sum += a10Count;
+
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
                     tr.innerHTML = `
-                        <td class="py-3 px-5 font-semibold text-slate-900">${item.division}</td>
-                        <td class="py-3 px-5 font-bold text-blue-700">${item.sd}</td>
-                        <td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-700 hover:underline" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'All Offices', item.offices)">${item.offices.length}</td>
-                        <td class="py-3 px-3 text-center font-bold text-emerald-700 cursor-pointer hover:underline bg-emerald-50/40" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'Active Offices', item.active)">${item.active.length}</td>
-                        <td class="py-3 px-3 text-center font-bold text-rose-700 cursor-pointer hover:underline bg-rose-50/40" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'Nil Booking Offices', item.nil)">${item.nil.length}</td>
-                        <td class="py-3 px-3 text-center font-bold text-indigo-700 cursor-pointer hover:underline bg-indigo-50/40" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'Offices > 10 Articles', item.above10)">${item.above10.length}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-900">${item.division}</td>
+                        <td class="py-3 px-4 font-bold text-blue-700">${item.sd}</td>
+                        <td class="py-3 px-2 text-center font-semibold cursor-pointer text-blue-700 hover:underline" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'All Offices', ${JSON.stringify(item.offices).replace(/"/g, '&quot;')})">${tCount}</td>
+                        <td class="py-3 px-2 text-center font-bold text-emerald-700 cursor-pointer hover:underline bg-emerald-50/40" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'Active Offices', ${JSON.stringify(item.active).replace(/"/g, '&quot;')})">${item.active.length}</td>
+                        <td class="py-3 px-2 text-center font-bold text-rose-700 cursor-pointer hover:underline bg-rose-50/40" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'Nil Booking Offices', ${JSON.stringify(item.nil).replace(/"/g, '&quot;')})">${nCount}</td>
+                        <td class="py-3 px-2 text-center font-semibold text-rose-800 bg-rose-50/20">${nilPct}</td>
+                        <td class="py-3 px-2 text-center font-bold text-indigo-700 cursor-pointer hover:underline bg-indigo-50/40" onclick="openOfficeListModal('${item.division} - ${item.sd}', 'Offices > 10 Articles', ${JSON.stringify(item.above10).replace(/"/g, '&quot;')})">${a10Count}</td>
+                        <td class="py-3 px-2 text-center font-semibold text-indigo-800 bg-indigo-50/20">${a10Pct}</td>
                     `;
                     tbody.appendChild(tr);
                 });
+
+                const grandNilPct = totalOfficesSum > 0 ? ((totalNilSum / totalOfficesSum) * 100).toFixed(1) + "%" : "0.0%";
+                const grandA10Pct = totalOfficesSum > 0 ? ((totalAbove10Sum / totalOfficesSum) * 100).toFixed(1) + "%" : "0.0%";
+
+                tfoot.innerHTML = `
+                    <tr class="bg-slate-200 text-slate-900 font-extrabold border-t-2 border-slate-400">
+                        <td colspan="2" class="py-3 px-4">GRAND TOTAL</td>
+                        <td class="py-3 px-2 text-center">${totalOfficesSum}</td>
+                        <td class="py-3 px-2 text-center text-emerald-800">${totalActiveSum}</td>
+                        <td class="py-3 px-2 text-center text-rose-800">${totalNilSum}</td>
+                        <td class="py-3 px-2 text-center text-rose-900">${grandNilPct}</td>
+                        <td class="py-3 px-2 text-center text-indigo-800">${totalAbove10Sum}</td>
+                        <td class="py-3 px-2 text-center text-indigo-900">${grandA10Pct}</td>
+                    </tr>
+                `;
             }
         }
 
@@ -669,14 +786,12 @@
             });
         }
 
-        // Modal for Sub-Division Drill-down or Activity Count Drill-down
         function openDrilldown(subDivisionName, divisionName) {
             document.getElementById('modalTitle').textContent = `Sub-Division Breakdown: ${subDivisionName} (${divisionName})`;
             document.getElementById('modalSubtitle').textContent = `Offices under this Sub-Division with category counts`;
             
             const matchingRows = currentFilteredRows.filter(r => r.subDivision === subDivisionName && r.division === divisionName);
             
-            // Group by office
             const officeMap = {};
             matchingRows.forEach(r => {
                 if (!officeMap[r.officeId]) {
@@ -744,7 +859,6 @@
             document.getElementById('drilldownModal').classList.add('hidden');
         }
 
-        // Export individual tables to Excel
         function exportTableToExcel(tableId, filename) {
             const table = document.getElementById(tableId);
             if (!table) return;
@@ -752,7 +866,6 @@
             XLSX.writeFile(wb, filename);
         }
 
-        // Export modal data
         function exportModalToExcel() {
             if (modalExportData.length === 0) return;
             const cleanData = modalExportData.map(item => ({
@@ -776,7 +889,6 @@
             XLSX.writeFile(wb, "Office_Details_Report.xlsx");
         }
 
-        // Export All
         function exportAllToExcel() {
             const wb = XLSX.utils.book_new();
             const wsSummary = XLSX.utils.table_to_book(document.getElementById('tableDivisionSummary')).Sheets["Sheet1"] || XLSX.utils.json_to_sheet(currentFilteredRows);
@@ -787,7 +899,6 @@
             XLSX.writeFile(wb, "Booking_Count_Calculator_Complete_Report.xlsx");
         }
 
-        // Raw File Upload
         document.getElementById('rawFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -824,12 +935,10 @@
             reader.readAsArrayBuffer(file);
         });
 
-        // Event Listeners for Filters
         document.getElementById('filterDivision').addEventListener('change', updateDashboard);
         document.getElementById('filterClass').addEventListener('change', updateDashboard);
         document.getElementById('filterCategory').addEventListener('change', updateDashboard);
 
-        // Load on startup
         loadMasterData();
     </script>
 </body>
