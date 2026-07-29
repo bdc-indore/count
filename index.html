@@ -4,22 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Department of Posts - Advanced Transaction & Office Analytics Portal</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS for Excel/CSV parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800">
 
-    <!-- Header -->
     <header class="bg-slate-900 text-white shadow-md py-4 px-6 mb-6">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">📮 Postal Transaction & Office Reporting Portal</h1>
-                <p class="text-xs text-slate-300 mt-1">Accurate Master Mapping (Office ID, Class, SD, Division) & Category Engine</p>
+                <p class="text-xs text-slate-300 mt-1">Precise Master Mapping & Category Engine</p>
             </div>
             <div class="mt-4 md:mt-0 flex items-center space-x-2">
-                <span id="masterStatus" class="bg-emerald-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm text-white">Master Data Loaded</span>
+                <span id="masterStatus" class="bg-amber-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm text-white">Loading Master Data...</span>
             </div>
         </div>
     </header>
@@ -53,9 +50,6 @@
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">Select Category</label>
                 <select id="filterCategory" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500">
                     <option value="All">All Categories</option>
-                    <option value="MO">MO (Speed Post, Reg/Ord Post)</option>
-                    <option value="PARCEL">PARCEL (Speed/Retail Parcel)</option>
-                    <option value="IRGB">IRGB (International / Other)</option>
                 </select>
             </div>
         </div>
@@ -71,7 +65,7 @@
                 <p id="kpiPostage" class="text-3xl font-bold text-slate-800 mt-2">₹ 0.00</p>
             </div>
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-indigo-600">
-                <p class="text-xs font-semibold text-slate-500 uppercase">Active Offices / Total Mapped</p>
+                <p class="text-xs font-semibold text-slate-500 uppercase">Filtered Active / Total Offices</p>
                 <p id="kpiOffices" class="text-3xl font-bold text-slate-800 mt-2">0 / 0</p>
             </div>
         </div>
@@ -80,7 +74,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="px-6 py-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
                 <h2 class="font-bold text-slate-700 text-base">📊 Division & Sub-Division Wise Summary</h2>
-                <span class="text-xs text-slate-500">Aggregated Article & Postage Totals</span>
+                <span class="text-xs text-slate-500">Aggregated Article & Postage Totals (Based on Filters)</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse" id="tableDivisionSummary">
@@ -94,7 +88,6 @@
                         </tr>
                     </thead>
                     <tbody class="text-sm divide-y divide-slate-100 text-slate-700">
-                        <!-- Populated dynamically -->
                     </tbody>
                 </table>
             </div>
@@ -103,8 +96,8 @@
         <!-- Section 2: Office Activity & Threshold Status -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="px-6 py-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
-                <h2 class="font-bold text-slate-700 text-base">🏢 Office Activity Status (Active, Nil Booking & >10 Transactions)</h2>
-                <span class="text-xs text-slate-500">Division-wise Office Performance</span>
+                <h2 class="font-bold text-slate-700 text-base">🏢 Office Activity Status (Active, Nil Booking & >10 Articles)</h2>
+                <span class="text-xs text-slate-500">Filtered Performance Metrics</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse" id="tableActivitySummary">
@@ -118,7 +111,6 @@
                         </tr>
                     </thead>
                     <tbody class="text-sm divide-y divide-slate-100 text-slate-700">
-                        <!-- Populated dynamically -->
                     </tbody>
                 </table>
             </div>
@@ -127,34 +119,12 @@
     </main>
 
     <script>
-        // Master Data CSV & Mapping URLs from User's Google Sheets
         const MASTER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=0&single=true&output=csv";
         const MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1575541045&single=true&output=csv";
 
-        let masterOfficesMap = {}; // Key: office-id, Value: { name, class, sd, division }
-        let serviceMapping = {};   // Key: product-name, Value: category
-        let rawData = [];          // Array of raw transaction objects
-
-        // Fallback sample data in case of offline/CORS
-        const fallbackMaster = [
-            { id: "23108209", name: "UBERAO", class: "BO", sd: "ALIRAJPUR SD", division: "RATLAM" },
-            { id: "23108212", name: "Ajanbara", class: "BO", sd: "ALIRAJPUR SD", division: "RATLAM" },
-            { id: "23108926", name: "AGARCANTT B.O", class: "BO", sd: "AGAR SD", division: "UJJAIN" },
-            { id: "23660929", name: "AWANTIPUR BARODIYA", class: "SO", sd: "SHAJAPUR SD", division: "UJJAIN" }
-        ];
-
-        const fallbackMapping = {
-            "Inland Speed Post Document": "MO",
-            "Indiapost parcel Retail": "PARCEL",
-            "Speed Post Parcel Domestic": "PARCEL",
-            "International EMS": "IRGB"
-        };
-
-        const fallbackRaw = [
-            { officeId: "23108926", service: "Inland Speed Post Document", articles: 7, postage: 157 },
-            { officeId: "23660929", service: "Indiapost parcel Retail", articles: 1, postage: 84 },
-            { officeId: "23660929", service: "Inland Speed Post Document", articles: 19, postage: 801 }
-        ];
+        let masterOfficesMap = {}; 
+        let serviceMapping = {};   
+        let rawData = [];          
 
         async function loadMasterData() {
             try {
@@ -166,7 +136,7 @@
                 const masterText = await masterRes.text();
                 const mapText = await mapRes.text();
 
-                // Parse Master CSV (Image 1 Format: office-id, OFFICE NAME, CLASS, SD, DIVISION)
+                // Parse Master CSV
                 const masterParsed = XLSX.read(masterText, {type: 'string'});
                 const masterJson = XLSX.utils.sheet_to_json(masterParsed.Sheets[masterParsed.SheetNames[0]]);
                 
@@ -176,31 +146,46 @@
                     if (id) {
                         masterOfficesMap[id] = {
                             name: String(row["OFFICE NAME"] || row["office_name"] || Object.values(row)[1] || "").trim(),
-                            class: String(row["CLASS"] || row["class"] || Object.values(row)[2] || "BO").trim(),
+                            class: String(row["CLASS"] || row["class"] || Object.values(row)[2] || "BO").trim().toUpperCase(),
                             sd: String(row["SD"] || row["Sub Division Name"] || Object.values(row)[3] || "").trim(),
-                            division: String(row["DIVISION"] || row["Division Name"] || Object.values(row)[4] || "").trim()
+                            division: String(row["DIVISION"] || row["Division Name"] || Object.values(row)[4] || "").trim().toUpperCase()
                         };
                     }
                 });
 
-                // Parse Service Mapping CSV
+                // Parse Service Mapping CSV (2nd Sheet)
                 const mapParsed = XLSX.read(mapText, {type: 'string'});
                 const mapJson = XLSX.utils.sheet_to_json(mapParsed.Sheets[mapParsed.SheetNames[0]]);
                 
                 serviceMapping = {};
                 mapJson.forEach(row => {
-                    const sName = String(row["Service Name"] || row["service"] || Object.values(row)[0] || "").trim();
-                    const cName = String(row["Category"] || row["category"] || Object.values(row)[1] || "IRGB").trim();
-                    if (sName) serviceMapping[sName] = cName;
+                    const keys = Object.keys(row);
+                    const sName = String(row[keys[0]] || "").trim();
+                    const cName = String(row[keys[1]] || "").trim().toUpperCase();
+                    if (sName && cName) {
+                        serviceMapping[sName.toLowerCase()] = cName;
+                    }
                 });
 
                 document.getElementById('masterStatus').textContent = `Master Loaded (${Object.keys(masterOfficesMap).length} Offices)`;
+                document.getElementById('masterStatus').className = "bg-emerald-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm text-white";
             } catch (err) {
-                console.warn("Using fallback sample data due to network restriction.", err);
-                masterOfficesMap = {};
-                fallbackMaster.forEach(m => { masterOfficesMap[m.id] = m; });
-                serviceMapping = fallbackMapping;
-                rawData = fallbackRaw;
+                console.warn("Using offline fallback due to network restriction.", err);
+                masterOfficesMap = {
+                    "23108926": { name: "AGARCANTT B.O", class: "BO", sd: "AGAR SD", division: "UJJAIN" },
+                    "23660929": { name: "AWANTIPUR BARODIYA", class: "SO", sd: "SHAJAPUR SD", division: "UJJAIN" }
+                };
+                serviceMapping = {
+                    "inland speed post document": "MO",
+                    "indiapost parcel retail": "PARCEL",
+                    "speed post parcel domestic": "PARCEL",
+                    "international ems": "IRGB"
+                };
+                rawData = [
+                    { officeId: "23108926", service: "Inland Speed Post Document", articles: 7, postage: 157 },
+                    { officeId: "23660929", service: "Indiapost parcel Retail", articles: 1, postage: 84 },
+                    { officeId: "23660929", service: "Inland Speed Post Document", articles: 19, postage: 801 }
+                ];
                 document.getElementById('masterStatus').textContent = `Loaded Offline Sample Data`;
                 document.getElementById('masterStatus').className = "bg-blue-600 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm text-white";
             }
@@ -210,6 +195,7 @@
         }
 
         function initDropdowns() {
+            // Division Dropdown
             const divs = [...new Set(Object.values(masterOfficesMap).map(o => o.division))].filter(Boolean).sort();
             const divSelect = document.getElementById('filterDivision');
             divSelect.innerHTML = '<option value="All">All Divisions</option>';
@@ -219,6 +205,17 @@
                 opt.textContent = d;
                 divSelect.appendChild(opt);
             });
+
+            // Category Dropdown dynamically populated from serviceMapping
+            const cats = [...new Set(Object.values(serviceMapping))].filter(Boolean).sort();
+            const catSelect = document.getElementById('filterCategory');
+            catSelect.innerHTML = '<option value="All">All Categories</option>';
+            cats.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                catSelect.appendChild(opt);
+            });
         }
 
         function updateDashboard() {
@@ -226,19 +223,26 @@
             const selClass = document.getElementById('filterClass').value;
             const selCat = document.getElementById('filterCategory').value;
 
-            // Process raw records with exact master lookup
+            // 1. Map raw records with master & category
             const processed = rawData.map(item => {
                 const master = masterOfficesMap[item.officeId] || { name: "Unknown", class: "BO", sd: "Unknown SD", division: "Unknown Division" };
-                // Match service mapping or classify partial strings
-                let cat = serviceMapping[item.service];
+                
+                // Strict lookup from serviceMapping (2nd sheet)
+                const sKey = String(item.service).trim().toLowerCase();
+                let cat = serviceMapping[sKey];
+                
                 if (!cat) {
-                    const sLower = item.service.toLowerCase();
-                    if (sLower.includes("speed") || sLower.includes("registered") || sLower.includes("ordinary") || sLower.includes("inland")) cat = "MO";
-                    else if (sLower.includes("parcel")) cat = "PARCEL";
+                    // Fallback keyword matching if exact service name not found in mapping sheet
+                    if (sKey.includes("speed") || sKey.includes("registered") || sKey.includes("ordinary") || sKey.includes("inland")) cat = "MO";
+                    else if (sKey.includes("parcel")) cat = "PARCEL";
                     else cat = "IRGB";
                 }
+
                 return {
-                    ...item,
+                    officeId: item.officeId,
+                    service: item.service,
+                    articles: item.articles,
+                    postage: item.postage,
                     officeName: master.name,
                     officeClass: master.class,
                     subDivision: master.sd,
@@ -247,49 +251,53 @@
                 };
             });
 
-            // Filter data
-            const filtered = processed.filter(item => {
+            // 2. Filter Master Offices based on Division and Class first
+            const filteredOfficesMap = {};
+            Object.entries(masterOfficesMap).forEach(([id, m]) => {
+                if (selDiv !== "All" && m.division !== selDiv) return;
+                if (selClass !== "All" && m.class !== selClass) return;
+                filteredOfficesMap[id] = m;
+            });
+
+            // 3. Filter transaction rows based on filtered offices and category
+            const filteredRows = processed.filter(item => {
                 if (selDiv !== "All" && item.division !== selDiv) return false;
                 if (selClass !== "All" && item.officeClass !== selClass) return false;
                 if (selCat !== "All" && item.category !== selCat) return false;
                 return true;
             });
 
-            // KPIs
-            const totalArticles = filtered.reduce((acc, curr) => acc + curr.articles, 0);
-            const totalPostage = filtered.reduce((acc, curr) => acc + curr.postage, 0);
-
-            document.getElementById('kpiArticles').textContent = totalArticles.toLocaleString('en-IN');
-            document.getElementById('kpiPostage').textContent = '₹ ' + totalPostage.toLocaleString('en-IN', {minimumFractionDigits: 2});
-
-            // Office Activity across all master offices
+            // Calculate Office-wise totals across master
             const officeTotals = {};
-            Object.keys(masterOfficesMap).forEach(id => {
-                officeTotals[id] = { ...masterOfficesMap[id], articles: 0 };
+            Object.keys(filteredOfficesMap).forEach(id => {
+                officeTotals[id] = { ...filteredOfficesMap[id], articles: 0, postage: 0 };
             });
 
             processed.forEach(item => {
                 if (officeTotals[item.officeId]) {
-                    officeTotals[item.officeId].articles += item.articles;
-                } else if (item.officeId) {
-                    // If office is in raw but not in master, register it
-                    officeTotals[item.officeId] = {
-                        name: item.officeName,
-                        class: item.officeClass,
-                        sd: item.subDivision,
-                        division: item.division,
-                        articles: item.articles
-                    };
+                    // Check if category matches filter
+                    if (selCat === "All" || item.category === selCat) {
+                        officeTotals[item.officeId].articles += item.articles;
+                        officeTotals[item.officeId].postage += item.postage;
+                    }
                 }
             });
 
-            const allOfficesArray = Object.values(officeTotals);
-            const activeOfficesCount = allOfficesArray.filter(o => o.articles > 0).length;
-            document.getElementById('kpiOffices').textContent = `${activeOfficesCount} / ${allOfficesArray.length}`;
+            const allFilteredOffices = Object.values(officeTotals);
+            const totalOfficesCount = allFilteredOffices.length;
+            const activeOfficesCount = allFilteredOffices.filter(o => o.articles > 0).length;
 
-            // Table 1: Division & Sub-Division Summary (SD column from master)
+            // KPIs
+            const totalArticles = filteredRows.reduce((acc, curr) => acc + curr.articles, 0);
+            const totalPostage = filteredRows.reduce((acc, curr) => acc + curr.postage, 0);
+
+            document.getElementById('kpiArticles').textContent = totalArticles.toLocaleString('en-IN');
+            document.getElementById('kpiPostage').textContent = '₹ ' + totalPostage.toLocaleString('en-IN', {minimumFractionDigits: 2});
+            document.getElementById('kpiOffices').textContent = `${activeOfficesCount} / ${totalOfficesCount}`;
+
+            // Table 1: Division & Sub-Division Summary (Strictly honoring filters)
             const subDivMap = {};
-            filtered.forEach(item => {
+            filteredRows.forEach(item => {
                 const key = item.division + "||" + item.subDivision;
                 if (!subDivMap[key]) {
                     subDivMap[key] = { division: item.division, subDivision: item.subDivision, offices: new Set(), articles: 0, postage: 0 };
@@ -303,7 +311,7 @@
             tbody1.innerHTML = "";
             
             if (Object.keys(subDivMap).length === 0) {
-                tbody1.innerHTML = `<tr><td colspan="5" class="py-4 px-6 text-center text-slate-400">No records found for selected filters. Please upload your website raw Excel file.</td></tr>`;
+                tbody1.innerHTML = `<tr><td colspan="5" class="py-4 px-6 text-center text-slate-400">No records found for the selected filters. Please upload raw website data.</td></tr>`;
             } else {
                 Object.values(subDivMap).forEach(row => {
                     const tr = document.createElement('tr');
@@ -319,9 +327,9 @@
                 });
             }
 
-            // Table 2: Division Activity & Threshold (>10 articles)
+            // Table 2: Office Activity & Threshold (>10 articles) based on filtered offices
             const divActivityMap = {};
-            allOfficesArray.forEach(o => {
+            allFilteredOffices.forEach(o => {
                 const divName = o.division || "OTHER";
                 if (!divActivityMap[divName]) {
                     divActivityMap[divName] = { total: 0, active: 0, nil: 0, above10: 0 };
@@ -339,8 +347,11 @@
 
             const tbody2 = document.querySelector('#tableActivitySummary tbody');
             tbody2.innerHTML = "";
-            Object.entries(divActivityMap).forEach(([divName, data]) => {
-                if (selDiv === "All" || selDiv === divName) {
+            
+            if (Object.keys(divActivityMap).length === 0) {
+                tbody2.innerHTML = `<tr><td colspan="5" class="py-4 px-6 text-center text-slate-400">No matching offices found for these filters.</td></tr>`;
+            } else {
+                Object.entries(divActivityMap).forEach(([divName, data]) => {
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
                     tr.innerHTML = `
@@ -351,8 +362,8 @@
                         <td class="py-3 px-6 text-center text-indigo-600 font-semibold">${data.above10}</td>
                     `;
                     tbody2.appendChild(tr);
-                }
-            });
+                });
+            }
         }
 
         // Handle Raw Website File Upload via SheetJS
@@ -383,7 +394,7 @@
                         alert(`Successfully loaded ${rawData.length} transaction rows from your website export!`);
                         updateDashboard();
                     } else {
-                        alert("Could not detect valid columns. Please check your raw file headers (office-id, product-name, article-count, postage).");
+                        alert("Could not detect valid columns. Please check your raw file headers.");
                     }
                 } catch (err) {
                     alert("Error reading Excel file: " + err.message);
