@@ -8,26 +8,47 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS for Excel import & export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <!-- PWA Manifest Link -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#4a2e18">
+    <style>
+        .report-header { background-color: #5c3a21; color: #ffffff; }
+        .report-subhead { background-color: #d4a373; color: #2b1d0c; }
+        .report-total { background-color: #faedcd; color: #38220f; font-weight: bold; }
+        .report-grand { background-color: #4a2e18; color: #ffffff; font-weight: bold; }
+    </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+<body class="bg-amber-50/40 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
     <!-- Header -->
-    <header class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-xl py-5 px-4 md:px-8">
+    <header class="report-header shadow-xl py-5 px-4 md:px-8 border-b-4 border-amber-700">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
             <div>
                 <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
-                    <span>📮</span> Booking count calculator
+                    <span>📊</span> Booking Count & Activity Report
                 </h1>
-                <p class="text-xs md:text-sm text-indigo-200 mt-1">Department of Posts - Advanced Analytics & Reporting Portal</p>
+                <p class="text-xs md:text-sm text-amber-200 mt-1">Department of Posts - Regional Office Indore Analytics</p>
             </div>
-            <div class="flex items-center gap-3">
-                <span id="masterStatus" class="bg-amber-500 text-slate-950 text-xs px-3 py-1.5 rounded-full font-bold shadow animate-pulse">Loading Master Offices...</span>
-                <button onclick="exportAllToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer">
-                    📥 Export All Reports (Excel)
-                </button>
+            <div class="flex items-center flex-wrap gap-3">
+                <span id="masterStatus" class="bg-amber-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow animate-pulse">Loading Master Offices...</span>
+                
+                <!-- Share & Download Dropdown / Buttons -->
+                <div class="relative inline-block text-left">
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportAllToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+                            📥 Excel
+                        </button>
+                        <button onclick="exportAllToPDF()" class="bg-rose-700 hover:bg-rose-800 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+                            📄 PDF
+                        </button>
+                        <button onclick="handleNativeShare()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+                            📤 Share
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -36,22 +57,22 @@
     <main class="max-w-7xl mx-auto px-3 md:px-8 py-6 space-y-6 w-full flex-grow">
 
         <!-- Controls Section: File Upload & Filters -->
-        <div class="bg-white p-4 md:p-6 rounded-2xl shadow-md border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+        <div class="bg-white p-4 md:p-6 rounded-2xl shadow-md border border-amber-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">📁 File Upload</label>
-                <p class="text-[11px] text-blue-700 font-medium mb-1">Upload booking file downloaded from MIS Portal (office wise).</p>
-                <input type="file" id="rawFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50"/>
+                <label class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">📁 File Upload</label>
+                <p class="text-[11px] text-amber-700 font-medium mb-1">Upload booking file downloaded from MIS Portal.</p>
+                <input type="file" id="rawFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-900 hover:file:bg-amber-200 cursor-pointer border border-amber-300 rounded-xl p-1 bg-amber-50/50"/>
             </div>
             <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Select Division</label>
-                <select id="filterDivision" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 font-medium">
+                <label class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">Select Division</label>
+                <select id="filterDivision" class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-amber-50/50 focus:ring-2 focus:ring-amber-600 font-medium">
                     <option value="All">All Divisions</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Select Office Class</label>
-                <select id="filterClass" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 font-medium">
-                    <option value="All">All Classes (BO, SO, HO, RMS, etc.)</option>
+                <label class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">Select Office Class</label>
+                <select id="filterClass" class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-amber-50/50 focus:ring-2 focus:ring-amber-600 font-medium">
+                    <option value="All">All Classes (BO, SO, HO, etc.)</option>
                     <option value="BO">BO</option>
                     <option value="SO">SO</option>
                     <option value="HO">HO</option>
@@ -61,8 +82,8 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Select Category</label>
-                <select id="filterCategory" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 font-medium">
+                <label class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">Select Category</label>
+                <select id="filterCategory" class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-amber-50/50 focus:ring-2 focus:ring-amber-600 font-medium">
                     <option value="All">All Categories</option>
                 </select>
             </div>
@@ -70,83 +91,79 @@
 
         <!-- KPI Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-            <div class="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-5 rounded-2xl shadow-md border border-blue-500">
-                <p class="text-xs font-bold uppercase tracking-wider text-blue-100">Total Articles Booked</p>
+            <div class="bg-gradient-to-br from-amber-800 to-amber-950 text-white p-5 rounded-2xl shadow-md border border-amber-700">
+                <p class="text-xs font-bold uppercase tracking-wider text-amber-200">Total Articles Booked</p>
                 <p id="kpiArticles" class="text-3xl font-extrabold mt-2">0</p>
             </div>
-            <div class="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-5 rounded-2xl shadow-md border border-emerald-500">
-                <p class="text-xs font-bold uppercase tracking-wider text-emerald-100">Total Postage Collected</p>
+            <div class="bg-gradient-to-br from-emerald-800 to-emerald-950 text-white p-5 rounded-2xl shadow-md border border-emerald-700">
+                <p class="text-xs font-bold uppercase tracking-wider text-emerald-200">Total Postage Collected</p>
                 <p id="kpiPostage" class="text-3xl font-extrabold mt-2">₹ 0.00</p>
             </div>
-            <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white p-5 rounded-2xl shadow-md border border-indigo-500">
-                <p class="text-xs font-bold uppercase tracking-wider text-indigo-100">Filtered Active / Total Offices</p>
+            <div class="bg-gradient-to-br from-blue-900 to-slate-900 text-white p-5 rounded-2xl shadow-md border border-blue-800">
+                <p class="text-xs font-bold uppercase tracking-wider text-blue-200">Filtered Active / Total Offices</p>
                 <p id="kpiOffices" class="text-3xl font-extrabold mt-2">0 / 0</p>
             </div>
         </div>
 
-        <!-- Section 1: Summary Report with View Type & Category Breakdowns -->
-        <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 bg-slate-900 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <!-- Section 1: Summary Report (Formatted like reference image) -->
+        <div class="bg-white rounded-2xl shadow-md border border-amber-200 overflow-hidden">
+            <div class="px-6 py-4 report-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <h2 class="font-bold text-base flex items-center gap-2"><span>📊</span> Division & Sub-Division Category Summary</h2>
-                    <p class="text-xs text-slate-300">Detailed PARCEL, MO, IRGB article and postage breakdown with interactive drill-down.</p>
+                    <h2 class="font-bold text-base flex items-center gap-2"><span>📊</span> Division & Sub-Division Category Summary Report</h2>
+                    <p class="text-xs text-amber-200">Grouped layout with merged division names and clear sub-division breakdowns.</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
-                        <span class="text-xs text-slate-300 px-2 font-semibold">View:</span>
-                        <select id="summaryViewType" onchange="updateDashboard()" class="bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg border-0 outline-none cursor-pointer">
+                    <div class="flex items-center bg-amber-950 p-1 rounded-xl border border-amber-800">
+                        <span class="text-xs text-amber-200 px-2 font-semibold">View:</span>
+                        <select id="summaryViewType" onchange="updateDashboard()" class="bg-amber-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg border-0 outline-none cursor-pointer">
+                            <option value="subdivision">Sub-Division Wise (Grouped)</option>
                             <option value="division">Division Wise</option>
-                            <option value="subdivision">Sub-Division Wise</option>
                         </select>
                     </div>
-                    <button onclick="exportTableToExcel('tableDivisionSummary', 'Summary_Report.xlsx')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow transition cursor-pointer">
-                        📥 Excel
-                    </button>
+                    <button onclick="exportTableToExcel('tableDivisionSummary', 'Summary_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
                 </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse" id="tableDivisionSummary">
                     <thead>
-                        <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
+                        <tr class="report-header text-xs font-bold border-b border-amber-800 uppercase tracking-wider">
                         </tr>
                     </thead>
-                    <tbody class="text-xs md:text-sm divide-y divide-slate-100 text-slate-700">
+                    <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700">
                     </tbody>
-                    <tfoot class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300 text-xs md:text-sm">
+                    <tfoot class="font-bold text-xs md:text-sm">
                     </tfoot>
                 </table>
             </div>
         </div>
 
-        <!-- Section 2: Office Activity Status with View Type & Filters -->
-        <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 bg-slate-900 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <!-- Section 2: Office Activity Status -->
+        <div class="bg-white rounded-2xl shadow-md border border-amber-200 overflow-hidden">
+            <div class="px-6 py-4 report-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                     <h2 class="font-bold text-base flex items-center gap-2"><span>🏢</span> Office Activity Status (Active, Nil Booking & >10 Articles)</h2>
-                    <p class="text-xs text-slate-300">Filtered by selected Office Class & Category. Click numbers to view office lists.</p>
+                    <p class="text-xs text-amber-200">Click on office counts to drill down into the specific office list.</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
-                        <span class="text-xs text-slate-300 px-2 font-semibold">View:</span>
-                        <select id="activityViewType" onchange="updateDashboard()" class="bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg border-0 outline-none cursor-pointer">
-                            <option value="division">Division Wise</option>
+                    <div class="flex items-center bg-amber-950 p-1 rounded-xl border border-amber-800">
+                        <span class="text-xs text-amber-200 px-2 font-semibold">View:</span>
+                        <select id="activityViewType" onchange="updateDashboard()" class="bg-amber-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg border-0 outline-none cursor-pointer">
                             <option value="subdivision">Sub-Division Wise</option>
+                            <option value="division">Division Wise</option>
                         </select>
                     </div>
-                    <button onclick="exportTableToExcel('tableActivitySummary', 'Activity_Status_Report.xlsx')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow transition cursor-pointer">
-                        📥 Excel
-                    </button>
+                    <button onclick="exportTableToExcel('tableActivitySummary', 'Activity_Status_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
                 </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse" id="tableActivitySummary">
                     <thead>
-                        <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
+                        <tr class="report-header text-xs font-bold border-b border-amber-800 uppercase tracking-wider">
                         </tr>
                     </thead>
-                    <tbody class="text-xs md:text-sm divide-y divide-slate-100 text-slate-700">
+                    <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700">
                     </tbody>
-                    <tfoot class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300 text-xs md:text-sm">
+                    <tfoot class="font-bold text-xs md:text-sm">
                     </tfoot>
                 </table>
             </div>
@@ -155,40 +172,40 @@
         <!-- Section 3: Top 10 & Bottom 10 Offices Performance -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Top 10 -->
-            <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-                <div class="px-5 py-3.5 bg-emerald-800 text-white flex justify-between items-center">
+            <div class="bg-white rounded-2xl shadow-md border border-amber-200 overflow-hidden">
+                <div class="px-5 py-3.5 bg-emerald-900 text-white flex justify-between items-center">
                     <h3 class="font-bold text-sm flex items-center gap-2"><span>🏆</span> Top 10 Performing Offices</h3>
-                    <button onclick="exportTableToExcel('tableTop10', 'Top_10_Offices.xlsx')" class="bg-emerald-900 hover:bg-emerald-950 text-white text-[11px] font-semibold px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
+                    <button onclick="exportTableToExcel('tableTop10', 'Top_10_Offices.xlsx')" class="bg-emerald-950 hover:bg-emerald-900 text-white text-[11px] font-semibold px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse" id="tableTop10">
                         <thead>
-                            <tr class="bg-slate-100 text-slate-700 text-xs font-bold border-b border-slate-200 uppercase">
+                            <tr class="bg-amber-100/70 text-amber-950 text-xs font-bold border-b border-amber-200 uppercase">
                                 <th class="py-2.5 px-4">Office Name (ID / Class)</th>
                                 <th class="py-2.5 px-4">Division / SD</th>
                                 <th class="py-2.5 px-4 text-right">Articles</th>
                             </tr>
                         </thead>
-                        <tbody class="text-xs divide-y divide-slate-100 text-slate-700"></tbody>
+                        <tbody class="text-xs divide-y divide-amber-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
             <!-- Bottom 10 / Nil -->
-            <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
-                <div class="px-5 py-3.5 bg-rose-800 text-white flex justify-between items-center">
+            <div class="bg-white rounded-2xl shadow-md border border-amber-200 overflow-hidden">
+                <div class="px-5 py-3.5 bg-rose-900 text-white flex justify-between items-center">
                     <h3 class="font-bold text-sm flex items-center gap-2"><span>⚠️</span> Bottom 10 / Nil Booking Offices</h3>
-                    <button onclick="exportTableToExcel('tableBottom10', 'Bottom_10_Offices.xlsx')" class="bg-rose-900 hover:bg-rose-950 text-white text-[11px] font-semibold px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
+                    <button onclick="exportTableToExcel('tableBottom10', 'Bottom_10_Offices.xlsx')" class="bg-rose-950 hover:bg-rose-900 text-white text-[11px] font-semibold px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse" id="tableBottom10">
                         <thead>
-                            <tr class="bg-slate-100 text-slate-700 text-xs font-bold border-b border-slate-200 uppercase">
+                            <tr class="bg-amber-100/70 text-amber-950 text-xs font-bold border-b border-amber-200 uppercase">
                                 <th class="py-2.5 px-4">Office Name (ID / Class)</th>
                                 <th class="py-2.5 px-4">Division / SD</th>
                                 <th class="py-2.5 px-4 text-right">Articles</th>
                             </tr>
                         </thead>
-                        <tbody class="text-xs divide-y divide-slate-100 text-slate-700"></tbody>
+                        <tbody class="text-xs divide-y divide-amber-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -198,22 +215,22 @@
 
     <!-- Detailed Offices Modal -->
     <div id="drilldownModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-slate-200">
-            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-amber-300">
+            <div class="report-header px-6 py-4 flex justify-between items-center">
                 <div>
                     <h3 id="modalTitle" class="font-bold text-lg">Office Details List</h3>
-                    <p id="modalSubtitle" class="text-xs text-slate-300">Complete office list with category breakdown & postage</p>
+                    <p id="modalSubtitle" class="text-xs text-amber-200">Complete office list with category breakdown & postage</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button onclick="exportModalToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Export Excel</button>
-                    <button onclick="closeModal()" class="bg-slate-800 hover:bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold transition cursor-pointer">✕</button>
+                    <button onclick="exportModalToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
+                    <button onclick="closeModal()" class="bg-amber-950 hover:bg-amber-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold transition cursor-pointer">✕</button>
                 </div>
             </div>
             <div class="p-6 overflow-y-auto flex-grow">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse" id="tableModalOffices">
                         <thead>
-                            <tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase border-b border-slate-200">
+                            <tr class="bg-amber-100 text-amber-950 text-xs font-bold uppercase border-b border-amber-300">
                                 <th class="py-3 px-4">Office ID & Name</th>
                                 <th class="py-3 px-4">Class</th>
                                 <th class="py-3 px-4">SD / Division</th>
@@ -224,18 +241,18 @@
                                 <th class="py-3 px-4 text-right">Total Postage (₹)</th>
                             </tr>
                         </thead>
-                        <tbody class="text-xs md:text-sm divide-y divide-slate-100 text-slate-700"></tbody>
+                        <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
-            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
-                <button onclick="closeModal()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-5 py-2 rounded-xl cursor-pointer transition">Close</button>
+            <div class="bg-amber-50 px-6 py-3 border-t border-amber-200 flex justify-end">
+                <button onclick="closeModal()" class="bg-amber-900 hover:bg-amber-950 text-white text-xs font-semibold px-5 py-2 rounded-xl cursor-pointer transition">Close</button>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-300 text-xs py-4 px-6 text-center border-t border-slate-800 mt-12">
+    <footer class="report-header text-amber-200 text-xs py-4 px-6 text-center border-t border-amber-800 mt-12">
         <p class="font-medium">Developed by <span class="text-white font-bold">Kapil Rajput</span>, PA, Regional Office Indore</p>
     </footer>
 
@@ -291,7 +308,7 @@
                 }
 
                 document.getElementById('masterStatus').textContent = `Master Loaded (${Object.keys(masterOfficesMap).length} Offices)`;
-                document.getElementById('masterStatus').className = "bg-emerald-500 text-slate-950 text-xs px-3 py-1.5 rounded-full font-bold shadow";
+                document.getElementById('masterStatus').className = "bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow";
             } catch (err) {
                 console.warn("Using offline fallback due to network restriction.", err);
                 masterOfficesMap = {
@@ -310,7 +327,7 @@
                     { officeId: "23660929", service: "Inland Speed Post Document", articles: 19, postage: 801 }
                 ];
                 document.getElementById('masterStatus').textContent = `Loaded Offline Sample Data`;
-                document.getElementById('masterStatus').className = "bg-blue-500 text-slate-950 text-xs px-3 py-1.5 rounded-full font-bold shadow";
+                document.getElementById('masterStatus').className = "bg-blue-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow";
             }
 
             initDropdowns();
@@ -444,17 +461,17 @@
 
             if (viewType === 'division') {
                 thead.innerHTML = `
-                    <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
+                    <tr class="report-header text-xs font-bold border-b border-amber-800 uppercase tracking-wider">
                         <th class="py-3 px-5">Division Name</th>
                         <th class="py-3 px-3 text-center">Offices</th>
-                        <th class="py-3 px-3 text-right text-blue-200">Parcel (Art)</th>
-                        <th class="py-3 px-3 text-right text-blue-200">MO (Art)</th>
-                        <th class="py-3 px-3 text-right text-blue-200">IRGB (Art)</th>
-                        <th class="py-3 px-4 text-right bg-blue-900/50">Total Art</th>
-                        <th class="py-3 px-3 text-right text-emerald-200">Parcel (₹)</th>
-                        <th class="py-3 px-3 text-right text-emerald-200">MO (₹)</th>
-                        <th class="py-3 px-3 text-right text-emerald-200">IRGB (₹)</th>
-                        <th class="py-3 px-4 text-right bg-emerald-900/50">Total Postage (₹)</th>
+                        <th class="py-3 px-3 text-right">Parcel (Art)</th>
+                        <th class="py-3 px-3 text-right">MO (Art)</th>
+                        <th class="py-3 px-3 text-right">IRGB (Art)</th>
+                        <th class="py-3 px-4 text-right">Total Art</th>
+                        <th class="py-3 px-3 text-right">Parcel (₹)</th>
+                        <th class="py-3 px-3 text-right">MO (₹)</th>
+                        <th class="py-3 px-3 text-right">IRGB (₹)</th>
+                        <th class="py-3 px-4 text-right">Total Postage (₹)</th>
                     </tr>
                 `;
 
@@ -474,7 +491,7 @@
                 });
 
                 if (Object.keys(divMap).length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="10" class="py-4 text-center text-slate-400">No records found. Please upload raw website data.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="10" class="py-4 text-center text-slate-400">No records found. Please upload raw data.</td></tr>`;
                     return;
                 }
 
@@ -491,118 +508,153 @@
                     grandTotalPost += item.totalPostage;
 
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-blue-50/60 transition-colors border-b border-slate-100";
+                    tr.className = "hover:bg-amber-50 transition-colors border-b border-amber-100";
                     tr.innerHTML = `
-                        <td class="py-3 px-5 font-bold text-slate-900">${item.division}</td>
+                        <td class="py-3 px-5 font-bold text-amber-950">${item.division}</td>
                         <td class="py-3 px-3 text-center font-semibold">${item.offices.size}</td>
                         <td class="py-3 px-3 text-right">${item.cats.PARCEL.a.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">${item.cats.MO.a.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">${item.cats.IRGB.a.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-4 text-right font-extrabold text-blue-700 bg-blue-50/50">${item.totalArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-4 text-right font-extrabold text-amber-900 bg-amber-50/50">${item.totalArt.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">₹ ${item.cats.PARCEL.p.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">₹ ${item.cats.MO.p.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">₹ ${item.cats.IRGB.p.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-4 text-right font-extrabold text-emerald-700 bg-emerald-50/50">₹ ${item.totalPostage.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-4 text-right font-extrabold text-emerald-800 bg-emerald-50/40">₹ ${item.totalPostage.toLocaleString('en-IN')}</td>
                     `;
                     tbody.appendChild(tr);
                 });
 
                 tfoot.innerHTML = `
-                    <tr class="bg-slate-200 text-slate-900 font-extrabold border-t-2 border-slate-400">
+                    <tr class="report-grand border-t-2 border-amber-800">
                         <td class="py-3 px-5">GRAND TOTAL</td>
                         <td class="py-3 px-3 text-center">${grandOffices}</td>
                         <td class="py-3 px-3 text-right">${grandParcelArt.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">${grandMoArt.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">${grandIrgbArt.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-4 text-right text-blue-800">${grandTotalArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-4 text-right">${grandTotalArt.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">₹ ${grandParcelPost.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">₹ ${grandMoPost.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-3 text-right">₹ ${grandIrgbPost.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-4 text-right text-emerald-800">₹ ${grandTotalPost.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-4 text-right">₹ ${grandTotalPost.toLocaleString('en-IN')}</td>
                     </tr>
                 `;
 
             } else {
+                // Sub-division grouped layout (Division listed once, sub-divisions listed underneath with sub-totals)
                 thead.innerHTML = `
-                    <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
+                    <tr class="report-header text-xs font-bold border-b border-amber-800 uppercase tracking-wider">
                         <th class="py-3 px-4">Division Name</th>
                         <th class="py-3 px-4">Sub-Division (SD)</th>
                         <th class="py-3 px-2 text-center">Offices</th>
-                        <th class="py-3 px-2 text-right text-blue-200">Parcel (Art)</th>
-                        <th class="py-3 px-2 text-right text-blue-200">MO (Art)</th>
-                        <th class="py-3 px-2 text-right text-blue-200">IRGB (Art)</th>
-                        <th class="py-3 px-3 text-right bg-blue-900/50">Total Art</th>
-                        <th class="py-3 px-2 text-right text-emerald-200">Parcel (₹)</th>
-                        <th class="py-3 px-2 text-right text-emerald-200">MO (₹)</th>
-                        <th class="py-3 px-2 text-right text-emerald-200">IRGB (₹)</th>
-                        <th class="py-3 px-3 text-right bg-emerald-900/50">Total Postage (₹)</th>
+                        <th class="py-3 px-2 text-right">Parcel (Art)</th>
+                        <th class="py-3 px-2 text-right">MO (Art)</th>
+                        <th class="py-3 px-2 text-right">IRGB (Art)</th>
+                        <th class="py-3 px-3 text-right">Total Art</th>
+                        <th class="py-3 px-2 text-right">Parcel (₹)</th>
+                        <th class="py-3 px-2 text-right">MO (₹)</th>
+                        <th class="py-3 px-2 text-right">IRGB (₹)</th>
+                        <th class="py-3 px-3 text-right">Total Postage (₹)</th>
                     </tr>
                 `;
 
-                const subMap = {};
+                const divGroups = {};
                 filteredRows.forEach(row => {
-                    const key = row.division + "||" + row.subDivision;
-                    if (!subMap[key]) {
-                        subMap[key] = { division: row.division, subDivision: row.subDivision, offices: new Set(), cats: { PARCEL:{a:0,p:0}, MO:{a:0,p:0}, IRGB:{a:0,p:0} }, totalArt: 0, totalPostage: 0 };
-                    }
-                    subMap[key].offices.add(row.officeId);
-                    if (subMap[key].cats[row.category]) {
-                        subMap[key].cats[row.category].a += row.articles;
-                        subMap[key].cats[row.category].p += row.postage;
-                    }
-                    subMap[key].totalArt += row.articles;
-                    subMap[key].totalPostage += row.postage;
+                    const div = row.division;
+                    if (!divGroups[div]) divGroups[div] = [];
+                    divGroups[div].push(row);
                 });
 
-                if (Object.keys(subMap).length === 0) {
+                if (Object.keys(divGroups).length === 0) {
                     tbody.innerHTML = `<tr><td colspan="11" class="py-4 text-center text-slate-400">No records found.</td></tr>`;
                     return;
                 }
 
-                Object.values(subMap).forEach(item => {
-                    grandOffices += item.offices.size;
-                    grandParcelArt += item.cats.PARCEL.a;
-                    grandMoArt += item.cats.MO.a;
-                    grandIrgbArt += item.cats.IRGB.a;
-                    grandTotalArt += item.totalArt;
+                Object.entries(divGroups).forEach(([divName, rows]) => {
+                    // Group by Sub-Division within this division
+                    const subMap = {};
+                    rows.forEach(r => {
+                        const sd = r.subDivision;
+                        if (!subMap[sd]) {
+                            subMap[sd] = { offices: new Set(), cats: { PARCEL:{a:0,p:0}, MO:{a:0,p:0}, IRGB:{a:0,p:0} }, totalArt: 0, totalPostage: 0 };
+                        }
+                        subMap[sd].offices.add(r.officeId);
+                        if (subMap[sd].cats[r.category]) {
+                            subMap[sd].cats[r.category].a += r.articles;
+                            subMap[sd].cats[r.category].p += r.postage;
+                        }
+                        subMap[sd].totalArt += r.articles;
+                        subMap[sd].totalPostage += r.postage;
+                    });
 
-                    grandParcelPost += item.cats.PARCEL.p;
-                    grandMoPost += item.cats.MO.p;
-                    grandIrgbPost += item.cats.IRGB.p;
-                    grandTotalPost += item.totalPostage;
+                    const subEntries = Object.entries(subMap);
+                    let divOfficesCount = 0;
+                    let divParcelArt = 0, divMoArt = 0, divIrgbArt = 0, divTotalArt = 0;
+                    let divParcelPost = 0, divMoPost = 0, divIrgbPost = 0, divTotalPost = 0;
 
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-blue-50/60 transition-colors border-b border-slate-100 cursor-pointer group";
-                    tr.title = "Click to view offices under this Sub-Division";
-                    tr.onclick = () => openDrilldown(item.subDivision, item.division);
-                    tr.innerHTML = `
-                        <td class="py-3 px-4 font-semibold text-slate-900">${item.division}</td>
-                        <td class="py-3 px-4 font-bold text-blue-700 underline decoration-blue-300">${item.subDivision} 🔍</td>
-                        <td class="py-3 px-2 text-center font-medium">${item.offices.size}</td>
-                        <td class="py-3 px-2 text-right">${item.cats.PARCEL.a.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-2 text-right">${item.cats.MO.a.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-2 text-right">${item.cats.IRGB.a.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-3 text-right font-extrabold text-blue-700 bg-blue-50/50">${item.totalArt.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-2 text-right">₹ ${item.cats.PARCEL.p.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-2 text-right">₹ ${item.cats.MO.p.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-2 text-right">₹ ${item.cats.IRGB.p.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-3 text-right font-extrabold text-emerald-700 bg-emerald-50/50">₹ ${item.totalPostage.toLocaleString('en-IN')}</td>
+                    subEntries.forEach(([sdName, data], index) => {
+                        grandOffices += data.offices.size;
+                        divOfficesCount += data.offices.size;
+                        divParcelArt += data.cats.PARCEL.a; divMoArt += data.cats.MO.a; divIrgbArt += data.cats.IRGB.a; divTotalArt += data.totalArt;
+                        divParcelPost += data.cats.PARCEL.p; divMoPost += data.cats.MO.p; divIrgbPost += data.cats.IRGB.p; divTotalPost += data.totalPostage;
+
+                        const tr = document.createElement('tr');
+                        tr.className = "hover:bg-amber-50 transition-colors border-b border-amber-100 cursor-pointer group";
+                        tr.onclick = () => openDrilldown(sdName, divName);
+                        
+                        let divisionCellHTML = "";
+                        if (index === 0) {
+                            divisionCellHTML = `<td rowspan="${subEntries.length + 1}" class="py-3 px-4 font-extrabold text-amber-950 bg-amber-50/60 align-top border-r border-amber-200">${divName}</td>`;
+                        }
+
+                        tr.innerHTML = `
+                            ${divisionCellHTML}
+                            <td class="py-3 px-4 font-bold text-blue-900 underline decoration-blue-300">${sdName} 🔍</td>
+                            <td class="py-3 px-2 text-center font-medium">${data.offices.size}</td>
+                            <td class="py-3 px-2 text-right">${data.cats.PARCEL.a.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">${data.cats.MO.a.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">${data.cats.IRGB.a.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-3 text-right font-extrabold text-amber-900 bg-amber-50/40">${data.totalArt.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">₹ ${data.cats.PARCEL.p.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">₹ ${data.cats.MO.p.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">₹ ${data.cats.IRGB.p.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-3 text-right font-extrabold text-emerald-800 bg-emerald-50/40">₹ ${data.totalPostage.toLocaleString('en-IN')}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    // Division Total Row (matching reference design)
+                    const divTotalTr = document.createElement('tr');
+                    divTotalTr.className = "report-total border-b-2 border-amber-300";
+                    divTotalTr.innerHTML = `
+                        <td class="py-2.5 px-4 font-bold text-amber-950">Total</td>
+                        <td class="py-2.5 px-2 text-center font-bold">${divOfficesCount}</td>
+                        <td class="py-2.5 px-2 text-right font-bold">${divParcelArt.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right font-bold">${divMoArt.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right font-bold">${divIrgbArt.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-3 text-right font-extrabold">${divTotalArt.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right font-bold">₹ ${divParcelPost.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right font-bold">₹ ${divMoPost.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right font-bold">₹ ${divIrgbPost.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-3 text-right font-extrabold">₹ ${divTotalPost.toLocaleString('en-IN')}</td>
                     `;
-                    tbody.appendChild(tr);
+                    tbody.appendChild(divTotalTr);
+
+                    grandParcelArt += divParcelArt; grandMoArt += divMoArt; grandIrgbArt += divIrgbArt; grandTotalArt += divTotalArt;
+                    grandParcelPost += divParcelPost; grandMoPost += divMoPost; grandIrgbPost += divIrgbPost; grandTotalPost += divTotalPost;
                 });
 
                 tfoot.innerHTML = `
-                    <tr class="bg-slate-200 text-slate-900 font-extrabold border-t-2 border-slate-400">
-                        <td colspan="2" class="py-3 px-4">GRAND TOTAL</td>
+                    <tr class="report-grand border-t-2 border-amber-900">
+                        <td colspan="2" class="py-3 px-4">Grand Total</td>
                         <td class="py-3 px-2 text-center">${grandOffices}</td>
                         <td class="py-3 px-2 text-right">${grandParcelArt.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-2 text-right">${grandMoArt.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-2 text-right">${grandIrgbArt.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-3 text-right text-blue-800">${grandTotalArt.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-right">${grandTotalArt.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-2 text-right">₹ ${grandParcelPost.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-2 text-right">₹ ${grandMoPost.toLocaleString('en-IN')}</td>
                         <td class="py-3 px-2 text-right">₹ ${grandIrgbPost.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-3 text-right text-emerald-800">₹ ${grandTotalPost.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-right">₹ ${grandTotalPost.toLocaleString('en-IN')}</td>
                     </tr>
                 `;
             }
@@ -619,7 +671,7 @@
 
             if (viewType === 'division') {
                 thead.innerHTML = `
-                    <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
+                    <tr class="report-header text-xs font-bold border-b border-amber-800 uppercase tracking-wider">
                         <th class="py-3 px-5">Division Name</th>
                         <th class="py-3 px-3 text-center">Total Offices</th>
                         <th class="py-3 px-3 text-center text-emerald-300">Active (>0)</th>
@@ -633,9 +685,7 @@
                 const divActMap = {};
                 allOffices.forEach(o => {
                     const div = o.division || "OTHER";
-                    if (!divActMap[div]) {
-                        divActMap[div] = { division: div, offices: [], active: [], nil: [], above10: [] };
-                    }
+                    if (!divActMap[div]) divActMap[div] = { division: div, offices: [], active: [], nil: [], above10: [] };
                     divActMap[div].offices.push(o);
                     if (o.articles > 0) divActMap[div].active.push(o);
                     else divActMap[div].nil.push(o);
@@ -649,21 +699,18 @@
                     const nilPct = tCount > 0 ? ((nCount / tCount) * 100).toFixed(1) + "%" : "0.0%";
                     const a10Pct = tCount > 0 ? ((a10Count / tCount) * 100).toFixed(1) + "%" : "0.0%";
 
-                    totalOfficesSum += tCount;
-                    totalActiveSum += item.active.length;
-                    totalNilSum += nCount;
-                    totalAbove10Sum += a10Count;
+                    totalOfficesSum += tCount; totalActiveSum += item.active.length; totalNilSum += nCount; totalAbove10Sum += a10Count;
 
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
+                    tr.className = "hover:bg-amber-50 transition-colors border-b border-amber-100";
                     tr.innerHTML = `
-                        <td class="py-3 px-5 font-bold text-slate-900">${item.division}</td>
-                        <td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-700 hover:underline" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "All Offices", ${JSON.stringify(item.offices)})'>${tCount}</td>
-                        <td class="py-3 px-3 text-center font-bold text-emerald-700 cursor-pointer hover:underline bg-emerald-50/40" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "Active Offices (>0)", ${JSON.stringify(item.active)})'>${item.active.length}</td>
-                        <td class="py-3 px-3 text-center font-bold text-rose-700 cursor-pointer hover:underline bg-rose-50/40" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "Nil Booking Offices (0)", ${JSON.stringify(item.nil)})'>${nCount}</td>
-                        <td class="py-3 px-3 text-center font-semibold text-rose-800 bg-rose-50/20">${nilPct}</td>
-                        <td class="py-3 px-3 text-center font-bold text-indigo-700 cursor-pointer hover:underline bg-indigo-50/40" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "Offices > 10 Articles", ${JSON.stringify(item.above10)})'>${a10Count}</td>
-                        <td class="py-3 px-3 text-center font-semibold text-indigo-800 bg-indigo-50/20">${a10Pct}</td>
+                        <td class="py-3 px-5 font-bold text-amber-950">${item.division}</td>
+                        <td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-800 hover:underline" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "All Offices", ${JSON.stringify(item.offices)})'>${tCount}</td>
+                        <td class="py-3 px-3 text-center font-bold text-emerald-800 cursor-pointer hover:underline bg-emerald-50/40" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "Active Offices", ${JSON.stringify(item.active)})'>${item.active.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-rose-800 cursor-pointer hover:underline bg-rose-50/40" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "Nil Offices", ${JSON.stringify(item.nil)})'>${nCount}</td>
+                        <td class="py-3 px-3 text-center font-semibold text-rose-900 bg-rose-50/20">${nilPct}</td>
+                        <td class="py-3 px-3 text-center font-bold text-indigo-800 cursor-pointer hover:underline bg-indigo-50/40" onclick='openOfficeListModal(${JSON.stringify(item.division)}, "Offices > 10", ${JSON.stringify(item.above10)})'>${a10Count}</td>
+                        <td class="py-3 px-3 text-center font-semibold text-indigo-900 bg-indigo-50/20">${a10Pct}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -672,20 +719,20 @@
                 const grandA10Pct = totalOfficesSum > 0 ? ((totalAbove10Sum / totalOfficesSum) * 100).toFixed(1) + "%" : "0.0%";
 
                 tfoot.innerHTML = `
-                    <tr class="bg-slate-200 text-slate-900 font-extrabold border-t-2 border-slate-400">
+                    <tr class="report-grand border-t-2 border-amber-900">
                         <td class="py-3 px-5">GRAND TOTAL</td>
                         <td class="py-3 px-3 text-center">${totalOfficesSum}</td>
-                        <td class="py-3 px-3 text-center text-emerald-800">${totalActiveSum}</td>
-                        <td class="py-3 px-3 text-center text-rose-800">${totalNilSum}</td>
-                        <td class="py-3 px-3 text-center text-rose-900">${grandNilPct}</td>
-                        <td class="py-3 px-3 text-center text-indigo-800">${totalAbove10Sum}</td>
-                        <td class="py-3 px-3 text-center text-indigo-900">${grandA10Pct}</td>
+                        <td class="py-3 px-3 text-center">${totalActiveSum}</td>
+                        <td class="py-3 px-3 text-center">${totalNilSum}</td>
+                        <td class="py-3 px-3 text-center">${grandNilPct}</td>
+                        <td class="py-3 px-3 text-center">${totalAbove10Sum}</td>
+                        <td class="py-3 px-3 text-center">${grandA10Pct}</td>
                     </tr>
                 `;
 
             } else {
                 thead.innerHTML = `
-                    <tr class="bg-gradient-to-r from-slate-800 to-indigo-900 text-white text-xs font-bold border-b border-slate-700 uppercase tracking-wider">
+                    <tr class="report-header text-xs font-bold border-b border-amber-800 uppercase tracking-wider">
                         <th class="py-3 px-4">Division Name</th>
                         <th class="py-3 px-4">Sub-Division (SD)</th>
                         <th class="py-3 px-2 text-center">Total Offices</th>
@@ -700,9 +747,7 @@
                 const subActMap = {};
                 allOffices.forEach(o => {
                     const key = o.division + "||" + o.sd;
-                    if (!subActMap[key]) {
-                        subActMap[key] = { division: o.division, sd: o.sd, offices: [], active: [], nil: [], above10: [] };
-                    }
+                    if (!subActMap[key]) subActMap[key] = { division: o.division, sd: o.sd, offices: [], active: [], nil: [], above10: [] };
                     subActMap[key].offices.push(o);
                     if (o.articles > 0) subActMap[key].active.push(o);
                     else subActMap[key].nil.push(o);
@@ -716,23 +761,20 @@
                     const nilPct = tCount > 0 ? ((nCount / tCount) * 100).toFixed(1) + "%" : "0.0%";
                     const a10Pct = tCount > 0 ? ((a10Count / tCount) * 100).toFixed(1) + "%" : "0.0%";
 
-                    totalOfficesSum += tCount;
-                    totalActiveSum += item.active.length;
-                    totalNilSum += nCount;
-                    totalAbove10Sum += a10Count;
+                    totalOfficesSum += tCount; totalActiveSum += item.active.length; totalNilSum += nCount; totalAbove10Sum += a10Count;
 
                     const titlePrefix = `${item.division} - ${item.sd}`;
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
+                    tr.className = "hover:bg-amber-50 transition-colors border-b border-amber-100";
                     tr.innerHTML = `
-                        <td class="py-3 px-4 font-semibold text-slate-900">${item.division}</td>
-                        <td class="py-3 px-4 font-bold text-blue-700">${item.sd}</td>
-                        <td class="py-3 px-2 text-center font-semibold cursor-pointer text-blue-700 hover:underline" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "All Offices", ${JSON.stringify(item.offices)})'>${tCount}</td>
-                        <td class="py-3 px-2 text-center font-bold text-emerald-700 cursor-pointer hover:underline bg-emerald-50/40" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "Active Offices", ${JSON.stringify(item.active)})'>${item.active.length}</td>
-                        <td class="py-3 px-2 text-center font-bold text-rose-700 cursor-pointer hover:underline bg-rose-50/40" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "Nil Booking Offices", ${JSON.stringify(item.nil)})'>${nCount}</td>
-                        <td class="py-3 px-2 text-center font-semibold text-rose-800 bg-rose-50/20">${nilPct}</td>
-                        <td class="py-3 px-2 text-center font-bold text-indigo-700 cursor-pointer hover:underline bg-indigo-50/40" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "Offices > 10 Articles", ${JSON.stringify(item.above10)})'>${a10Count}</td>
-                        <td class="py-3 px-2 text-center font-semibold text-indigo-800 bg-indigo-50/20">${a10Pct}</td>
+                        <td class="py-3 px-4 font-semibold text-amber-950">${item.division}</td>
+                        <td class="py-3 px-4 font-bold text-blue-900">${item.sd}</td>
+                        <td class="py-3 px-2 text-center font-semibold cursor-pointer text-blue-800 hover:underline" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "All Offices", ${JSON.stringify(item.offices)})'>${tCount}</td>
+                        <td class="py-3 px-2 text-center font-bold text-emerald-800 cursor-pointer hover:underline bg-emerald-50/40" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "Active Offices", ${JSON.stringify(item.active)})'>${item.active.length}</td>
+                        <td class="py-3 px-2 text-center font-bold text-rose-800 cursor-pointer hover:underline bg-rose-50/40" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "Nil Offices", ${JSON.stringify(item.nil)})'>${nCount}</td>
+                        <td class="py-3 px-2 text-center font-semibold text-rose-900 bg-rose-50/20">${nilPct}</td>
+                        <td class="py-3 px-2 text-center font-bold text-indigo-800 cursor-pointer hover:underline bg-indigo-50/40" onclick='openOfficeListModal(${JSON.stringify(titlePrefix)}, "Offices > 10", ${JSON.stringify(item.above10)})'>${a10Count}</td>
+                        <td class="py-3 px-2 text-center font-semibold text-indigo-900 bg-indigo-50/20">${a10Pct}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -741,14 +783,14 @@
                 const grandA10Pct = totalOfficesSum > 0 ? ((totalAbove10Sum / totalOfficesSum) * 100).toFixed(1) + "%" : "0.0%";
 
                 tfoot.innerHTML = `
-                    <tr class="bg-slate-200 text-slate-900 font-extrabold border-t-2 border-slate-400">
-                        <td colspan="2" class="py-3 px-4">GRAND TOTAL</td>
+                    <tr class="report-grand border-t-2 border-amber-900">
+                        <td colspan="2" class="py-3 px-4">Grand Total</td>
                         <td class="py-3 px-2 text-center">${totalOfficesSum}</td>
-                        <td class="py-3 px-2 text-center text-emerald-800">${totalActiveSum}</td>
-                        <td class="py-3 px-2 text-center text-rose-800">${totalNilSum}</td>
-                        <td class="py-3 px-2 text-center text-rose-900">${grandNilPct}</td>
-                        <td class="py-3 px-2 text-center text-indigo-800">${totalAbove10Sum}</td>
-                        <td class="py-3 px-2 text-center text-indigo-900">${grandA10Pct}</td>
+                        <td class="py-3 px-2 text-center">${totalActiveSum}</td>
+                        <td class="py-3 px-2 text-center">${totalNilSum}</td>
+                        <td class="py-3 px-2 text-center">${grandNilPct}</td>
+                        <td class="py-3 px-2 text-center">${totalAbove10Sum}</td>
+                        <td class="py-3 px-2 text-center">${grandA10Pct}</td>
                     </tr>
                 `;
             }
@@ -763,11 +805,11 @@
             tBody.innerHTML = top10.length ? "" : `<tr><td colspan="3" class="py-3 px-4 text-center text-slate-400">No data</td></tr>`;
             top10.forEach(o => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-emerald-50/50 border-b border-slate-100";
+                tr.className = "hover:bg-emerald-50/50 border-b border-amber-100";
                 tr.innerHTML = `
                     <td class="py-2.5 px-4 font-medium">${o.name} <span class="text-slate-400 text-[10px]">(${o.officeId} - ${o.class})</span></td>
                     <td class="py-2.5 px-4 text-slate-600">${o.division} / ${o.sd}</td>
-                    <td class="py-2.5 px-4 text-right font-bold text-emerald-700">${o.articles.toLocaleString('en-IN')}</td>
+                    <td class="py-2.5 px-4 text-right font-bold text-emerald-800">${o.articles.toLocaleString('en-IN')}</td>
                 `;
                 tBody.appendChild(tr);
             });
@@ -776,11 +818,11 @@
             bBody.innerHTML = bottom10.length ? "" : `<tr><td colspan="3" class="py-3 px-4 text-center text-slate-400">No data</td></tr>`;
             bottom10.forEach(o => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-rose-50/50 border-b border-slate-100";
+                tr.className = "hover:bg-rose-50/50 border-b border-amber-100";
                 tr.innerHTML = `
                     <td class="py-2.5 px-4 font-medium">${o.name} <span class="text-slate-400 text-[10px]">(${o.officeId} - ${o.class})</span></td>
                     <td class="py-2.5 px-4 text-slate-600">${o.division} / ${o.sd}</td>
-                    <td class="py-2.5 px-4 text-right font-bold text-rose-700">${o.articles.toLocaleString('en-IN')}</td>
+                    <td class="py-2.5 px-4 text-right font-bold text-rose-800">${o.articles.toLocaleString('en-IN')}</td>
                 `;
                 bBody.appendChild(tr);
             });
@@ -840,16 +882,16 @@
 
             dataArray.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.className = "hover:bg-amber-50 border-b border-amber-100";
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-semibold">${item.officeName} <span class="text-xs text-slate-400">(${item.officeId})</span></td>
-                    <td class="py-3 px-4"><span class="bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded font-bold">${item.officeClass}</span></td>
+                    <td class="py-3 px-4"><span class="bg-amber-100 text-amber-950 text-xs px-2 py-1 rounded font-bold">${item.officeClass}</span></td>
                     <td class="py-3 px-4 text-xs text-slate-600">${item.division} / ${item.sd}</td>
-                    <td class="py-3 px-4 text-center text-xs"><span class="font-bold text-blue-700">${item.cats.PARCEL.articles || item.cats.PARCEL.a || 0}</span> / <span class="text-emerald-700">₹${item.cats.PARCEL.postage || item.cats.PARCEL.p || 0}</span></td>
-                    <td class="py-3 px-4 text-center text-xs"><span class="font-bold text-blue-700">${item.cats.MO.articles || item.cats.MO.a || 0}</span> / <span class="text-emerald-700">₹${item.cats.MO.postage || item.cats.MO.p || 0}</span></td>
-                    <td class="py-3 px-4 text-center text-xs"><span class="font-bold text-blue-700">${item.cats.IRGB.articles || item.cats.IRGB.a || 0}</span> / <span class="text-emerald-700">₹${item.cats.IRGB.postage || item.cats.IRGB.p || 0}</span></td>
-                    <td class="py-3 px-4 text-right font-extrabold text-blue-700">${(item.totalArt || 0).toLocaleString('en-IN')}</td>
-                    <td class="py-3 px-4 text-right font-extrabold text-emerald-700">₹ ${(item.totalPost || item.totalPostage || 0).toLocaleString('en-IN')}</td>
+                    <td class="py-3 px-4 text-center text-xs"><span class="font-bold text-amber-900">${item.cats.PARCEL.articles || item.cats.PARCEL.a || 0}</span> / <span class="text-emerald-800">₹${item.cats.PARCEL.postage || item.cats.PARCEL.p || 0}</span></td>
+                    <td class="py-3 px-4 text-center text-xs"><span class="font-bold text-amber-900">${item.cats.MO.articles || item.cats.MO.a || 0}</span> / <span class="text-emerald-800">₹${item.cats.MO.postage || item.cats.MO.p || 0}</span></td>
+                    <td class="py-3 px-4 text-center text-xs"><span class="font-bold text-amber-900">${item.cats.IRGB.articles || item.cats.IRGB.a || 0}</span> / <span class="text-emerald-800">₹${item.cats.IRGB.postage || item.cats.IRGB.p || 0}</span></td>
+                    <td class="py-3 px-4 text-right font-extrabold text-amber-950">${(item.totalArt || 0).toLocaleString('en-IN')}</td>
+                    <td class="py-3 px-4 text-right font-extrabold text-emerald-800">₹ ${(item.totalPost || item.totalPostage || 0).toLocaleString('en-IN')}</td>
                 `;
                 modalBody.appendChild(tr);
             });
@@ -899,6 +941,60 @@
             XLSX.writeFile(wb, "Booking_Count_Calculator_Complete_Report.xlsx");
         }
 
+        // PDF Export function using jsPDF with theme styling
+        function exportAllToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+
+            doc.setFillColor(74, 46, 24); // #4a2e18 header color
+            doc.rect(0, 0, 297, 20, "F");
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("Department of Posts - Booking Count Summary Report", 14, 13);
+
+            doc.autoTable({
+                html: '#tableDivisionSummary',
+                startY: 25,
+                theme: 'grid',
+                headStyles: { fillColor: [92, 58, 33], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+                bodyStyles: { fontSize: 8 },
+                footStyles: { fillColor: [74, 46, 24], textColor: [255, 255, 255], fontStyle: 'bold' }
+            });
+
+            doc.save("Booking_Summary_Report.pdf");
+        }
+
+        // Mobile Share Function (Native Share Sheet or fallback to PDF/Excel download)
+        async function handleNativeShare() {
+            const summaryTable = document.getElementById('tableDivisionSummary');
+            
+            // Generate PDF Blob for sharing
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            doc.text("Booking Count Summary Report", 14, 13);
+            doc.autoTable({ html: '#tableDivisionSummary', startY: 20 });
+            
+            const pdfBlob = doc.output('blob');
+            const file = new File([pdfBlob], "Booking_Summary_Report.pdf", { type: "application/pdf" });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        title: 'Booking Count Report',
+                        text: 'Here is the latest Department of Posts booking count report.',
+                        files: [file],
+                    });
+                } catch (error) {
+                    console.log('Share canceled or failed', error);
+                }
+            } else {
+                // Fallback if direct file sharing is not supported on browser
+                exportAllToPDF();
+                alert("PDF file generated and downloaded for sharing!");
+            }
+        }
+
         document.getElementById('rawFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -928,9 +1024,8 @@
                         }))].filter(Boolean);
 
                         if (uniqueDivisions.length === 1) {
-                            const detectedDiv = uniqueDivisions[0];
                             rawData = tempParsedData;
-                            document.getElementById('filterDivision').value = detectedDiv;
+                            document.getElementById('filterDivision').value = uniqueDivisions[0];
                             updateDashboard();
                         } else {
                             rawData = tempParsedData;
@@ -953,16 +1048,9 @@
 
         loadMasterData();
 
-        // Register Service Worker for PWA / Offline support
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => {
-                        console.log('Service Worker registered successfully:', reg.scope);
-                    })
-                    .catch((err) => {
-                        console.log('Service Worker registration failed:', err);
-                    });
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed', err));
             });
         }
     </script>
