@@ -52,7 +52,7 @@
                 
                 <!-- Global Buttons -->
                 <div class="flex items-center gap-2">
-                    <button onclick="openDigitalModal()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer flex items-center gap-1">📲 Digital Booking Status</button>
+                    <button onclick="openDigitalModal()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer flex items-center gap-1">📲 Digital Txn Report</button>
                     <button onclick="exportAllToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📥 Excel</button>
                     <button onclick="exportAllToPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📄 PDF Report</button>
                     <button onclick="shareBothFiles('tableDivisionSummary', 'Summary_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📤 Share</button>
@@ -236,14 +236,14 @@
         </div>
     </div>
 
-    <!-- Modal 2: Digital Booking Transaction Status Modal -->
+    <!-- Modal 2: Digital Booking / COD Transaction Status Modal -->
     <div id="digitalModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
         <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-amber-400">
             <!-- Modal Header -->
             <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <h3 class="font-extrabold text-lg flex items-center gap-2">📲 Digital Booking Transaction Status</h3>
-                    <p class="text-xs text-amber-200">Upload Raw Excel to analyze Cash vs. Digital QR & POS Performance</p>
+                    <h3 id="digitalModalMainTitle" class="font-extrabold text-lg flex items-center gap-2">📲 Digital Txn Status Report</h3>
+                    <p id="digitalModalSubTitle" class="text-xs text-amber-200">Upload Raw Excel to analyze Cash vs. Digital Transactions</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button onclick="exportDigitalExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
@@ -255,10 +255,20 @@
 
             <!-- Modal Content & Controls -->
             <div class="p-6 overflow-y-auto flex-grow space-y-5">
+                <!-- Report Selection Mode Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button id="btnModeBooking" onclick="switchDigitalMode('booking')" class="p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-800 bg-amber-800 text-white shadow-md cursor-pointer transition-all">
+                        <span>📦</span> Digital Booking Txn Report
+                    </button>
+                    <button id="btnModeCod" onclick="switchDigitalMode('cod')" class="p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 shadow-sm cursor-pointer transition-all">
+                        <span>💵</span> COD Digital Txn Report
+                    </button>
+                </div>
+
                 <!-- Inputs & Options -->
                 <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                     <div>
-                        <label class="block text-xs font-bold uppercase text-amber-900 mb-1">📤 Upload Digital Raw File</label>
+                        <label class="block text-xs font-bold uppercase text-amber-900 mb-1" id="lblUploadRaw">📤 Upload Digital Raw File</label>
                         <input type="file" id="digitalFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-800 file:text-white hover:file:bg-amber-900 cursor-pointer border border-amber-300 rounded-lg bg-white p-1"/>
                     </div>
                     <div>
@@ -711,8 +721,62 @@
         }
 
         // ==========================================
-        // DIGITAL BOOKING TRANSACTION STATUS LOGIC
+        // DIGITAL TRANSACTION STATUS LOGIC (BOOKING & COD)
         // ==========================================
+        let currentDigitalMode = 'booking'; // 'booking' or 'cod'
+
+        // Date Rule Function: Previous Working Day (If yesterday was Sunday, pick Saturday)
+        function getReportPreviousDateFormatted() {
+            let d = new Date();
+            d.setDate(d.getDate() - 1); // Go to yesterday
+            if (d.getDay() === 0) { // If Sunday (0), go back to Saturday (-1)
+                d.setDate(d.getDate() - 1);
+            }
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        function switchDigitalMode(mode) {
+            currentDigitalMode = mode;
+            const btnBooking = document.getElementById('btnModeBooking');
+            const btnCod = document.getElementById('btnModeCod');
+            const mainTitle = document.getElementById('digitalModalMainTitle');
+            const subTitle = document.getElementById('digitalModalSubTitle');
+            const thead = document.querySelector('#digitalStatusTable thead tr');
+
+            if (mode === 'booking') {
+                btnBooking.className = "p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-800 bg-amber-800 text-white shadow-md cursor-pointer transition-all";
+                btnCod.className = "p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 shadow-sm cursor-pointer transition-all";
+                mainTitle.innerHTML = "📲 Digital Booking Txn Report";
+                subTitle.textContent = "Upload Raw Excel to analyze Cash vs. Digital QR & POS Performance";
+
+                thead.innerHTML = `
+                    <th class="py-3 px-3">Division</th>
+                    <th class="py-3 px-3" id="thSubDiv">Sub-Division</th>
+                    <th class="py-3 px-2 text-right">Cash (Cnt)</th>
+                    <th class="py-3 px-2 text-right">DQR Scan (Cnt)</th>
+                    <th class="py-3 px-2 text-right">SBIPOS BHARAT QR (Cnt)</th>
+                    <th class="py-3 px-3 text-center" style="background-color: #fbe5d6; color: #4B1D24;">% of Digital Txn</th>
+                `;
+            } else {
+                btnCod.className = "p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-800 bg-amber-800 text-white shadow-md cursor-pointer transition-all";
+                btnBooking.className = "p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 shadow-sm cursor-pointer transition-all";
+                mainTitle.innerHTML = "💵 COD Digital Txn Report";
+                subTitle.textContent = "Upload COD Raw Excel to analyze Cash vs. Digital Collection";
+
+                thead.innerHTML = `
+                    <th class="py-3 px-3">Division</th>
+                    <th class="py-3 px-3" id="thSubDiv">Sub-Division</th>
+                    <th class="py-3 px-2 text-right">Cash (Cnt)</th>
+                    <th class="py-3 px-2 text-right">Digital (Cnt)</th>
+                    <th class="py-3 px-3 text-center" style="background-color: #fbe5d6; color: #4B1D24;">% of Digital Txn</th>
+                `;
+            }
+            processDigitalData();
+        }
+
         function openDigitalModal() {
             document.getElementById('digitalModal').classList.remove('hidden');
         }
@@ -734,17 +798,20 @@
                     const oId = String(row["Office ID"] || row["office-id"] || Object.values(row)[0] || "").trim();
                     const master = masterOfficesMap[oId] || { name: String(row["Office Name"] || "Unknown"), class: "BO", sd: "Unknown SD", division: "Unknown Division" };
                     
-                    // Column Parsing according to rules
-                    const cash = Number(row["Cash (Cnt)"] || row["Cash Count"] || row["CASH"] || 0);
+                    // Column Parsing for both Booking and COD modes
+                    const cash = Number(row["Cash (Cnt)"] || row["Cash Count"] || row["CASH"] || row["Cash"] || row["CASH_COUNT"] || 0);
                     const dqr = Number(row["DQR Scan (Cnt)"] || row["DQR Scan Count"] || row["DQR SCAN"] || 0);
+                    const digitalCnt = Number(row["Digital (Cnt)"] || row["Digital Count"] || row["DIGITAL"] || row["Digital"] || row["DIGITAL_COUNT"] || 0);
                     
-                    // Combine SBIPOS / BHARAT QR from exact column or fallback logic
                     let sbiPosBqr = Number(row["SBIPOS BHARAT QR (Cnt)"] || row["SBIPOS / BHARAT QR"] || row["SBIPOS BHARATQR (Cnt)"] || 0);
                     if (!sbiPosBqr) {
                         const sbiPosCard = Number(row["SBIPOS-CARD (Cnt)"] || 0);
                         const sbiPosBqrOnly = Number(row["SBIPOS BHARATQR (Cnt)"] || 0);
                         sbiPosBqr = sbiPosCard + sbiPosBqrOnly;
                     }
+
+                    // Total Digital logic per mode
+                    const totalDigital = currentDigitalMode === 'cod' ? (digitalCnt || dqr + sbiPosBqr) : (dqr + sbiPosBqr);
 
                     return {
                         officeId: oId,
@@ -755,7 +822,8 @@
                         cashCnt: cash,
                         dqrCnt: dqr,
                         sbiPosCnt: sbiPosBqr,
-                        digitalTotalCnt: dqr + sbiPosBqr
+                        codDigitalCnt: digitalCnt,
+                        digitalTotalCnt: totalDigital
                     };
                 }).filter(i => i.officeId && i.officeName !== "Summary (All Offices)");
 
@@ -774,18 +842,19 @@
             tbody.innerHTML = ""; tfoot.innerHTML = "";
 
             if (!digitalRawData || digitalRawData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 font-medium">Please upload Digital Booking Excel/CSV raw data to populate report.</td></tr>`;
+                const colSpan = currentDigitalMode === 'cod' ? 5 : 6;
+                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="py-8 text-center text-slate-400 font-medium">Please upload ${currentDigitalMode.toUpperCase()} Digital Excel/CSV raw data to populate report.</td></tr>`;
                 return;
             }
 
-            // Filter out BOs if Excluding BO option selected
+            // Filter BO if Exclusion active
             const filteredData = digitalRawData.filter(item => {
                 if (boFilter === 'excluding' && item.officeClass === 'BO') return false;
                 return true;
             });
 
             if (viewType === 'division') {
-                thSubDiv.style.display = 'none';
+                if(thSubDiv) thSubDiv.style.display = 'none';
                 
                 const divGroup = {};
                 filteredData.forEach(row => {
@@ -818,29 +887,49 @@
 
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-amber-50 border-b border-amber-100";
-                    tr.innerHTML = `
-                        <td class="py-2.5 px-3 font-bold text-[#4B1D24]">${item.division}</td>
-                        <td class="py-2.5 px-2 text-right">${item.cash.toLocaleString('en-IN')}</td>
-                        <td class="py-2.5 px-2 text-right">${item.dqr.toLocaleString('en-IN')}</td>
-                        <td class="py-2.5 px-2 text-right">${item.sbiPos.toLocaleString('en-IN')}</td>
-                        <td class="py-2.5 px-3 text-center ${bgClass}">${item.pctDigital.toFixed(2)}%</td>
-                    `;
+
+                    if (currentDigitalMode === 'cod') {
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-3 font-bold text-[#4B1D24]">${item.division}</td>
+                            <td class="py-2.5 px-2 text-right">${item.cash.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-2 text-right">${item.digitalTot.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-3 text-center ${bgClass}">${item.pctDigital.toFixed(2)}%</td>
+                        `;
+                    } else {
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-3 font-bold text-[#4B1D24]">${item.division}</td>
+                            <td class="py-2.5 px-2 text-right">${item.cash.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-2 text-right">${item.dqr.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-2 text-right">${item.sbiPos.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-3 text-center ${bgClass}">${item.pctDigital.toFixed(2)}%</td>
+                        `;
+                    }
                     tbody.appendChild(tr);
                 });
 
                 const gPctTot = gTot > 0 ? ((gDig / gTot) * 100) : 0;
 
-                tfoot.innerHTML = `
-                    <tr class="report-grand text-xs style="background-color: #fbe5d6; color: #4B1D24;" font-bold">
-                        <td class="py-3 px-3">GRAND TOTAL</td>
-                        <td class="py-3 px-2 text-right">${gCash.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-2 text-right">${gDqr.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-2 text-right">${gSbi.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-3 text-center font-extrabold text-slate-900">${gPctTot.toFixed(2)}%</td>
-                    </tr>`;
+                if (currentDigitalMode === 'cod') {
+                    tfoot.innerHTML = `
+                        <tr class="report-grand text-xs style="background-color: #fbe5d6; color: #4B1D24;" font-bold">
+                            <td class="py-3 px-3">GRAND TOTAL</td>
+                            <td class="py-3 px-2 text-right">${gCash.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">${gDig.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-3 text-center font-extrabold text-slate-900">${gPctTot.toFixed(2)}%</td>
+                        </tr>`;
+                } else {
+                    tfoot.innerHTML = `
+                        <tr class="report-grand text-xs style="background-color: #fbe5d6; color: #4B1D24;" font-bold">
+                            <td class="py-3 px-3">GRAND TOTAL</td>
+                            <td class="py-3 px-2 text-right">${gCash.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">${gDqr.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">${gSbi.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-3 text-center font-extrabold text-slate-900">${gPctTot.toFixed(2)}%</td>
+                        </tr>`;
+                }
 
             } else {
-                thSubDiv.style.display = '';
+                if(thSubDiv) thSubDiv.style.display = '';
 
                 const subGroup = {};
                 filteredData.forEach(row => {
@@ -858,7 +947,7 @@
                     return { ...item, totalTxn, pctDigital };
                 });
 
-                // SUB DIVISION VIEW: DO NOT SORT (Natural Order / Simple Order)
+                // SUB DIVISION VIEW: NATURAL ORDER (NO SORTING)
                 currentDigitalProcessedList = list;
 
                 let gCash = 0, gDqr = 0, gSbi = 0, gDig = 0, gTot = 0;
@@ -872,31 +961,52 @@
 
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-amber-50 border-b border-amber-100";
-                    tr.innerHTML = `
-                        <td class="py-2.5 px-3 font-bold text-[#4B1D24]">${item.division}</td>
-                        <td class="py-2.5 px-3 font-bold text-blue-900">${item.sd}</td>
-                        <td class="py-2.5 px-2 text-right">${item.cash.toLocaleString('en-IN')}</td>
-                        <td class="py-2.5 px-2 text-right">${item.dqr.toLocaleString('en-IN')}</td>
-                        <td class="py-2.5 px-2 text-right">${item.sbiPos.toLocaleString('en-IN')}</td>
-                        <td class="py-2.5 px-3 text-center ${bgClass}">${item.pctDigital.toFixed(2)}%</td>
-                    `;
+
+                    if (currentDigitalMode === 'cod') {
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-3 font-bold text-[#4B1D24]">${item.division}</td>
+                            <td class="py-2.5 px-3 font-bold text-blue-900">${item.sd}</td>
+                            <td class="py-2.5 px-2 text-right">${item.cash.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-2 text-right">${item.digitalTot.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-3 text-center ${bgClass}">${item.pctDigital.toFixed(2)}%</td>
+                        `;
+                    } else {
+                        tr.innerHTML = `
+                            <td class="py-2.5 px-3 font-bold text-[#4B1D24]">${item.division}</td>
+                            <td class="py-2.5 px-3 font-bold text-blue-900">${item.sd}</td>
+                            <td class="py-2.5 px-2 text-right">${item.cash.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-2 text-right">${item.dqr.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-2 text-right">${item.sbiPos.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-3 text-center ${bgClass}">${item.pctDigital.toFixed(2)}%</td>
+                        `;
+                    }
                     tbody.appendChild(tr);
                 });
 
                 const gPctTot = gTot > 0 ? ((gDig / gTot) * 100) : 0;
 
-                tfoot.innerHTML = `
-                    <tr class="report-grand text-xs style="background-color: #fbe5d6; color: #4B1D24;" font-bold">
-                        <td colspan="2" class="py-3 px-3">GRAND TOTAL</td>
-                        <td class="py-3 px-2 text-right">${gCash.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-2 text-right">${gDqr.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-2 text-right">${gSbi.toLocaleString('en-IN')}</td>
-                        <td class="py-3 px-3 text-center font-extrabold text-slate-900">${gPctTot.toFixed(2)}%</td>
-                    </tr>`;
+                if (currentDigitalMode === 'cod') {
+                    tfoot.innerHTML = `
+                        <tr class="report-grand text-xs style="background-color: #fbe5d6; color: #4B1D24;" font-bold">
+                            <td colspan="2" class="py-3 px-3">GRAND TOTAL</td>
+                            <td class="py-3 px-2 text-right">${gCash.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">${gDig.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-3 text-center font-extrabold text-slate-900">${gPctTot.toFixed(2)}%</td>
+                        </tr>`;
+                } else {
+                    tfoot.innerHTML = `
+                        <tr class="report-grand text-xs style="background-color: #fbe5d6; color: #4B1D24;" font-bold">
+                            <td colspan="2" class="py-3 px-3">GRAND TOTAL</td>
+                            <td class="py-3 px-2 text-right">${gCash.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">${gDqr.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-2 text-right">${gSbi.toLocaleString('en-IN')}</td>
+                            <td class="py-3 px-3 text-center font-extrabold text-slate-900">${gPctTot.toFixed(2)}%</td>
+                        </tr>`;
+                }
             }
         }
 
-        // Dedicated Excel Export for Digital Status (Direct mapping to required columns)
+        // Dedicated Excel Export for Digital Status
         function exportDigitalExcel() {
             if (!currentDigitalProcessedList || currentDigitalProcessedList.length === 0) {
                 alert("No data available to export.");
@@ -904,45 +1014,66 @@
             }
             const viewType = document.getElementById('digitalViewType').value;
             const excelRows = currentDigitalProcessedList.map(item => {
-                if (viewType === 'subdivision') {
-                    return {
-                        "Division": item.division,
-                        "Sub-Division": item.sd,
-                        "Cash (Cnt)": item.cash,
-                        "DQR Scan (Cnt)": item.dqr,
-                        "SBIPOS BHARAT QR (Cnt)": item.sbiPos,
-                        "% of Digital Txn": Number(item.pctDigital.toFixed(2))
-                    };
+                if (currentDigitalMode === 'cod') {
+                    if (viewType === 'subdivision') {
+                        return {
+                            "Division": item.division,
+                            "Sub-Division": item.sd,
+                            "Cash (Cnt)": item.cash,
+                            "Digital (Cnt)": item.digitalTot,
+                            "% of Digital Txn": Number(item.pctDigital.toFixed(2))
+                        };
+                    } else {
+                        return {
+                            "Division": item.division,
+                            "Cash (Cnt)": item.cash,
+                            "Digital (Cnt)": item.digitalTot,
+                            "% of Digital Txn": Number(item.pctDigital.toFixed(2))
+                        };
+                    }
                 } else {
-                    return {
-                        "Division": item.division,
-                        "Cash (Cnt)": item.cash,
-                        "DQR Scan (Cnt)": item.dqr,
-                        "SBIPOS BHARAT QR (Cnt)": item.sbiPos,
-                        "% of Digital Txn": Number(item.pctDigital.toFixed(2))
-                    };
+                    if (viewType === 'subdivision') {
+                        return {
+                            "Division": item.division,
+                            "Sub-Division": item.sd,
+                            "Cash (Cnt)": item.cash,
+                            "DQR Scan (Cnt)": item.dqr,
+                            "SBIPOS BHARAT QR (Cnt)": item.sbiPos,
+                            "% of Digital Txn": Number(item.pctDigital.toFixed(2))
+                        };
+                    } else {
+                        return {
+                            "Division": item.division,
+                            "Cash (Cnt)": item.cash,
+                            "DQR Scan (Cnt)": item.dqr,
+                            "SBIPOS BHARAT QR (Cnt)": item.sbiPos,
+                            "% of Digital Txn": Number(item.pctDigital.toFixed(2))
+                        };
+                    }
                 }
             });
 
+            const fileName = currentDigitalMode === 'cod' ? "COD_Digital_Txn_Status.xlsx" : "Digital_Booking_Txn_Status.xlsx";
             const worksheet = XLSX.utils.json_to_sheet(excelRows);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Digital Booking Txn Status");
-            XLSX.writeFile(workbook, "Digital_Booking_Txn_Status.xlsx");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+            XLSX.writeFile(workbook, fileName);
         }
 
-        // Dedicated PDF Export matching Second Image theme (Peach header, soft red/green gradient)
+        // Dedicated PDF Export with Exact Theme & Dynamic Date (Previous Working Day Rule)
         function exportDigitalPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = 210, pageHeight = 297;
 
-            const today = new Date().toLocaleDateString('en-GB');
+            const reportDate = getReportPreviousDateFormatted();
+            const reportTitle = currentDigitalMode === 'cod' ? `COD Digital Txn Status  ${reportDate}` : `Digital Booking Txn Status  ${reportDate}`;
 
             // Header Title exact matching Photo 2 style
             doc.setFontSize(16);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(0, 0, 0);
-            doc.text(`Digital Booking Txn Status  ${today}`, pageWidth / 2, 16, { align: 'center' });
+            doc.text(reportTitle, pageWidth / 2, 16, { align: 'center' });
 
             doc.autoTable({
                 html: '#digitalStatusTable',
@@ -958,7 +1089,7 @@
                     textColor: [0, 0, 0]
                 },
                 headStyles: { 
-                    fillColor: [252, 232, 230], // Light Peach/Pink like image
+                    fillColor: [252, 232, 230], // Light Peach/Pink
                     textColor: [0, 0, 0], 
                     fontStyle: 'bold', 
                     halign: 'center'
@@ -995,7 +1126,8 @@
                 }
             });
 
-            doc.save(`Digital_Booking_Txn_Status_${today.replace(/\//g, '-')}.pdf`);
+            const fileName = currentDigitalMode === 'cod' ? `COD_Digital_Txn_Status_${reportDate}.pdf` : `Digital_Booking_Txn_Status_${reportDate}.pdf`;
+            doc.save(fileName);
         }
 
         function openDrilldown(subDivisionName, divisionName) {
@@ -1051,7 +1183,7 @@
             doc.setFontSize(9);
             doc.setFont("helvetica", "normal");
             doc.text(titleText.toUpperCase(), 12, 16);
-            doc.text("Report Date: " + new Date().toLocaleDateString('en-IN'), pageWidth - 45, 12);
+            doc.text("Report Date: " + getReportPreviousDateFormatted(), pageWidth - 45, 12);
 
             doc.autoTable({
                 html: '#' + tableId,
