@@ -29,7 +29,12 @@
     <header class="report-header shadow-xl py-4 px-4 md:px-8 border-b-4 border-amber-900">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
             <div class="flex items-center gap-3">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c4/India_Post_Day_Block.png" alt="India Post Logo" class="h-12 w-auto bg-white p-1 rounded-lg shadow-md border border-amber-300"/>
+                <div class="bg-white p-1.5 rounded-xl shadow-md border border-amber-300 flex items-center justify-center">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c4/India_Post_Day_Block.png" 
+                         onerror="this.onerror=null; this.src='https://www.indiapost.gov.in/VAS/Pages/images/IndiaPost_Logo.png';" 
+                         alt="India Post Logo" 
+                         class="h-10 w-auto object-contain"/>
+                </div>
                 <div>
                     <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
                         Booking Calculator
@@ -42,9 +47,10 @@
                 
                 <!-- Global Buttons -->
                 <div class="flex items-center gap-2">
+                    <button onclick="openDigitalModal()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer flex items-center gap-1">📲 Digital Booking Status</button>
                     <button onclick="exportAllToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📥 Excel</button>
                     <button onclick="exportAllToPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📄 PDF Report</button>
-                    <button onclick="shareBothFiles('tableDivisionSummary', 'Summary_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📤 Share (PDF + Excel)</button>
+                    <button onclick="shareBothFiles('tableDivisionSummary', 'Summary_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📤 Share</button>
                 </div>
             </div>
         </div>
@@ -54,9 +60,9 @@
     <main class="max-w-7xl mx-auto px-3 md:px-8 py-6 space-y-6 w-full flex-grow">
 
         <!-- Controls Section: File Upload & Filters -->
-        <div class="bg-white p-4 md:p-6 rounded-2xl shadow-md border border-amber-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+        <div class="bg-white p-4 md:p-6 rounded-2xl shadow-md border border-amber-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
             <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">📁 File Upload</label>
+                <label class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">📁 Booking Raw File</label>
                 <input type="file" id="rawFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-900 hover:file:bg-amber-200 cursor-pointer border border-amber-300 rounded-xl p-1 bg-amber-50/50"/>
             </div>
             <div>
@@ -79,6 +85,11 @@
                 <select id="filterCategory" class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-amber-50/50 font-medium">
                     <option value="All">All Categories</option>
                 </select>
+            </div>
+            <div>
+                <button onclick="openDigitalModal()" class="w-full bg-gradient-to-r from-amber-700 to-amber-900 text-white font-bold text-xs py-3 px-4 rounded-xl shadow-md hover:from-amber-800 hover:to-amber-950 transition cursor-pointer flex items-center justify-center gap-1.5">
+                    <span>📲</span> Digital Booking Status
+                </button>
             </div>
         </div>
 
@@ -111,7 +122,7 @@
                     </select>
                     <button onclick="exportTableToExcel('tableDivisionSummary', 'Summary_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
                     <button onclick="exportSingleTableToPDF('tableDivisionSummary', 'Summary Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
-                    <button onclick="shareBothFiles('tableDivisionSummary', 'Summary Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share (PDF + Excel)</button>
+                    <button onclick="shareBothFiles('tableDivisionSummary', 'Summary Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -136,7 +147,7 @@
                     </select>
                     <button onclick="exportTableToExcel('tableActivitySummary', 'Activity_Status_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
                     <button onclick="exportSingleTableToPDF('tableActivitySummary', 'Activity Status Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
-                    <button onclick="shareBothFiles('tableActivitySummary', 'Activity Status Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share (PDF + Excel)</button>
+                    <button onclick="shareBothFiles('tableActivitySummary', 'Activity Status Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -145,6 +156,9 @@
                     <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700"></tbody>
                     <tfoot class="font-bold text-xs md:text-sm"></tfoot>
                 </table>
+            </div>
+            <div class="px-6 py-2.5 bg-amber-50 border-t border-amber-200 text-[11px] text-amber-900 font-medium">
+                ⚠️ <strong>Note:</strong> IDCs (Indoor Administrative Units) are designated operational entities rather than public booking counters. In this dashboard, IDCs are counted as <strong>Active Offices</strong> to protect performance percentage calculations from artificial skew.
             </div>
         </div>
 
@@ -186,7 +200,7 @@
 
     </main>
 
-    <!-- Detailed Offices Modal -->
+    <!-- Modal 1: Detailed Offices Modal -->
     <div id="drilldownModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-amber-300">
             <div class="report-header px-6 py-4 flex justify-between items-center">
@@ -222,6 +236,75 @@
         </div>
     </div>
 
+    <!-- Modal 2: Digital Booking Transaction Status Modal -->
+    <div id="digitalModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-amber-400">
+            <!-- Modal Header -->
+            <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                    <h3 class="font-extrabold text-lg flex items-center gap-2">📲 Digital Booking Transaction Status</h3>
+                    <p class="text-xs text-amber-200">Upload Raw Excel to analyze Cash vs. Digital QR & POS Performance</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button onclick="exportTableToExcel('digitalStatusTable', 'Digital_Booking_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
+                    <button onclick="exportSingleTableToPDF('digitalStatusTable', 'Digital Booking Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF</button>
+                    <button onclick="shareBothFiles('digitalStatusTable', 'Digital_Booking_Status')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
+                    <button onclick="closeDigitalModal()" class="bg-amber-950 hover:bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer ml-2">✕</button>
+                </div>
+            </div>
+
+            <!-- Modal Content & Controls -->
+            <div class="p-6 overflow-y-auto flex-grow space-y-5">
+                <!-- Inputs & Options -->
+                <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-amber-900 mb-1">📤 Upload Digital Raw File</label>
+                        <input type="file" id="digitalFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-800 file:text-white hover:file:bg-amber-900 cursor-pointer border border-amber-300 rounded-lg bg-white p-1"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-amber-900 mb-1">🏢 View Type</label>
+                        <select id="digitalViewType" onchange="processDigitalData()" class="w-full border border-amber-300 rounded-lg p-2 text-xs bg-white font-bold">
+                            <option value="subdivision">Sub-Division View</option>
+                            <option value="division">Division View</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-amber-900 mb-1">⚙️ BO Inclusion Report Option</label>
+                        <select id="digitalBoFilter" onchange="processDigitalData()" class="w-full border border-amber-300 rounded-lg p-2 text-xs bg-white font-bold">
+                            <option value="including">Including BO (SO + HO + BO)</option>
+                            <option value="excluding">Excluding BO (SO + HO Only)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Digital Report Table -->
+                <div class="overflow-x-auto border border-amber-200 rounded-xl shadow-sm">
+                    <table class="w-full text-left border-collapse" id="digitalStatusTable">
+                        <thead>
+                            <tr class="report-header text-xs font-bold uppercase border-b border-amber-900">
+                                <th class="py-3 px-3">Division</th>
+                                <th class="py-3 px-3" id="thSubDiv">Sub-Division</th>
+                                <th class="py-3 px-2 text-right">Cash (Cnt)</th>
+                                <th class="py-3 px-2 text-right">DQR Scan (Cnt)</th>
+                                <th class="py-3 px-2 text-right">SBIPOS / BHARAT QR</th>
+                                <th class="py-3 px-2 text-right bg-[#3a141a]">Total Digital (Cnt)</th>
+                                <th class="py-3 px-2 text-right bg-[#3a141a]">Total Transaction</th>
+                                <th class="py-3 px-3 text-center bg-amber-900 text-amber-100">Digital % (Cash Base)</th>
+                                <th class="py-3 px-3 text-center bg-amber-950 text-amber-100">Digital % (Total Base)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700">
+                            <tr>
+                                <td colspan="9" class="py-8 text-center text-slate-400 font-medium">Please upload Digital Booking Excel/CSV raw data to populate report.</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="font-bold text-xs md:text-sm"></tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="report-header text-amber-200 text-xs py-4 px-6 text-center border-t border-amber-900 mt-12">
         <p class="font-medium">Developed by <span class="text-white font-bold">Kapil Rajput</span>, PA, Regional Office Indore</p>
@@ -231,7 +314,7 @@
         const MASTER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=0&single=true&output=csv";
         const MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1575541045&single=true&output=csv";
 
-        let masterOfficesMap = {}, serviceMapping = {}, rawData = [], currentFilteredRows = [], modalExportData = [], globalAllFilteredOffices = [];
+        let masterOfficesMap = {}, serviceMapping = {}, rawData = [], digitalRawData = [], currentFilteredRows = [], modalExportData = [], globalAllFilteredOffices = [];
 
         async function loadMasterData() {
             try {
@@ -325,7 +408,7 @@
             globalAllFilteredOffices = Object.values(officeTotals);
             document.getElementById('kpiArticles').textContent = filteredRows.reduce((a, c) => a + c.articles, 0).toLocaleString('en-IN');
             document.getElementById('kpiPostage').textContent = filteredRows.reduce((a, c) => a + c.postage, 0).toLocaleString('en-IN', {minimumFractionDigits: 2});
-            document.getElementById('kpiOffices').textContent = `${globalAllFilteredOffices.filter(o => o.articles > 0).length} / ${globalAllFilteredOffices.length}`;
+            document.getElementById('kpiOffices').textContent = `${globalAllFilteredOffices.filter(o => o.articles > 0 || (o.name && o.name.toUpperCase().includes("IDC"))).length} / ${globalAllFilteredOffices.length}`;
 
             renderSummaryTable(filteredRows, summaryView);
             renderActivityTable(globalAllFilteredOffices, activityView);
@@ -491,15 +574,19 @@
         function renderActivityTable(allOffices, viewType) {
             const thead = document.querySelector('#tableActivitySummary thead');
             const tbody = document.querySelector('#tableActivitySummary tbody');
-            tbody.innerHTML = "";
+            const tfoot = document.querySelector('#tableActivitySummary tfoot');
+            tbody.innerHTML = ""; tfoot.innerHTML = "";
+
+            let totalOff = 0, totalAct = 0, totalNil = 0, totalAbv10 = 0;
+            const isOfficeActive = (o) => o.articles > 0 || (o.name && o.name.toUpperCase().includes("IDC"));
 
             if (viewType === 'division') {
                 thead.innerHTML = `
                     <tr class="report-header text-xs font-bold border-b border-amber-900 uppercase">
                         <th class="py-3 px-4">Division Name</th>
                         <th class="py-3 px-3 text-center">Total Offices</th>
-                        <th class="py-3 px-3 text-center text-emerald-300">Active (>0)</th>
-                        <th class="py-3 px-3 text-center text-rose-300">Nil (0)</th>
+                        <th class="py-3 px-3 text-center text-emerald-300">Active (>0 / IDC)</th>
+                        <th class="py-3 px-3 text-center text-rose-300">Nil Booking</th>
                         <th class="py-3 px-3 text-center text-indigo-300">> 10 Articles</th>
                         <th class="py-3 px-3 text-center text-rose-200">% Nil Booking</th>
                         <th class="py-3 px-3 text-center text-indigo-200">% >10 Booking</th>
@@ -510,12 +597,14 @@
                     const key = o.division || "UNKNOWN";
                     if (!divActMap[key]) divActMap[key] = { division: key, offices: [], active: [], nil: [], above10: [] };
                     divActMap[key].offices.push(o);
-                    if (o.articles > 0) divActMap[key].active.push(o); else divActMap[key].nil.push(o);
+                    if (isOfficeActive(o)) divActMap[key].active.push(o); else divActMap[key].nil.push(o);
                     if (o.articles > 10) divActMap[key].above10.push(o);
                 });
 
                 Object.values(divActMap).forEach(item => {
                     const totalCount = item.offices.length;
+                    totalOff += totalCount; totalAct += item.active.length; totalNil += item.nil.length; totalAbv10 += item.above10.length;
+
                     const nilPct = totalCount > 0 ? ((item.nil.length / totalCount) * 100).toFixed(1) : "0.0";
                     const above10Pct = totalCount > 0 ? ((item.above10.length / totalCount) * 100).toFixed(1) : "0.0";
 
@@ -533,14 +622,28 @@
                     tbody.appendChild(tr);
                 });
 
+                const overallNilPct = totalOff > 0 ? ((totalNil / totalOff) * 100).toFixed(1) : "0.0";
+                const overallAbv10Pct = totalOff > 0 ? ((totalAbv10 / totalOff) * 100).toFixed(1) : "0.0";
+
+                tfoot.innerHTML = `
+                    <tr class="report-grand text-xs bg-[#4B1D24] text-white font-bold">
+                        <td class="py-3 px-4">GRAND TOTAL</td>
+                        <td class="py-3 px-3 text-center">${totalOff}</td>
+                        <td class="py-3 px-3 text-center text-emerald-200">${totalAct}</td>
+                        <td class="py-3 px-3 text-center text-rose-200">${totalNil}</td>
+                        <td class="py-3 px-3 text-center text-indigo-200">${totalAbv10}</td>
+                        <td class="py-3 px-3 text-center text-amber-300">${overallNilPct}%</td>
+                        <td class="py-3 px-3 text-center text-amber-300">${overallAbv10Pct}%</td>
+                    </tr>`;
+
             } else {
                 thead.innerHTML = `
                     <tr class="report-header text-xs font-bold border-b border-amber-900 uppercase">
                         <th class="py-3 px-4">Division Name</th>
                         <th class="py-3 px-4">Sub-Division</th>
                         <th class="py-3 px-3 text-center">Total Offices</th>
-                        <th class="py-3 px-3 text-center text-emerald-300">Active (>0)</th>
-                        <th class="py-3 px-3 text-center text-rose-300">Nil (0)</th>
+                        <th class="py-3 px-3 text-center text-emerald-300">Active (>0 / IDC)</th>
+                        <th class="py-3 px-3 text-center text-rose-300">Nil Booking</th>
                         <th class="py-3 px-3 text-center text-indigo-300">> 10 Articles</th>
                         <th class="py-3 px-3 text-center text-rose-200">% Nil Booking</th>
                         <th class="py-3 px-3 text-center text-indigo-200">% >10 Booking</th>
@@ -551,12 +654,14 @@
                     const key = (o.division || "OTHER") + "||" + (o.sd || "OTHER");
                     if (!subActMap[key]) subActMap[key] = { division: o.division, sd: o.sd, offices: [], active: [], nil: [], above10: [] };
                     subActMap[key].offices.push(o);
-                    if (o.articles > 0) subActMap[key].active.push(o); else subActMap[key].nil.push(o);
+                    if (isOfficeActive(o)) subActMap[key].active.push(o); else subActMap[key].nil.push(o);
                     if (o.articles > 10) subActMap[key].above10.push(o);
                 });
 
                 Object.values(subActMap).forEach(item => {
                     const totalCount = item.offices.length;
+                    totalOff += totalCount; totalAct += item.active.length; totalNil += item.nil.length; totalAbv10 += item.above10.length;
+
                     const nilPct = totalCount > 0 ? ((item.nil.length / totalCount) * 100).toFixed(1) : "0.0";
                     const above10Pct = totalCount > 0 ? ((item.above10.length / totalCount) * 100).toFixed(1) : "0.0";
 
@@ -574,6 +679,20 @@
                     `;
                     tbody.appendChild(tr);
                 });
+
+                const overallNilPct = totalOff > 0 ? ((totalNil / totalOff) * 100).toFixed(1) : "0.0";
+                const overallAbv10Pct = totalOff > 0 ? ((totalAbv10 / totalOff) * 100).toFixed(1) : "0.0";
+
+                tfoot.innerHTML = `
+                    <tr class="report-grand text-xs bg-[#4B1D24] text-white font-bold">
+                        <td colspan="2" class="py-3 px-4">GRAND TOTAL</td>
+                        <td class="py-3 px-3 text-center">${totalOff}</td>
+                        <td class="py-3 px-3 text-center text-emerald-200">${totalAct}</td>
+                        <td class="py-3 px-3 text-center text-rose-200">${totalNil}</td>
+                        <td class="py-3 px-3 text-center text-indigo-200">${totalAbv10}</td>
+                        <td class="py-3 px-3 text-center text-amber-300">${overallNilPct}%</td>
+                        <td class="py-3 px-3 text-center text-amber-300">${overallAbv10Pct}%</td>
+                    </tr>`;
             }
         }
 
@@ -591,6 +710,202 @@
                     tBody.appendChild(tr);
                 });
             });
+        }
+
+        // ==========================================
+        // DIGITAL BOOKING TRANSACTION STATUS LOGIC
+        // ==========================================
+        function openDigitalModal() {
+            document.getElementById('digitalModal').classList.remove('hidden');
+        }
+
+        function closeDigitalModal() {
+            document.getElementById('digitalModal').classList.add('hidden');
+        }
+
+        document.getElementById('digitalFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                
+                digitalRawData = json.map(row => {
+                    const oId = String(row["Office ID"] || row["office-id"] || Object.values(row)[0] || "").trim();
+                    const master = masterOfficesMap[oId] || { name: String(row["Office Name"] || "Unknown"), class: "BO", sd: "Unknown SD", division: "Unknown Division" };
+                    
+                    const cash = Number(row["Cash (Cnt)"] || row["Cash Count"] || 0);
+                    const dqr = Number(row["DQR Scan (Cnt)"] || row["DQR Scan Count"] || 0);
+                    const sbiPosCard = Number(row["SBIPOS-CARD (Cnt)"] || 0);
+                    const sbiPosBqr = Number(row["SBIPOS BHARATQR (Cnt)"] || 0);
+                    const sbiPosTotal = sbiPosCard + sbiPosBqr;
+
+                    return {
+                        officeId: oId,
+                        officeName: master.name,
+                        officeClass: master.class,
+                        subDivision: master.sd,
+                        division: master.division,
+                        cashCnt: cash,
+                        dqrCnt: dqr,
+                        sbiPosCnt: sbiPosTotal,
+                        digitalTotalCnt: dqr + sbiPosTotal
+                    };
+                }).filter(i => i.officeId && i.officeName !== "Summary (All Offices)");
+
+                processDigitalData();
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function processDigitalData() {
+            const viewType = document.getElementById('digitalViewType').value;
+            const boFilter = document.getElementById('digitalBoFilter').value;
+            const tbody = document.querySelector('#digitalStatusTable tbody');
+            const tfoot = document.querySelector('#digitalStatusTable tfoot');
+            const thSubDiv = document.getElementById('thSubDiv');
+
+            tbody.innerHTML = ""; tfoot.innerHTML = "";
+
+            if (!digitalRawData || digitalRawData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="py-8 text-center text-slate-400 font-medium">Please upload Digital Booking Excel/CSV raw data to populate report.</td></tr>`;
+                return;
+            }
+
+            // Filter out BOs if Excluding BO option selected
+            const filteredData = digitalRawData.filter(item => {
+                if (boFilter === 'excluding' && item.officeClass === 'BO') return false;
+                return true;
+            });
+
+            if (viewType === 'division') {
+                thSubDiv.style.display = 'none';
+                
+                const divGroup = {};
+                filteredData.forEach(row => {
+                    const key = row.division || "UNKNOWN";
+                    if (!divGroup[key]) divGroup[key] = { division: key, cash: 0, dqr: 0, sbiPos: 0, digitalTot: 0 };
+                    divGroup[key].cash += row.cashCnt;
+                    divGroup[key].dqr += row.dqrCnt;
+                    divGroup[key].sbiPos += row.sbiPosCnt;
+                    divGroup[key].digitalTot += row.digitalTotalCnt;
+                });
+
+                let list = Object.values(divGroup).map(item => {
+                    const totalTxn = item.cash + item.digitalTot;
+                    const pctCashBase = item.cash > 0 ? ((item.digitalTot / item.cash) * 100) : 0;
+                    const pctTotBase = totalTxn > 0 ? ((item.digitalTot / totalTxn) * 100) : 0;
+                    return { ...item, totalTxn, pctCashBase, pctTotBase };
+                });
+
+                // SORT LOW TO HIGH (Based on Total Base %)
+                list.sort((a, b) => a.pctTotBase - b.pctTotBase);
+
+                let gCash = 0, gDqr = 0, gSbi = 0, gDig = 0, gTot = 0;
+
+                list.forEach(item => {
+                    gCash += item.cash; gDqr += item.dqr; gSbi += item.sbiPos; gDig += item.digitalTot; gTot += item.totalTxn;
+
+                    // Color Gradient Mapping (Low % = Red, High % = Green)
+                    let bgClass = "bg-rose-100 text-rose-800 font-bold";
+                    if (item.pctTotBase >= 15) bgClass = "bg-emerald-100 text-emerald-900 font-bold";
+                    else if (item.pctTotBase >= 5) bgClass = "bg-amber-100 text-amber-900 font-bold";
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                    tr.innerHTML = `
+                        <td class="py-2.5 px-3 font-bold text-[#4B1D24]">${item.division}</td>
+                        <td class="py-2.5 px-2 text-right">${item.cash.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right">${item.dqr.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right">${item.sbiPos.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right font-bold text-indigo-900 bg-indigo-50/50">${item.digitalTot.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right font-bold text-slate-800 bg-amber-50">${item.totalTxn.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-3 text-center ${bgClass}">${item.pctCashBase.toFixed(2)}%</td>
+                        <td class="py-2.5 px-3 text-center ${bgClass}">${item.pctTotBase.toFixed(2)}%</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                const gPctCash = gCash > 0 ? ((gDig / gCash) * 100) : 0;
+                const gPctTot = gTot > 0 ? ((gDig / gTot) * 100) : 0;
+
+                tfoot.innerHTML = `
+                    <tr class="report-grand text-xs bg-[#4B1D24] text-white font-bold">
+                        <td class="py-3 px-3">GRAND TOTAL</td>
+                        <td class="py-3 px-2 text-right">${gCash.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right">${gDqr.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right">${gSbi.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right text-indigo-200">${gDig.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right text-amber-200">${gTot.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-center text-amber-300">${gPctCash.toFixed(2)}%</td>
+                        <td class="py-3 px-3 text-center text-amber-300">${gPctTot.toFixed(2)}%</td>
+                    </tr>`;
+
+            } else {
+                thSubDiv.style.display = '';
+
+                const subGroup = {};
+                filteredData.forEach(row => {
+                    const key = (row.division || "UNKNOWN") + "||" + (row.subDivision || "UNKNOWN SD");
+                    if (!subGroup[key]) subGroup[key] = { division: row.division, sd: row.subDivision, cash: 0, dqr: 0, sbiPos: 0, digitalTot: 0 };
+                    subGroup[key].cash += row.cashCnt;
+                    subGroup[key].dqr += row.dqrCnt;
+                    subGroup[key].sbiPos += row.sbiPosCnt;
+                    subGroup[key].digitalTot += row.digitalTotalCnt;
+                });
+
+                let list = Object.values(subGroup).map(item => {
+                    const totalTxn = item.cash + item.digitalTot;
+                    const pctCashBase = item.cash > 0 ? ((item.digitalTot / item.cash) * 100) : 0;
+                    const pctTotBase = totalTxn > 0 ? ((item.digitalTot / totalTxn) * 100) : 0;
+                    return { ...item, totalTxn, pctCashBase, pctTotBase };
+                });
+
+                // SORT LOW TO HIGH (Based on Total Base %)
+                list.sort((a, b) => a.pctTotBase - b.pctTotBase);
+
+                let gCash = 0, gDqr = 0, gSbi = 0, gDig = 0, gTot = 0;
+
+                list.forEach(item => {
+                    gCash += item.cash; gDqr += item.dqr; gSbi += item.sbiPos; gDig += item.digitalTot; gTot += item.totalTxn;
+
+                    let bgClass = "bg-rose-100 text-rose-800 font-bold";
+                    if (item.pctTotBase >= 15) bgClass = "bg-emerald-100 text-emerald-900 font-bold";
+                    else if (item.pctTotBase >= 5) bgClass = "bg-amber-100 text-amber-900 font-bold";
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                    tr.innerHTML = `
+                        <td class="py-2.5 px-3 font-bold text-[#4B1D24]">${item.division}</td>
+                        <td class="py-2.5 px-3 font-bold text-blue-900">${item.sd}</td>
+                        <td class="py-2.5 px-2 text-right">${item.cash.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right">${item.dqr.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right">${item.sbiPos.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right font-bold text-indigo-900 bg-indigo-50/50">${item.digitalTot.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-2 text-right font-bold text-slate-800 bg-amber-50">${item.totalTxn.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-3 text-center ${bgClass}">${item.pctCashBase.toFixed(2)}%</td>
+                        <td class="py-2.5 px-3 text-center ${bgClass}">${item.pctTotBase.toFixed(2)}%</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                const gPctCash = gCash > 0 ? ((gDig / gCash) * 100) : 0;
+                const gPctTot = gTot > 0 ? ((gDig / gTot) * 100) : 0;
+
+                tfoot.innerHTML = `
+                    <tr class="report-grand text-xs bg-[#4B1D24] text-white font-bold">
+                        <td colspan="2" class="py-3 px-3">GRAND TOTAL</td>
+                        <td class="py-3 px-2 text-right">${gCash.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right">${gDqr.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right">${gSbi.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right text-indigo-200">${gDig.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-2 text-right text-amber-200">${gTot.toLocaleString('en-IN')}</td>
+                        <td class="py-3 px-3 text-center text-amber-300">${gPctCash.toFixed(2)}%</td>
+                        <td class="py-3 px-3 text-center text-amber-300">${gPctTot.toFixed(2)}%</td>
+                    </tr>`;
+            }
         }
 
         function openDrilldown(subDivisionName, divisionName) {
@@ -630,19 +945,14 @@
         function exportModalToExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(modalExportData), "Details"), "Office_Details.xlsx"); }
         function exportAllToExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.table_to_book(document.getElementById('tableDivisionSummary')).Sheets["Sheet1"], "Summary"), XLSX.utils.table_to_book(document.getElementById('tableActivitySummary')).Sheets["Sheet1"], "Activity"), "Complete_Report.xlsx"); }
 
-        // ULTRA PROFESSIONAL PDF GENERATION ENGINE
         function generatePdfDoc(tableId, titleText) {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4'); // Standard Clean A4 Landscape
-            
-            const pageWidth = 297;
-            const pageHeight = 210;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            const pageWidth = 297, pageHeight = 210;
 
-            // Header Banner Background
-            doc.setFillColor(75, 29, 36); // #4B1D24 Burgundy
+            doc.setFillColor(75, 29, 36);
             doc.rect(0, 0, pageWidth, 18, "F");
             
-            // Header Text
             doc.setTextColor(255, 255, 255); 
             doc.setFontSize(12); 
             doc.setFont("helvetica", "bold");
@@ -653,54 +963,16 @@
             doc.text(titleText.toUpperCase(), 12, 16);
             doc.text("Report Date: " + new Date().toLocaleDateString('en-IN'), pageWidth - 45, 12);
 
-            // AutoTable Configuration with Word-Wrap Fix & Rich Colors
             doc.autoTable({
                 html: '#' + tableId,
                 startY: 22,
                 margin: { top: 22, right: 10, bottom: 14, left: 10 },
                 theme: 'grid',
-                styles: { 
-                    fontSize: 8, 
-                    cellPadding: 2.5, 
-                    overflow: 'linebreak',
-                    valign: 'middle',
-                    lineColor: [226, 213, 195], // Light Amber Border
-                    lineWidth: 0.2
-                },
-                headStyles: { 
-                    fillColor: [75, 29, 36], 
-                    textColor: [255, 255, 255], 
-                    fontStyle: 'bold',
-                    halign: 'center',
-                    fontSize: 8.5
-                },
-                alternateRowStyles: { 
-                    fillColor: [253, 248, 240] // Premium Off-White Warm Tint
-                },
-                bodyStyles: {
-                    textColor: [30, 30, 30]
-                },
-                footStyles: { 
-                    fillColor: [75, 29, 36], 
-                    textColor: [255, 255, 255], 
-                    fontStyle: 'bold',
-                    fontSize: 8.5
-                },
-                // Prevent Numeric Column Splitting / Breaking
-                columnStyles: {
-                    0: { cellWidth: 'auto', minCellWidth: 25 },
-                    1: { cellWidth: 'auto', minCellWidth: 25 },
-                    2: { halign: 'center', minCellWidth: 15 },
-                    3: { halign: 'right', minCellWidth: 18 },
-                    4: { halign: 'right', minCellWidth: 22 },
-                    5: { halign: 'right', minCellWidth: 18 },
-                    6: { halign: 'right', minCellWidth: 22 },
-                    7: { halign: 'right', minCellWidth: 18 },
-                    8: { halign: 'right', minCellWidth: 22 },
-                    9: { halign: 'right', fontStyle: 'bold', minCellWidth: 20 },
-                    10: { halign: 'right', fontStyle: 'bold', minCellWidth: 24 }
-                },
-                // Clean Footer & Dynamic Page Numbers
+                styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak', valign: 'middle', lineColor: [226, 213, 195], lineWidth: 0.2 },
+                headStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8.5 },
+                alternateRowStyles: { fillColor: [253, 248, 240] },
+                bodyStyles: { textColor: [30, 30, 30] },
+                footStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
                 didDrawPage: function (data) {
                     const totalPages = doc.internal.getNumberOfPages();
                     doc.setFontSize(8);
@@ -720,15 +992,12 @@
 
         function exportAllToPDF() { exportSingleTableToPDF('tableDivisionSummary', 'Summary Report'); }
 
-        // Share Both Files (PDF + Excel)
         async function shareBothFiles(tableId, titleText) {
             try {
-                // Generate PDF
                 const pdfDoc = generatePdfDoc(tableId, titleText);
                 const pdfBlob = pdfDoc.output('blob');
                 const pdfFile = new File([pdfBlob], titleText.replace(/\s+/g, '_') + ".pdf", { type: "application/pdf" });
 
-                // Generate Excel
                 const wb = XLSX.utils.table_to_book(document.getElementById(tableId), {sheet: "Report"});
                 const excelArrayBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
                 const excelBlob = new Blob([excelArrayBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
@@ -749,8 +1018,6 @@
                 console.error("Error sharing files:", e);
             }
         }
-
-        async function handleNativeShare() { shareBothFiles('tableDivisionSummary', 'Summary Report'); }
 
         document.getElementById('rawFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0]; if (!file) return;
