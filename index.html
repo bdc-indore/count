@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Count Calculator - Department of Posts</title>
+    <!-- App Title Updated -->
+    <title>Booking Calculator - Department of Posts</title>
+    <meta name="application-name" content="Booking Calculator">
+    <meta name="apple-mobile-web-app-title" content="Booking Calculator">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS for Excel import & export -->
@@ -11,8 +15,7 @@
     <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <!-- PWA Manifest Link -->
-    <link rel="manifest" href="manifest.json">
+    
     <meta name="theme-color" content="#4B1D24">
     <style>
         .report-header { background-color: #4B1D24; color: #ffffff; }
@@ -23,23 +26,27 @@
 </head>
 <body class="bg-amber-50/30 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
-    <!-- Header -->
-    <header class="report-header shadow-xl py-5 px-4 md:px-8 border-b-4 border-amber-900">
+    <!-- Header with India Post Logo -->
+    <header class="report-header shadow-xl py-4 px-4 md:px-8 border-b-4 border-amber-900">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
-                    <span>📊</span> Booking Count & Activity Report
-                </h1>
-                <p class="text-xs md:text-sm text-amber-200 mt-1">Department of Posts - Regional Office Indore Analytics</p>
+            <div class="flex items-center gap-3">
+                <!-- India Post Logo Emblem -->
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c4/India_Post_Day_Block.png" alt="India Post Logo" class="h-12 w-auto bg-white p-1 rounded-lg shadow-md border border-amber-300"/>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                        Booking Calculator
+                    </h1>
+                    <p class="text-xs md:text-sm text-amber-200 mt-0.5">Department of Posts - Regional Office Indore Analytics</p>
+                </div>
             </div>
             <div class="flex items-center flex-wrap gap-3">
                 <span id="masterStatus" class="bg-amber-700 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow animate-pulse">Loading Master Offices...</span>
                 
-                <!-- Global Share & Download Buttons -->
+                <!-- Global Download Buttons -->
                 <div class="flex items-center gap-2">
                     <button onclick="exportAllToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📥 Excel</button>
                     <button onclick="exportAllToPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📄 1-Page PDF</button>
-                    <button onclick="handleNativeShare()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📤 Share</button>
+                    <button onclick="shareBothFiles('tableDivisionSummary', 'Summary_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📤 Share (PDF + Excel)</button>
                 </div>
             </div>
         </div>
@@ -106,7 +113,7 @@
                     </select>
                     <button onclick="exportTableToExcel('tableDivisionSummary', 'Summary_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
                     <button onclick="exportSingleTableToPDF('tableDivisionSummary', 'Summary Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 1-Page PDF</button>
-                    <button onclick="shareSingleTable('tableDivisionSummary', 'Summary Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
+                    <button onclick="shareBothFiles('tableDivisionSummary', 'Summary Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share (PDF + Excel)</button>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -131,7 +138,7 @@
                     </select>
                     <button onclick="exportTableToExcel('tableActivitySummary', 'Activity_Status_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
                     <button onclick="exportSingleTableToPDF('tableActivitySummary', 'Activity Status Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 1-Page PDF</button>
-                    <button onclick="shareSingleTable('tableActivitySummary', 'Activity Status Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share</button>
+                    <button onclick="shareBothFiles('tableActivitySummary', 'Activity Status Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share (PDF + Excel)</button>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -151,7 +158,7 @@
                     <div class="flex gap-1.5">
                         <button onclick="exportTableToExcel('tableTop10', 'Top_10.xlsx')" class="bg-emerald-950 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
                         <button onclick="exportSingleTableToPDF('tableTop10', 'Top 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 1-Page PDF</button>
-                        <button onclick="shareSingleTable('tableTop10', 'Top 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📤 Share</button>
+                        <button onclick="shareBothFiles('tableTop10', 'Top 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📤 Share</button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -167,7 +174,7 @@
                     <div class="flex gap-1.5">
                         <button onclick="exportTableToExcel('tableBottom10', 'Bottom_10.xlsx')" class="bg-rose-950 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
                         <button onclick="exportSingleTableToPDF('tableBottom10', 'Bottom 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 1-Page PDF</button>
-                        <button onclick="shareSingleTable('tableBottom10', 'Bottom 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📤 Share</button>
+                        <button onclick="shareBothFiles('tableBottom10', 'Bottom 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📤 Share</button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -387,7 +394,6 @@
                     tbody.appendChild(tr);
                 });
 
-                // Grand Total Footer
                 tfoot.innerHTML = `
                     <tr class="report-grand text-[11px] bg-[#4B1D24] text-white">
                         <td class="py-3 px-3">GRAND TOTAL</td>
@@ -467,7 +473,6 @@
                     });
                 });
 
-                // Grand Total Footer
                 tfoot.innerHTML = `
                     <tr class="report-grand text-[11px] bg-[#4B1D24] text-white">
                         <td colspan="2" class="py-3 px-3">GRAND TOTAL</td>
@@ -485,27 +490,94 @@
             }
         }
 
+        // Updated Activity Table Rendering with Percentage Columns & Proper Division Grouping
         function renderActivityTable(allOffices, viewType) {
             const thead = document.querySelector('#tableActivitySummary thead');
             const tbody = document.querySelector('#tableActivitySummary tbody');
             tbody.innerHTML = "";
-            thead.innerHTML = `<tr class="report-header text-xs font-bold border-b border-amber-900 uppercase"><th class="py-3 px-5">Division Name</th><th class="py-3 px-4">Sub-Division</th><th class="py-3 px-3 text-center">Total Offices</th><th class="py-3 px-3 text-center text-emerald-300">Active (>0)</th><th class="py-3 px-3 text-center text-rose-300">Nil (0)</th><th class="py-3 px-3 text-center text-indigo-300">> 10 Articles</th></tr>`;
-            
-            const subActMap = {};
-            allOffices.forEach(o => {
-                const key = (o.division || "OTHER") + "||" + (o.sd || "OTHER");
-                if (!subActMap[key]) subActMap[key] = { division: o.division, sd: o.sd, offices: [], active: [], nil: [], above10: [] };
-                subActMap[key].offices.push(o);
-                if (o.articles > 0) subActMap[key].active.push(o); else subActMap[key].nil.push(o);
-                if (o.articles > 10) subActMap[key].above10.push(o);
-            });
 
-            Object.values(subActMap).forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-amber-50 border-b border-amber-100";
-                tr.innerHTML = `<td class="py-3 px-5 font-bold text-[#4B1D24]">${item.division}</td><td class="py-3 px-4 font-bold text-blue-900">${item.sd}</td><td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-800 hover:underline" onclick='openOfficeListModal("${item.division} - ${item.sd}", "All Offices", ${JSON.stringify(item.offices)})'>${item.offices.length}</td><td class="py-3 px-3 text-center font-bold text-[#0B6623] bg-emerald-50/40" onclick='openOfficeListModal("${item.division} - ${item.sd}", "Active", ${JSON.stringify(item.active)})'>${item.active.length}</td><td class="py-3 px-3 text-center font-bold text-[#8B0000] bg-rose-50/40" onclick='openOfficeListModal("${item.division} - ${item.sd}", "Nil", ${JSON.stringify(item.nil)})'>${item.nil.length}</td><td class="py-3 px-3 text-center font-bold text-indigo-800 bg-indigo-50/40" onclick='openOfficeListModal("${item.division} - ${item.sd}", "> 10", ${JSON.stringify(item.above10)})'>${item.above10.length}</td>`;
-                tbody.appendChild(tr);
-            });
+            if (viewType === 'division') {
+                thead.innerHTML = `
+                    <tr class="report-header text-xs font-bold border-b border-amber-900 uppercase">
+                        <th class="py-3 px-4">Division Name</th>
+                        <th class="py-3 px-3 text-center">Total Offices</th>
+                        <th class="py-3 px-3 text-center text-emerald-300">Active (>0)</th>
+                        <th class="py-3 px-3 text-center text-rose-300">Nil (0)</th>
+                        <th class="py-3 px-3 text-center text-indigo-300">> 10 Articles</th>
+                        <th class="py-3 px-3 text-center text-rose-200">% Nil Booking</th>
+                        <th class="py-3 px-3 text-center text-indigo-200">% >10 Booking</th>
+                    </tr>`;
+
+                const divActMap = {};
+                allOffices.forEach(o => {
+                    const key = o.division || "UNKNOWN";
+                    if (!divActMap[key]) divActMap[key] = { division: key, offices: [], active: [], nil: [], above10: [] };
+                    divActMap[key].offices.push(o);
+                    if (o.articles > 0) divActMap[key].active.push(o); else divActMap[key].nil.push(o);
+                    if (o.articles > 10) divActMap[key].above10.push(o);
+                });
+
+                Object.values(divActMap).forEach(item => {
+                    const totalCount = item.offices.length;
+                    const nilPct = totalCount > 0 ? ((item.nil.length / totalCount) * 100).toFixed(1) : "0.0";
+                    const above10Pct = totalCount > 0 ? ((item.above10.length / totalCount) * 100).toFixed(1) : "0.0";
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 font-bold text-[#4B1D24]">${item.division}</td>
+                        <td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-800 hover:underline" onclick='openOfficeListModal("${item.division}", "All Offices", ${JSON.stringify(item.offices)})'>${totalCount}</td>
+                        <td class="py-3 px-3 text-center font-bold text-[#0B6623] bg-emerald-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division}", "Active", ${JSON.stringify(item.active)})'>${item.active.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-[#8B0000] bg-rose-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division}", "Nil", ${JSON.stringify(item.nil)})'>${item.nil.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-indigo-800 bg-indigo-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division}", "> 10", ${JSON.stringify(item.above10)})'>${item.above10.length}</td>
+                        <td class="py-3 px-3 text-center font-extrabold text-rose-700 bg-rose-100/50">${nilPct}%</td>
+                        <td class="py-3 px-3 text-center font-extrabold text-indigo-700 bg-indigo-100/50">${above10Pct}%</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } else {
+                thead.innerHTML = `
+                    <tr class="report-header text-xs font-bold border-b border-amber-900 uppercase">
+                        <th class="py-3 px-4">Division Name</th>
+                        <th class="py-3 px-4">Sub-Division</th>
+                        <th class="py-3 px-3 text-center">Total Offices</th>
+                        <th class="py-3 px-3 text-center text-emerald-300">Active (>0)</th>
+                        <th class="py-3 px-3 text-center text-rose-300">Nil (0)</th>
+                        <th class="py-3 px-3 text-center text-indigo-300">> 10 Articles</th>
+                        <th class="py-3 px-3 text-center text-rose-200">% Nil Booking</th>
+                        <th class="py-3 px-3 text-center text-indigo-200">% >10 Booking</th>
+                    </tr>`;
+                
+                const subActMap = {};
+                allOffices.forEach(o => {
+                    const key = (o.division || "OTHER") + "||" + (o.sd || "OTHER");
+                    if (!subActMap[key]) subActMap[key] = { division: o.division, sd: o.sd, offices: [], active: [], nil: [], above10: [] };
+                    subActMap[key].offices.push(o);
+                    if (o.articles > 0) subActMap[key].active.push(o); else subActMap[key].nil.push(o);
+                    if (o.articles > 10) subActMap[key].above10.push(o);
+                });
+
+                Object.values(subActMap).forEach(item => {
+                    const totalCount = item.offices.length;
+                    const nilPct = totalCount > 0 ? ((item.nil.length / totalCount) * 100).toFixed(1) : "0.0";
+                    const above10Pct = totalCount > 0 ? ((item.above10.length / totalCount) * 100).toFixed(1) : "0.0";
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 font-bold text-[#4B1D24]">${item.division}</td>
+                        <td class="py-3 px-4 font-bold text-blue-900">${item.sd}</td>
+                        <td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-800 hover:underline" onclick='openOfficeListModal("${item.division} - ${item.sd}", "All Offices", ${JSON.stringify(item.offices)})'>${totalCount}</td>
+                        <td class="py-3 px-3 text-center font-bold text-[#0B6623] bg-emerald-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division} - ${item.sd}", "Active", ${JSON.stringify(item.active)})'>${item.active.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-[#8B0000] bg-rose-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division} - ${item.sd}", "Nil", ${JSON.stringify(item.nil)})'>${item.nil.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-indigo-800 bg-indigo-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division} - ${item.sd}", "> 10", ${JSON.stringify(item.above10)})'>${item.above10.length}</td>
+                        <td class="py-3 px-3 text-center font-extrabold text-rose-700 bg-rose-100/50">${nilPct}%</td>
+                        <td class="py-3 px-3 text-center font-extrabold text-indigo-700 bg-indigo-100/50">${above10Pct}%</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
         }
 
         function renderTopBottom10(offices) {
@@ -561,35 +633,59 @@
         function exportModalToExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(modalExportData), "Details"), "Office_Details.xlsx"); }
         function exportAllToExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.table_to_book(document.getElementById('tableDivisionSummary')).Sheets["Sheet1"], "Summary"), XLSX.utils.table_to_book(document.getElementById('tableActivitySummary')).Sheets["Sheet1"], "Activity"), "Complete_Report.xlsx"); }
 
-        // Optimized Single-Page Landscape PDF Export with Auto-Scaling & Rich Colors
-        function exportSingleTableToPDF(tableId, titleText) {
+        // Smart PDF Generator: Auto-Detects Row Count to Dynamically Adjust Orientation, Font & Spacing
+        function generatePdfDoc(tableId, titleText) {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4'); // A4 Landscape: 297 x 210 mm
+            const tableElem = document.getElementById(tableId);
+            const rowCount = tableElem.querySelectorAll('tbody tr').length;
             
-            // Decorative Header Background
+            // Analyze Data Size: Dynamic Orientation & Formatting Parameters
+            const isLandscape = rowCount > 12;
+            const doc = new jsPDF(isLandscape ? 'l' : 'p', 'mm', 'a4');
+            
+            const pageWidth = isLandscape ? 297 : 210;
+            const pageHeight = isLandscape ? 210 : 297;
+
+            // Header Background
             doc.setFillColor(75, 29, 36); 
-            doc.rect(0, 0, 297, 16, "F");
+            doc.rect(0, 0, pageWidth, 16, "F");
             
-            // Title Text
+            // Header Text
             doc.setTextColor(255, 255, 255); 
-            doc.setFontSize(12); 
+            doc.setFontSize(11); 
             doc.setFont("helvetica", "bold");
-            doc.text("Department of Posts, Regional Office Indore — " + titleText + " (Rupye)", 10, 11);
+            doc.text("Department of Posts, RO Indore — " + titleText, 10, 11);
             
-            // Metadata / Timestamp
             doc.setFontSize(8);
             doc.setFont("helvetica", "normal");
-            doc.text("Generated on: " + new Date().toLocaleDateString('en-IN'), 245, 11);
+            doc.text("Date: " + new Date().toLocaleDateString('en-IN'), pageWidth - 35, 11);
 
-            // AutoTable configured with tight padding and compact styling to guarantee 1-page fit
+            // Dynamic Font Size & Cell Padding Logic (Expands when rows are few)
+            let dynamicFontSize = 8;
+            let dynamicPadding = 2;
+
+            if (rowCount <= 5) {
+                dynamicFontSize = 11;
+                dynamicPadding = 6; // Wide spacing for small tables
+            } else if (rowCount <= 10) {
+                dynamicFontSize = 10;
+                dynamicPadding = 4;
+            } else if (rowCount <= 18) {
+                dynamicFontSize = 8.5;
+                dynamicPadding = 2.5;
+            } else {
+                dynamicFontSize = 7;
+                dynamicPadding = 1.5; // Compact spacing for large tables
+            }
+
             doc.autoTable({
                 html: '#' + tableId,
                 startY: 19,
                 margin: { top: 18, right: 10, bottom: 12, left: 10 },
                 theme: 'grid',
                 styles: { 
-                    fontSize: 7, 
-                    cellPadding: 1.2, 
+                    fontSize: dynamicFontSize, 
+                    cellPadding: dynamicPadding, 
                     overflow: 'linebreak',
                     valign: 'middle'
                 },
@@ -599,57 +695,61 @@
                     fontStyle: 'bold',
                     halign: 'center'
                 },
-                alternateRowStyles: { 
-                    fillColor: [253, 243, 230] 
-                },
-                bodyStyles: {
-                    textColor: [40, 40, 40]
-                },
-                footStyles: {
-                    fillColor: [75, 29, 36],
-                    textColor: [255, 255, 255],
-                    fontStyle: 'bold'
-                },
-                // Force all rows to fit onto a single page cleanly
+                alternateRowStyles: { fillColor: [253, 243, 230] },
+                footStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold' },
                 pageBreak: 'avoid',
                 rowPageBreak: 'avoid',
                 didDrawPage: function (data) {
-                    doc.setFontSize(7.5);
-                    doc.setTextColor(100, 100, 100);
-                    doc.text("Developed by Kapil Rajput, PA, Regional Office Indore", 10, 204);
-                    doc.text("Page 1 of 1 (Single-Page Fit)", 265, 204);
+                    doc.setFontSize(8);
+                    doc.setTextColor(120, 120, 120);
+                    doc.text("Developed by Kapil Rajput, PA, Regional Office Indore", 10, pageHeight - 6);
+                    doc.text("Page 1 of 1", pageWidth - 25, pageHeight - 6);
                 }
             });
 
-            doc.save(titleText.replace(/\s+/g, '_') + "_1Page_Report.pdf");
+            return doc;
+        }
+
+        function exportSingleTableToPDF(tableId, titleText) {
+            const doc = generatePdfDoc(tableId, titleText);
+            doc.save(titleText.replace(/\s+/g, '_') + "_1Page.pdf");
         }
 
         function exportAllToPDF() { exportSingleTableToPDF('tableDivisionSummary', 'Summary Report'); }
 
-        async function shareSingleTable(tableId, titleText) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-            doc.setFillColor(75, 29, 36); doc.rect(0, 0, 297, 16, "F");
-            doc.setTextColor(255, 255, 255); doc.setFontSize(12); doc.setFont("helvetica", "bold");
-            doc.text("Department of Posts, Regional Office Indore — " + titleText, 10, 11);
-            doc.autoTable({ 
-                html: '#' + tableId, 
-                startY: 19, 
-                margin: { top: 18, right: 10, bottom: 12, left: 10 },
-                theme: 'grid', 
-                styles: { fontSize: 7, cellPadding: 1.2 },
-                headStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold' },
-                alternateRowStyles: { fillColor: [253, 243, 230] },
-                footStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold' }
-            });
-            const pdfBlob = doc.output('blob');
-            const file = new File([pdfBlob], titleText.replace(/\s+/g, '_') + "_1Page.pdf", { type: "application/pdf" });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try { await navigator.share({ title: titleText, files: [file] }); } catch (e) {}
-            } else { doc.save(file.name); alert("1-Page PDF downloaded for sharing!"); }
+        // Dual File Sharing Functionality (Sends PDF & Excel Together)
+        async function shareBothFiles(tableId, titleText) {
+            try {
+                // 1. Generate PDF Blob
+                const pdfDoc = generatePdfDoc(tableId, titleText);
+                const pdfBlob = pdfDoc.output('blob');
+                const pdfFile = new File([pdfBlob], titleText.replace(/\s+/g, '_') + ".pdf", { type: "application/pdf" });
+
+                // 2. Generate Excel Blob
+                const wb = XLSX.utils.table_to_book(document.getElementById(tableId), {sheet: "Report"});
+                const excelArrayBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                const excelBlob = new Blob([excelArrayBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                const excelFile = new File([excelBlob], titleText.replace(/\s+/g, '_') + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+
+                // 3. Share Files via Native Web Share API
+                if (navigator.canShare && navigator.canShare({ files: [pdfFile, excelFile] })) {
+                    await navigator.share({
+                        title: titleText,
+                        text: `Attached PDF and Excel Reports for ${titleText} (Department of Posts)`,
+                        files: [pdfFile, excelFile]
+                    });
+                } else {
+                    // Fallback Download if multi-file share isn't supported
+                    exportSingleTableToPDF(tableId, titleText);
+                    exportTableToExcel(tableId, titleText.replace(/\s+/g, '_') + ".xlsx");
+                    alert("Sharing multiple files is not directly supported on this browser. Both PDF and Excel files have been downloaded to your device.");
+                }
+            } catch (e) {
+                console.error("Error sharing files:", e);
+            }
         }
 
-        async function handleNativeShare() { shareSingleTable('tableDivisionSummary', 'Summary Report'); }
+        async function handleNativeShare() { shareBothFiles('tableDivisionSummary', 'Summary Report'); }
 
         document.getElementById('rawFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0]; if (!file) return;
