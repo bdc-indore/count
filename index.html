@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- App Title Updated -->
     <title>Booking Calculator - Department of Posts</title>
     <meta name="application-name" content="Booking Calculator">
     <meta name="apple-mobile-web-app-title" content="Booking Calculator">
@@ -30,7 +29,6 @@
     <header class="report-header shadow-xl py-4 px-4 md:px-8 border-b-4 border-amber-900">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
             <div class="flex items-center gap-3">
-                <!-- India Post Logo Emblem -->
                 <img src="https://upload.wikimedia.org/wikipedia/commons/c/c4/India_Post_Day_Block.png" alt="India Post Logo" class="h-12 w-auto bg-white p-1 rounded-lg shadow-md border border-amber-300"/>
                 <div>
                     <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
@@ -42,10 +40,10 @@
             <div class="flex items-center flex-wrap gap-3">
                 <span id="masterStatus" class="bg-amber-700 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow animate-pulse">Loading Master Offices...</span>
                 
-                <!-- Global Download Buttons -->
+                <!-- Global Buttons -->
                 <div class="flex items-center gap-2">
                     <button onclick="exportAllToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📥 Excel</button>
-                    <button onclick="exportAllToPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📄 1-Page PDF</button>
+                    <button onclick="exportAllToPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📄 PDF Report</button>
                     <button onclick="shareBothFiles('tableDivisionSummary', 'Summary_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📤 Share (PDF + Excel)</button>
                 </div>
             </div>
@@ -112,7 +110,7 @@
                         <option value="division">Division Wise</option>
                     </select>
                     <button onclick="exportTableToExcel('tableDivisionSummary', 'Summary_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportSingleTableToPDF('tableDivisionSummary', 'Summary Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 1-Page PDF</button>
+                    <button onclick="exportSingleTableToPDF('tableDivisionSummary', 'Summary Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
                     <button onclick="shareBothFiles('tableDivisionSummary', 'Summary Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share (PDF + Excel)</button>
                 </div>
             </div>
@@ -137,7 +135,7 @@
                         <option value="division">Division Wise</option>
                     </select>
                     <button onclick="exportTableToExcel('tableActivitySummary', 'Activity_Status_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportSingleTableToPDF('tableActivitySummary', 'Activity Status Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 1-Page PDF</button>
+                    <button onclick="exportSingleTableToPDF('tableActivitySummary', 'Activity Status Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
                     <button onclick="shareBothFiles('tableActivitySummary', 'Activity Status Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📤 Share (PDF + Excel)</button>
                 </div>
             </div>
@@ -157,7 +155,7 @@
                     <h3 class="font-bold text-sm">🏆 Top 10 Performing Offices</h3>
                     <div class="flex gap-1.5">
                         <button onclick="exportTableToExcel('tableTop10', 'Top_10.xlsx')" class="bg-emerald-950 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
-                        <button onclick="exportSingleTableToPDF('tableTop10', 'Top 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 1-Page PDF</button>
+                        <button onclick="exportSingleTableToPDF('tableTop10', 'Top 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 PDF</button>
                         <button onclick="shareBothFiles('tableTop10', 'Top 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📤 Share</button>
                     </div>
                 </div>
@@ -173,7 +171,7 @@
                     <h3 class="font-bold text-sm">⚠️ Bottom 10 / Nil Booking Offices</h3>
                     <div class="flex gap-1.5">
                         <button onclick="exportTableToExcel('tableBottom10', 'Bottom_10.xlsx')" class="bg-rose-950 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
-                        <button onclick="exportSingleTableToPDF('tableBottom10', 'Bottom 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 1-Page PDF</button>
+                        <button onclick="exportSingleTableToPDF('tableBottom10', 'Bottom 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 PDF</button>
                         <button onclick="shareBothFiles('tableBottom10', 'Bottom 10 Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📤 Share</button>
                     </div>
                 </div>
@@ -198,7 +196,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="exportModalToExcel()" class="bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportSingleTableToPDF('tableModalOffices', 'Office Details')" class="bg-rose-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 1-Page PDF</button>
+                    <button onclick="exportSingleTableToPDF('tableModalOffices', 'Office Details')" class="bg-rose-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF</button>
                     <button onclick="closeModal()" class="bg-amber-950 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer">✕</button>
                 </div>
             </div>
@@ -490,7 +488,6 @@
             }
         }
 
-        // Updated Activity Table Rendering with Percentage Columns & Proper Division Grouping
         function renderActivityTable(allOffices, viewType) {
             const thead = document.querySelector('#tableActivitySummary thead');
             const tbody = document.querySelector('#tableActivitySummary tbody');
@@ -633,77 +630,83 @@
         function exportModalToExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(modalExportData), "Details"), "Office_Details.xlsx"); }
         function exportAllToExcel() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.table_to_book(document.getElementById('tableDivisionSummary')).Sheets["Sheet1"], "Summary"), XLSX.utils.table_to_book(document.getElementById('tableActivitySummary')).Sheets["Sheet1"], "Activity"), "Complete_Report.xlsx"); }
 
-        // Smart PDF Generator: Auto-Detects Row Count to Dynamically Adjust Orientation, Font & Spacing
+        // ULTRA PROFESSIONAL PDF GENERATION ENGINE
         function generatePdfDoc(tableId, titleText) {
             const { jsPDF } = window.jspdf;
-            const tableElem = document.getElementById(tableId);
-            const rowCount = tableElem.querySelectorAll('tbody tr').length;
+            const doc = new jsPDF('l', 'mm', 'a4'); // Standard Clean A4 Landscape
             
-            // Analyze Data Size: Dynamic Orientation & Formatting Parameters
-            const isLandscape = rowCount > 12;
-            const doc = new jsPDF(isLandscape ? 'l' : 'p', 'mm', 'a4');
-            
-            const pageWidth = isLandscape ? 297 : 210;
-            const pageHeight = isLandscape ? 210 : 297;
+            const pageWidth = 297;
+            const pageHeight = 210;
 
-            // Header Background
-            doc.setFillColor(75, 29, 36); 
-            doc.rect(0, 0, pageWidth, 16, "F");
+            // Header Banner Background
+            doc.setFillColor(75, 29, 36); // #4B1D24 Burgundy
+            doc.rect(0, 0, pageWidth, 18, "F");
             
             // Header Text
             doc.setTextColor(255, 255, 255); 
-            doc.setFontSize(11); 
+            doc.setFontSize(12); 
             doc.setFont("helvetica", "bold");
-            doc.text("Department of Posts, RO Indore — " + titleText, 10, 11);
+            doc.text("DEPARTMENT OF POSTS — REGIONAL OFFICE INDORE", 12, 11);
             
-            doc.setFontSize(8);
+            doc.setFontSize(9);
             doc.setFont("helvetica", "normal");
-            doc.text("Date: " + new Date().toLocaleDateString('en-IN'), pageWidth - 35, 11);
+            doc.text(titleText.toUpperCase(), 12, 16);
+            doc.text("Report Date: " + new Date().toLocaleDateString('en-IN'), pageWidth - 45, 12);
 
-            // Dynamic Font Size & Cell Padding Logic (Expands when rows are few)
-            let dynamicFontSize = 8;
-            let dynamicPadding = 2;
-
-            if (rowCount <= 5) {
-                dynamicFontSize = 11;
-                dynamicPadding = 6; // Wide spacing for small tables
-            } else if (rowCount <= 10) {
-                dynamicFontSize = 10;
-                dynamicPadding = 4;
-            } else if (rowCount <= 18) {
-                dynamicFontSize = 8.5;
-                dynamicPadding = 2.5;
-            } else {
-                dynamicFontSize = 7;
-                dynamicPadding = 1.5; // Compact spacing for large tables
-            }
-
+            // AutoTable Configuration with Word-Wrap Fix & Rich Colors
             doc.autoTable({
                 html: '#' + tableId,
-                startY: 19,
-                margin: { top: 18, right: 10, bottom: 12, left: 10 },
+                startY: 22,
+                margin: { top: 22, right: 10, bottom: 14, left: 10 },
                 theme: 'grid',
                 styles: { 
-                    fontSize: dynamicFontSize, 
-                    cellPadding: dynamicPadding, 
+                    fontSize: 8, 
+                    cellPadding: 2.5, 
                     overflow: 'linebreak',
-                    valign: 'middle'
+                    valign: 'middle',
+                    lineColor: [226, 213, 195], // Light Amber Border
+                    lineWidth: 0.2
                 },
                 headStyles: { 
                     fillColor: [75, 29, 36], 
                     textColor: [255, 255, 255], 
                     fontStyle: 'bold',
-                    halign: 'center'
+                    halign: 'center',
+                    fontSize: 8.5
                 },
-                alternateRowStyles: { fillColor: [253, 243, 230] },
-                footStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold' },
-                pageBreak: 'avoid',
-                rowPageBreak: 'avoid',
+                alternateRowStyles: { 
+                    fillColor: [253, 248, 240] // Premium Off-White Warm Tint
+                },
+                bodyStyles: {
+                    textColor: [30, 30, 30]
+                },
+                footStyles: { 
+                    fillColor: [75, 29, 36], 
+                    textColor: [255, 255, 255], 
+                    fontStyle: 'bold',
+                    fontSize: 8.5
+                },
+                // Prevent Numeric Column Splitting / Breaking
+                columnStyles: {
+                    0: { cellWidth: 'auto', minCellWidth: 25 },
+                    1: { cellWidth: 'auto', minCellWidth: 25 },
+                    2: { halign: 'center', minCellWidth: 15 },
+                    3: { halign: 'right', minCellWidth: 18 },
+                    4: { halign: 'right', minCellWidth: 22 },
+                    5: { halign: 'right', minCellWidth: 18 },
+                    6: { halign: 'right', minCellWidth: 22 },
+                    7: { halign: 'right', minCellWidth: 18 },
+                    8: { halign: 'right', minCellWidth: 22 },
+                    9: { halign: 'right', fontStyle: 'bold', minCellWidth: 20 },
+                    10: { halign: 'right', fontStyle: 'bold', minCellWidth: 24 }
+                },
+                // Clean Footer & Dynamic Page Numbers
                 didDrawPage: function (data) {
+                    const totalPages = doc.internal.getNumberOfPages();
                     doc.setFontSize(8);
                     doc.setTextColor(120, 120, 120);
-                    doc.text("Developed by Kapil Rajput, PA, Regional Office Indore", 10, pageHeight - 6);
-                    doc.text("Page 1 of 1", pageWidth - 25, pageHeight - 6);
+                    doc.text("Developed by Kapil Rajput, PA, Regional Office Indore", 12, pageHeight - 6);
+                    doc.text(`Page ${data.pageNumber} of ${totalPages}`, pageWidth - 30, pageHeight - 6);
                 }
             });
 
@@ -712,37 +715,35 @@
 
         function exportSingleTableToPDF(tableId, titleText) {
             const doc = generatePdfDoc(tableId, titleText);
-            doc.save(titleText.replace(/\s+/g, '_') + "_1Page.pdf");
+            doc.save(titleText.replace(/\s+/g, '_') + "_Report.pdf");
         }
 
         function exportAllToPDF() { exportSingleTableToPDF('tableDivisionSummary', 'Summary Report'); }
 
-        // Dual File Sharing Functionality (Sends PDF & Excel Together)
+        // Share Both Files (PDF + Excel)
         async function shareBothFiles(tableId, titleText) {
             try {
-                // 1. Generate PDF Blob
+                // Generate PDF
                 const pdfDoc = generatePdfDoc(tableId, titleText);
                 const pdfBlob = pdfDoc.output('blob');
                 const pdfFile = new File([pdfBlob], titleText.replace(/\s+/g, '_') + ".pdf", { type: "application/pdf" });
 
-                // 2. Generate Excel Blob
+                // Generate Excel
                 const wb = XLSX.utils.table_to_book(document.getElementById(tableId), {sheet: "Report"});
                 const excelArrayBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
                 const excelBlob = new Blob([excelArrayBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
                 const excelFile = new File([excelBlob], titleText.replace(/\s+/g, '_') + ".xlsx", { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
 
-                // 3. Share Files via Native Web Share API
                 if (navigator.canShare && navigator.canShare({ files: [pdfFile, excelFile] })) {
                     await navigator.share({
                         title: titleText,
-                        text: `Attached PDF and Excel Reports for ${titleText} (Department of Posts)`,
+                        text: `Attached PDF and Excel Reports for ${titleText}`,
                         files: [pdfFile, excelFile]
                     });
                 } else {
-                    // Fallback Download if multi-file share isn't supported
                     exportSingleTableToPDF(tableId, titleText);
                     exportTableToExcel(tableId, titleText.replace(/\s+/g, '_') + ".xlsx");
-                    alert("Sharing multiple files is not directly supported on this browser. Both PDF and Excel files have been downloaded to your device.");
+                    alert("Multiple file sharing isn't supported on this browser. Both files have been downloaded.");
                 }
             } catch (e) {
                 console.error("Error sharing files:", e);
