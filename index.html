@@ -22,7 +22,7 @@
         .report-total { background-color: #FAEEDD; color: #38220f; font-weight: bold; }
         .report-grand { background-color: #4B1D24; color: #ffffff; font-weight: bold; }
 
-        /* Conditional styling matching COD Delivery report image */
+        /* Conditional styling for percentages matching image */
         .pct-low { background-color: #ffffff; color: #000000; font-weight: normal; }
         .pct-mid { background-color: #a9d08e; color: #000000; font-weight: bold; }
         .pct-high { background-color: #70ad47; color: #000000; font-weight: bold; }
@@ -730,7 +730,7 @@
         // ==========================================
         // DIGITAL TRANSACTION STATUS LOGIC (BOOKING & COD)
         // ==========================================
-        let currentDigitalMode = 'cod'; // Default mode set to 'cod'
+        let currentDigitalMode = 'cod'; // default mode set to 'cod' as per image demand
 
         function getReportPreviousDateFormatted() {
             let d = new Date();
@@ -776,6 +776,9 @@
                 if(codHeader) {
                     codHeader.classList.remove('hidden');
                     document.getElementById('codReportDate').textContent = getReportPreviousDateFormatted();
+                    const boFilterVal = document.getElementById('digitalBoFilter').value;
+                    const boSpan = codHeader.querySelector('span.text-red-600');
+                    if(boSpan) boSpan.textContent = boFilterVal === 'excluding' ? "(Excluding BO)" : "(Including BO)";
                 }
 
                 thead.style.backgroundColor = "#F7CAAC";
@@ -814,7 +817,7 @@
                     const oId = String(row["Office ID"] || row["office-id"] || row["FACILITY_ID"] || Object.values(row)[0] || "").trim();
                     const master = masterOfficesMap[oId] || { name: String(row["Office Name"] || row["Division"] || "Unknown"), class: "BO", sd: String(row["Sub Division"] || "Unknown SD"), division: String(row["Division"] || "Unknown Division").toUpperCase() };
                     
-                    // Column Mapping
+                    // Flexibly read columns for both Booking & COD
                     const cash = Number(row["COD CASH COUNT"] || row["COD Cash Count"] || row["Cash Delivery"] || row["Cash (Cnt)"] || row["CASH_COUNT"] || row["Cash"] || 0);
                     const digitalCnt = Number(row["COD DIGITAL COUNT"] || row["COD Digital Count"] || row["Digital Delivery"] || row["Digital (Cnt)"] || row["DIGITAL_COUNT"] || row["Digital"] || 0);
                     
@@ -886,7 +889,7 @@
                     return { ...item, totalTxn, pctDigital };
                 });
 
-                // Division Level Sorting (Lowest to Highest Percentage)
+                // Standard Division Sort (Lowest to Highest)
                 list.sort((a, b) => a.pctDigital - b.pctDigital);
                 currentDigitalProcessedList = list;
 
@@ -1083,25 +1086,27 @@
             const pageWidth = 210, pageHeight = 297;
 
             const reportDate = getReportPreviousDateFormatted();
+            const boFilter = document.getElementById('digitalBoFilter').value;
+            const boLabel = boFilter === 'excluding' ? "(Excluding BO)" : "(Including BO)";
             const reportTitle = currentDigitalMode === 'cod' ? "Divisionwise Digital COD Delivery Report" : `Digital Booking Txn Status ${reportDate}`;
 
             if (currentDigitalMode === 'cod') {
-                doc.setFontSize(16);
+                doc.setFontSize(15);
                 doc.setFont("helvetica", "bold");
                 doc.setTextColor(0, 0, 0);
                 doc.text(reportTitle, pageWidth / 2, 16, { align: 'center' });
 
-                doc.setFontSize(12);
+                doc.setFontSize(11);
                 doc.setFont("helvetica", "bold");
-                doc.setTextColor(255, 0, 0);
-                doc.text("(Including BO)", pageWidth / 2, 22, { align: 'center' });
+                doc.setTextColor(220, 38, 38); // Crisp red color
+                doc.text(boLabel, pageWidth / 2, 22, { align: 'center' });
 
-                doc.setFontSize(12);
+                doc.setFontSize(11);
                 doc.setFont("helvetica", "bold");
                 doc.setTextColor(0, 0, 0);
                 doc.text(reportDate, pageWidth - 14, 22, { align: 'right' });
             } else {
-                doc.setFontSize(16);
+                doc.setFontSize(15);
                 doc.setFont("helvetica", "bold");
                 doc.setTextColor(0, 0, 0);
                 doc.text(reportTitle, pageWidth / 2, 16, { align: 'center' });
@@ -1199,7 +1204,8 @@
             const doc = new jsPDF('l', 'mm', 'a4');
             const pageWidth = 297, pageHeight = 210;
 
-            doc.setFillColor(75, 29, 36);
+            // Professional Premium Header Title Block
+            doc.setFillColor(75, 29, 36); // Signature India Post Maroon Header
             doc.rect(0, 0, pageWidth, 18, "F");
             
             doc.setTextColor(255, 255, 255); 
@@ -1210,22 +1216,65 @@
             doc.setFontSize(9);
             doc.setFont("helvetica", "normal");
             doc.text(titleText.toUpperCase(), 12, 16);
-            doc.text("Report Date: " + getReportPreviousDateFormatted(), pageWidth - 45, 12);
+            doc.text("Report Date: " + getReportPreviousDateFormatted(), pageWidth - 50, 12);
 
             doc.autoTable({
                 html: '#' + tableId,
                 startY: 22,
                 margin: { top: 22, right: 10, bottom: 14, left: 10 },
                 theme: 'grid',
-                styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak', valign: 'middle', lineColor: [226, 213, 195], lineWidth: 0.2 },
-                headStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8.5 },
-                alternateRowStyles: { fillColor: [253, 248, 240] },
-                bodyStyles: { textColor: [30, 30, 30] },
-                footStyles: { fillColor: [75, 29, 36], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
+                styles: { 
+                    fontSize: 8, 
+                    cellPadding: 2.5, 
+                    overflow: 'linebreak', 
+                    valign: 'middle', 
+                    lineColor: [180, 180, 180], 
+                    lineWidth: 0.2,
+                    textColor: [20, 20, 20]
+                },
+                headStyles: { 
+                    fillColor: [247, 202, 172], // Professional Warm Peach Color Matched
+                    textColor: [0, 0, 0], 
+                    fontStyle: 'bold', 
+                    halign: 'center', 
+                    fontSize: 8.5 
+                },
+                alternateRowStyles: { fillColor: [255, 255, 255] },
+                bodyStyles: { textColor: [20, 20, 20] },
+                footStyles: { 
+                    fillColor: [247, 202, 172], // Warm Peach for Totals Row
+                    textColor: [0, 0, 0], 
+                    fontStyle: 'bold', 
+                    fontSize: 8.5 
+                },
+                didParseCell: function (data) {
+                    // Smart conditional highlight styling matching professional standards
+                    if (data.section === 'body') {
+                        const cellText = (data.cell.raw.textContent || "").trim();
+                        if (cellText.endsWith('%')) {
+                            const val = parseFloat(cellText);
+                            if (!isNaN(val)) {
+                                if (val >= 80) {
+                                    data.cell.styles.fillColor = [230, 244, 234]; // Clean Soft Green
+                                    data.cell.styles.textColor = [19, 115, 51];
+                                    data.cell.styles.fontStyle = 'bold';
+                                } else if (val >= 50) {
+                                    data.cell.styles.fillColor = [254, 247, 224]; // Soft Warm Yellow
+                                    data.cell.styles.textColor = [176, 96, 0];
+                                    data.cell.styles.fontStyle = 'bold';
+                                } else if (val > 0) {
+                                    data.cell.styles.fillColor = [252, 232, 230]; // Soft Pink/Red
+                                    data.cell.styles.textColor = [165, 14, 14];
+                                    data.cell.styles.fontStyle = 'bold';
+                                }
+                            }
+                        }
+                    }
+                },
                 didDrawPage: function (data) {
                     const totalPages = doc.internal.getNumberOfPages();
                     doc.setFontSize(8);
-                    doc.setTextColor(120, 120, 120);
+                    doc.setTextColor(100, 100, 100);
                     doc.text("Developed by Kapil Rajput, PA, Regional Office Indore", 12, pageHeight - 6);
                     doc.text(`Page ${data.pageNumber} of ${totalPages}`, pageWidth - 30, pageHeight - 6);
                 }
