@@ -730,7 +730,7 @@
         // ==========================================
         // DIGITAL TRANSACTION STATUS LOGIC (BOOKING & COD)
         // ==========================================
-        let currentDigitalMode = 'cod'; // default mode set to 'cod' as per image demand
+        let currentDigitalMode = 'booking';
 
         function getReportPreviousDateFormatted() {
             let d = new Date();
@@ -740,6 +740,22 @@
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const year = d.getFullYear();
             return `${day}-${month}-${year}`;
+        }
+
+        function getRowNumVal(row, possibleKeys) {
+            if (!row) return 0;
+            const rowKeys = Object.keys(row);
+            for (let k of possibleKeys) {
+                const cleanK = String(k).toLowerCase().replace(/[^a-z0-9]/g, '');
+                for (let col of rowKeys) {
+                    const cleanCol = String(col).toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (cleanCol === cleanK) {
+                        const val = Number(row[col]);
+                        return isNaN(val) ? 0 : val;
+                    }
+                }
+            }
+            return 0;
         }
 
         function switchDigitalMode(mode) {
@@ -797,57 +813,107 @@
 
         function openDigitalModal() {
             document.getElementById('digitalModal').classList.remove('hidden');
-            switchDigitalMode('cod');
+            switchDigitalMode('booking');
         }
 
         function closeDigitalModal() {
             document.getElementById('digitalModal').classList.add('hidden');
         }
 
-        document.getElementById('digitalFileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
+        // Helper for Cross-Platform Mobile Compatible File Upload
+        function parseExcelFile(file, callback) {
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                
+                try {
+                    let data = e.target.result;
+                    let workbook;
+                    if (data instanceof ArrayBuffer) {
+                        const arr = new Uint8Array(data);
+                        workbook = XLSX.read(arr, {type: 'array'});
+                    } else {
+                        workbook = XLSX.read(data, {type: 'binary'});
+                    }
+                    const sheetName = workbook.SheetNames[0];
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+                    callback(json);
+                } catch (err) {
+                    console.error("Excel Read Error:", err);
+                    alert("Error reading file. Please re-select a valid Excel (.xlsx, .xls) or .csv file.");
+                }
+            };
+            reader.onerror = function() {
+                alert("File reading failed on this device. Please try again.");
+            };
+            
+            if (reader.readAsArrayBuffer) {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsBinaryString(file);
+            }
+        }
+
+        document.getElementById('digitalFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            parseExcelFile(file, function(json) {
                 digitalRawData = json.map(row => {
                     const oId = String(row["Office ID"] || row["office-id"] || row["FACILITY_ID"] || Object.values(row)[0] || "").trim();
-                    const master = masterOfficesMap[oId] || { name: String(row["Office Name"] || row["Division"] || "Unknown"), class: "BO", sd: String(row["Sub Division"] || "Unknown SD"), division: String(row["Division"] || "Unknown Division").toUpperCase() };
-                    
-                    // Flexibly read columns for both Booking & COD
-                    const cash = Number(row["COD CASH COUNT"] || row["COD Cash Count"] || row["Cash Delivery"] || row["Cash (Cnt)"] || row["CASH_COUNT"] || row["Cash"] || 0);
-                    const digitalCnt = Number(row["COD DIGITAL COUNT"] || row["COD Digital Count"] || row["Digital Delivery"] || row["Digital (Cnt)"] || row["DIGITAL_COUNT"] || row["Digital"] || 0);
-                    
-                    const dqr = Number(row["DQR Scan (Cnt)"] || row["DQR Scan Count"] || row["DQR SCAN"] || 0);
-                    let sbiPosBqr = Number(row["SBIPOS BHARAT QR (Cnt)"] || row["SBIPOS / BHARAT QR"] || row["SBIPOS BHARATQR (Cnt)"] || 0);
-                    if (!sbiPosBqr) {
-                        const sbiPosCard = Number(row["SBIPOS-CARD (Cnt)"] || 0);
-                        const sbiPosBqrOnly = Number(row["SBIPOS BHARATQR (Cnt)"] || 0);
-                        sbiPosBqr = sbiPosCard + sbiPosBqrOnly;
-                    }
+                    const firstCol = String(Object.values(row)[0] || "").trim().toUpperCase();
+                    const divNameVal = String(row["Division Name"] || row["Division"] || row["DIVISION"] || "").trim().toUpperCase();
+                    const offNameVal = String(row["Office Name"] || row["OFFICE_NAME"] || "").trim().toUpperCase();
 
-                    const totalDig = currentDigitalMode === 'cod' ? (digitalCnt || (dqr + sbiPosBqr)) : (dqr + sbiPosBqr);
+                    // Strict exclusion of Total / Summary rows AND blank Office IDs to prevent UNKNOWN DIVISION double totals
+                    const isTotalRow = firstCol.includes("TOTAL") || firstCol.includes("SUMMARY") ||
+                                       divNameVal.includes("TOTAL") || divNameVal.includes("SUMMARY") ||
+                                       offNameVal.includes("TOTAL") || offNameVal.includes("SUMMARY") ||
+                                       oId.includes("TOTAL") || oId.includes("SUMMARY") ||
+                                       !oId || oId.toUpperCase() === "UNDEFINED" || oId.toUpperCase() === "NAN" || oId === "0";
+
+                    if (isTotalRow) return null;
+
+                    const master = masterOfficesMap[oId] || { 
+                        name: String(row["Office Name"] || row["Division Name"] || row["Division"] || "Unknown"), 
+                        class: String(row["Office Class"] || "BO").toUpperCase(), 
+                        sd: String(row["Sub Division Name"] || row["Sub Division"] || "Unknown SD"), 
+                        division: String(row["Division Name"] || row["Division"] || "").toUpperCase() 
+                    };
+
+                    const matchedDiv = master.division || divNameVal;
+                    if (!matchedDiv || matchedDiv === "UNKNOWN" || matchedDiv === "UNKNOWN DIVISION" || matchedDiv.includes("TOTAL")) {
+                        return null; // Skip non-office summary rows
+                    }
+                    
+                    // Extract Booking Digital columns
+                    const bCash = getRowNumVal(row, ["Cash (Cnt)", "Cash Count", "Cash Cnt", "Cash", "CASH_COUNT"]);
+                    const bDqr = getRowNumVal(row, ["DQR Scan (Cnt)", "DQR Scan Count", "DQR Scan", "DQR SCAN", "DQR"]);
+                    const bSbi = getRowNumVal(row, ["SBIPOS BHARAT QR (Cnt)", "SBIPOS BHARATQR (Cnt)", "SBIPOS / BHARAT QR", "SBIPOS-CARD (Cnt)", "SBIPOS BHARAT QR", "SBIPOS", "SBI POS"]);
+                    
+                    // Extract COD Digital columns
+                    const cCash = getRowNumVal(row, ["COD Cash Count", "COD Cash Cnt", "Cash Delivery", "CASH COUNT", "COD Cash"]);
+                    const cDigital = getRowNumVal(row, ["COD Digital Count", "COD Digital Cnt", "Digital Delivery", "DIGITAL COUNT", "COD Digital"]);
+
+                    const genCash = getRowNumVal(row, ["Cash"]);
+                    const genDigital = getRowNumVal(row, ["Digital"]);
 
                     return {
+                        rawRow: row,
                         officeId: oId,
                         officeName: master.name,
                         officeClass: master.class,
                         subDivision: master.sd,
-                        division: master.division || String(row["Division"] || "").toUpperCase(),
-                        cashCnt: cash,
-                        dqrCnt: dqr,
-                        sbiPosCnt: sbiPosBqr,
-                        codDigitalCnt: digitalCnt,
-                        digitalTotalCnt: totalDig
+                        division: matchedDiv || "UNKNOWN",
+                        bookingCash: bCash || (bDqr || bSbi ? genCash : 0),
+                        bookingDqr: bDqr,
+                        bookingSbiPos: bSbi,
+                        codCash: cCash || (cDigital ? genCash : 0),
+                        codDigital: cDigital || genDigital
                     };
-                }).filter(i => i.officeId || i.division);
+                }).filter(i => i !== null && i.division && !i.division.includes("TOTAL") && i.division !== "UNKNOWN DIVISION");
 
                 processDigitalData();
-            };
-            reader.readAsArrayBuffer(file);
+            });
         });
 
         function processDigitalData() {
@@ -861,7 +927,7 @@
 
             if (!digitalRawData || digitalRawData.length === 0) {
                 const colSpan = currentDigitalMode === 'cod' ? 5 : 6;
-                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="py-8 text-center text-slate-400 font-medium">Please upload ${currentDigitalMode.toUpperCase()} Digital Excel/CSV raw data to populate report.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="py-8 text-center text-slate-400 font-medium">Please upload Excel/CSV raw data to populate report.</td></tr>`;
                 return;
             }
 
@@ -876,31 +942,40 @@
                 const divGroup = {};
                 filteredData.forEach(row => {
                     const key = row.division || "UNKNOWN";
-                    if (!divGroup[key]) divGroup[key] = { division: key, cash: 0, dqr: 0, sbiPos: 0, digitalTot: 0 };
-                    divGroup[key].cash += row.cashCnt;
-                    divGroup[key].dqr += row.dqrCnt;
-                    divGroup[key].sbiPos += row.sbiPosCnt;
-                    divGroup[key].digitalTot += row.digitalTotalCnt;
+                    if (!divGroup[key]) divGroup[key] = { division: key, bCash: 0, bDqr: 0, bSbi: 0, cCash: 0, cDigital: 0 };
+                    divGroup[key].bCash += row.bookingCash;
+                    divGroup[key].bDqr += row.bookingDqr;
+                    divGroup[key].bSbi += row.bookingSbiPos;
+                    divGroup[key].cCash += row.codCash;
+                    divGroup[key].cDigital += row.codDigital;
                 });
 
                 let list = Object.values(divGroup).map(item => {
-                    const totalTxn = item.cash + item.digitalTot;
-                    const pctDigital = totalTxn > 0 ? ((item.digitalTot / totalTxn) * 100) : 0;
-                    return { ...item, totalTxn, pctDigital };
+                    if (currentDigitalMode === 'booking') {
+                        const digitalTot = item.bDqr + item.bSbi;
+                        const totalTxn = item.bCash + digitalTot;
+                        const pctDigital = totalTxn > 0 ? ((digitalTot / totalTxn) * 100) : 0;
+                        return { ...item, cash: item.bCash, dqr: item.bDqr, sbiPos: item.bSbi, digitalTot, totalTxn, pctDigital };
+                    } else {
+                        const totalTxn = item.cCash + item.cDigital;
+                        const pctDigital = totalTxn > 0 ? ((item.cDigital / totalTxn) * 100) : 0;
+                        return { ...item, cash: item.cCash, digitalTot: item.cDigital, totalTxn, pctDigital };
+                    }
                 });
 
-                // Standard Division Sort (Lowest to Highest)
+                // Division Level Sorting (Lowest to Highest Percentage)
                 list.sort((a, b) => a.pctDigital - b.pctDigital);
                 currentDigitalProcessedList = list;
 
                 let gCash = 0, gDqr = 0, gSbi = 0, gDig = 0, gTot = 0;
 
                 list.forEach(item => {
-                    gCash += item.cash; gDqr += item.dqr; gSbi += item.sbiPos; gDig += item.digitalTot; gTot += item.totalTxn;
+                    gCash += item.cash; gDig += item.digitalTot; gTot += item.totalTxn;
+                    if (currentDigitalMode === 'booking') { gDqr += item.dqr; gSbi += item.sbiPos; }
 
                     let bgClass = "pct-low";
                     if (item.pctDigital >= 80) bgClass = "pct-high";
-                    else if (item.pctDigital >= 65) bgClass = "pct-mid";
+                    else if (item.pctDigital >= 50) bgClass = "pct-mid";
 
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-amber-50 border-b border-slate-300";
@@ -916,9 +991,9 @@
                     } else {
                         tr.innerHTML = `
                             <td class="py-2 px-3 border border-slate-300 font-medium text-slate-900">${item.division}</td>
-                            <td class="py-2 px-3 border border-slate-300 text-right">${item.cash.toLocaleString('en-IN')}</td>
-                            <td class="py-2 px-3 border border-slate-300 text-right">${item.dqr.toLocaleString('en-IN')}</td>
-                            <td class="py-2 px-3 border border-slate-300 text-right">${item.sbiPos.toLocaleString('en-IN')}</td>
+                            <td class="py-2 px-3 border border-slate-300 text-right font-medium">${item.cash.toLocaleString('en-IN')}</td>
+                            <td class="py-2 px-3 border border-slate-300 text-right font-medium">${item.dqr.toLocaleString('en-IN')}</td>
+                            <td class="py-2 px-3 border border-slate-300 text-right font-medium">${item.sbiPos.toLocaleString('en-IN')}</td>
                             <td class="py-2 px-3 border border-slate-300 text-center font-bold ${bgClass}">${item.pctDigital.toFixed(2)}%</td>
                         `;
                     }
@@ -930,7 +1005,7 @@
                 if (currentDigitalMode === 'cod') {
                     tfoot.innerHTML = `
                         <tr class="text-xs font-bold border-t-2 border-b-2 border-slate-900" style="background-color: #F7CAAC;">
-                            <td class="py-3 px-3 border border-slate-400"></td>
+                            <td class="py-3 px-3 border border-slate-400">GRAND TOTAL</td>
                             <td class="py-3 px-3 text-right border border-slate-400">${gTot.toLocaleString('en-IN')}</td>
                             <td class="py-3 px-3 text-right border border-slate-400">${gDig.toLocaleString('en-IN')}</td>
                             <td class="py-3 px-3 text-right border border-slate-400">${gCash.toLocaleString('en-IN')}</td>
@@ -953,28 +1028,37 @@
                 const subGroup = {};
                 filteredData.forEach(row => {
                     const key = (row.division || "UNKNOWN") + "||" + (row.subDivision || "UNKNOWN SD");
-                    if (!subGroup[key]) subGroup[key] = { division: row.division, sd: row.subDivision, cash: 0, dqr: 0, sbiPos: 0, digitalTot: 0 };
-                    subGroup[key].cash += row.cashCnt;
-                    subGroup[key].dqr += row.dqrCnt;
-                    subGroup[key].sbiPos += row.sbiPosCnt;
-                    subGroup[key].digitalTot += row.digitalTotalCnt;
+                    if (!subGroup[key]) subGroup[key] = { division: row.division, sd: row.subDivision, bCash: 0, bDqr: 0, bSbi: 0, cCash: 0, cDigital: 0 };
+                    subGroup[key].bCash += row.bookingCash;
+                    subGroup[key].bDqr += row.bookingDqr;
+                    subGroup[key].bSbi += row.bookingSbiPos;
+                    subGroup[key].cCash += row.codCash;
+                    subGroup[key].cDigital += row.codDigital;
                 });
 
                 let list = Object.values(subGroup).map(item => {
-                    const totalTxn = item.cash + item.digitalTot;
-                    const pctDigital = totalTxn > 0 ? ((item.digitalTot / totalTxn) * 100) : 0;
-                    return { ...item, totalTxn, pctDigital };
+                    if (currentDigitalMode === 'booking') {
+                        const digitalTot = item.bDqr + item.bSbi;
+                        const totalTxn = item.bCash + digitalTot;
+                        const pctDigital = totalTxn > 0 ? ((digitalTot / totalTxn) * 100) : 0;
+                        return { ...item, cash: item.bCash, dqr: item.bDqr, sbiPos: item.bSbi, digitalTot, totalTxn, pctDigital };
+                    } else {
+                        const totalTxn = item.cCash + item.cDigital;
+                        const pctDigital = totalTxn > 0 ? ((item.cDigital / totalTxn) * 100) : 0;
+                        return { ...item, cash: item.cCash, digitalTot: item.cDigital, totalTxn, pctDigital };
+                    }
                 });
 
                 currentDigitalProcessedList = list;
                 let gCash = 0, gDqr = 0, gSbi = 0, gDig = 0, gTot = 0;
 
                 list.forEach(item => {
-                    gCash += item.cash; gDqr += item.dqr; gSbi += item.sbiPos; gDig += item.digitalTot; gTot += item.totalTxn;
+                    gCash += item.cash; gDig += item.digitalTot; gTot += item.totalTxn;
+                    if (currentDigitalMode === 'booking') { gDqr += item.dqr; gSbi += item.sbiPos; }
 
                     let bgClass = "pct-low";
                     if (item.pctDigital >= 80) bgClass = "pct-high";
-                    else if (item.pctDigital >= 65) bgClass = "pct-mid";
+                    else if (item.pctDigital >= 50) bgClass = "pct-mid";
 
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-amber-50 border-b border-slate-300";
@@ -992,9 +1076,9 @@
                         tr.innerHTML = `
                             <td class="py-2 px-3 border border-slate-300 font-bold text-[#4B1D24]">${item.division}</td>
                             <td class="py-2 px-3 border border-slate-300 font-bold text-blue-900">${item.sd}</td>
-                            <td class="py-2 px-3 border border-slate-300 text-right">${item.cash.toLocaleString('en-IN')}</td>
-                            <td class="py-2 px-3 border border-slate-300 text-right">${item.dqr.toLocaleString('en-IN')}</td>
-                            <td class="py-2 px-3 border border-slate-300 text-right">${item.sbiPos.toLocaleString('en-IN')}</td>
+                            <td class="py-2 px-3 border border-slate-300 text-right font-medium">${item.cash.toLocaleString('en-IN')}</td>
+                            <td class="py-2 px-3 border border-slate-300 text-right font-medium">${item.dqr.toLocaleString('en-IN')}</td>
+                            <td class="py-2 px-3 border border-slate-300 text-right font-medium">${item.sbiPos.toLocaleString('en-IN')}</td>
                             <td class="py-2 px-3 border border-slate-300 text-center font-bold ${bgClass}">${item.pctDigital.toFixed(2)}%</td>
                         `;
                     }
@@ -1088,7 +1172,7 @@
             const reportDate = getReportPreviousDateFormatted();
             const boFilter = document.getElementById('digitalBoFilter').value;
             const boLabel = boFilter === 'excluding' ? "(Excluding BO)" : "(Including BO)";
-            const reportTitle = currentDigitalMode === 'cod' ? "Divisionwise Digital COD Delivery Report" : `Digital Booking Txn Status ${reportDate}`;
+            const reportTitle = currentDigitalMode === 'cod' ? "Divisionwise Digital COD Delivery Report" : `Digital Booking Txn Status  ${reportDate}`;
 
             if (currentDigitalMode === 'cod') {
                 doc.setFontSize(15);
@@ -1098,7 +1182,7 @@
 
                 doc.setFontSize(11);
                 doc.setFont("helvetica", "bold");
-                doc.setTextColor(220, 38, 38); // Crisp red color
+                doc.setTextColor(220, 38, 38);
                 doc.text(boLabel, pageWidth / 2, 22, { align: 'center' });
 
                 doc.setFontSize(11);
@@ -1133,7 +1217,7 @@
                 },
                 alternateRowStyles: { fillColor: [255, 255, 255] },
                 footStyles: { 
-                    fillColor: [247, 202, 172],
+                    fillColor: currentDigitalMode === 'cod' ? [247, 202, 172] : [251, 229, 214],
                     textColor: [0, 0, 0], 
                     fontStyle: 'bold' 
                 },
@@ -1141,12 +1225,16 @@
                     if (data.section === 'body' && data.column.index === (data.row.cells.length - 1)) {
                         const val = parseFloat(data.cell.raw.textContent || "0");
                         if (val >= 80) {
-                            data.cell.styles.fillColor = [112, 173, 71];
-                            data.cell.styles.textColor = [0, 0, 0];
+                            data.cell.styles.fillColor = [230, 244, 234];
+                            data.cell.styles.textColor = [19, 115, 51];
                             data.cell.styles.fontStyle = 'bold';
-                        } else if (val >= 65) {
-                            data.cell.styles.fillColor = [169, 208, 142];
-                            data.cell.styles.textColor = [0, 0, 0];
+                        } else if (val >= 50) {
+                            data.cell.styles.fillColor = [254, 247, 224];
+                            data.cell.styles.textColor = [176, 96, 0];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else if (val > 0) {
+                            data.cell.styles.fillColor = [252, 232, 230];
+                            data.cell.styles.textColor = [165, 14, 14];
                             data.cell.styles.fontStyle = 'bold';
                         }
                     }
@@ -1161,6 +1249,7 @@
             const fileName = currentDigitalMode === 'cod' ? `Divisionwise_Digital_COD_Delivery_Report_${reportDate}.pdf` : `Digital_Booking_Txn_Status_${reportDate}.pdf`;
             doc.save(fileName);
         }
+        
 
         function openDrilldown(subDivisionName, divisionName) {
             document.getElementById('modalTitle').textContent = `Sub-Division Breakdown: ${subDivisionName} (${divisionName})`;
@@ -1318,21 +1407,24 @@
         }
 
         document.getElementById('rawFileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                rawData = json.map(row => ({
-                    officeId: String(row["office-id"] || row["Office ID"] || Object.values(row)[0] || "").trim(),
-                    service: String(row["product-name"] || row["Service Name"] || Object.values(row)[2] || "").trim(),
-                    articles: Number(row["article-count"] || row["Articles Booked"] || Object.values(row)[3] || 0),
-                    postage: Number(row["postage"] || row["Postage Collected"] || Object.values(row)[4] || 0)
-                })).filter(i => i.officeId && i.service);
+            const file = e.target.files[0]; 
+            if (!file) return;
+            
+            parseExcelFile(file, function(json) {
+                rawData = json.map(row => {
+                    const firstCol = String(Object.values(row)[0] || "").trim().toUpperCase();
+                    if (firstCol.includes("TOTAL") || firstCol.includes("SUMMARY")) return null;
+
+                    return {
+                        officeId: String(row["office-id"] || row["Office ID"] || Object.values(row)[0] || "").trim(),
+                        service: String(row["product-name"] || row["Service Name"] || Object.values(row)[2] || "").trim(),
+                        articles: Number(row["article-count"] || row["Articles Booked"] || Object.values(row)[3] || 0),
+                        postage: Number(row["postage"] || row["Postage Collected"] || Object.values(row)[4] || 0)
+                    };
+                }).filter(i => i !== null && i.officeId && i.service && !i.officeId.toUpperCase().includes("TOTAL"));
+                
                 updateDashboard();
-            };
-            reader.readAsArrayBuffer(file);
+            });
         });
 
         document.getElementById('filterDivision').addEventListener('change', updateDashboard);
