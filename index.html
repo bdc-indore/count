@@ -50,7 +50,6 @@
                 <!-- Global Buttons -->
                 <div class="flex items-center gap-2">
                     <button onclick="openPliModal()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer flex items-center gap-1">🛡️ PLI Nil Txn Report</button>
-                    <button onclick="openNilOfficeListModal()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer flex items-center gap-1">📋 Office List (Nil BO)</button>
                     <button onclick="openDigitalModal()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer flex items-center gap-1">📲 Digital Txn Report</button>
                     <button onclick="openAdminLoginModal()" class="bg-slate-800 hover:bg-slate-900 text-amber-300 text-xs font-bold px-3 py-2 rounded-xl shadow transition cursor-pointer border border-amber-600 flex items-center gap-1">🔒 Admin View</button>
                     <button onclick="exportAllToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📥 Excel</button>
@@ -119,7 +118,7 @@
                         <option value="subdivision">Sub-Division Wise</option>
                         <option value="division">Division Wise</option>
                     </select>
-                    <button onclick="exportSummaryWithNilExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel (2 Sheets)</button>
+                    <button onclick="exportTableToExcel('tableDivisionSummary', 'Summary_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
                     <button onclick="exportSingleTableToPDF('tableDivisionSummary', 'Summary Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
                 </div>
             </div>
@@ -195,54 +194,6 @@
 
     </main>
 
-    <!-- Modal: Nil BO Office List Modal -->
-    <div id="nilOfficeListModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-amber-400">
-            <div class="report-header px-6 py-4 flex justify-between items-center">
-                <div>
-                    <h3 class="font-extrabold text-lg flex items-center gap-2">📋 Complete List of Nil Booking / Zero Transaction Offices (BO)</h3>
-                    <p class="text-xs text-amber-200">Office ID, Branch Office Name, Sub-Division Name, and Division Name</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="exportNilOfficeListExcel()" class="bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportSingleTableToPDF('tableNilOfficeList', 'Nil_BO_Office_List')" class="bg-rose-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF</button>
-                    <button onclick="closeNilOfficeListModal()" class="bg-amber-950 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer ml-2">✕</button>
-                </div>
-            </div>
-            <div class="p-4 bg-amber-50/60 border-b border-amber-200 flex flex-col sm:flex-row gap-3 items-center justify-between">
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <label class="text-xs font-bold uppercase text-amber-900">Filter Division:</label>
-                    <select id="nilModalDivisionFilter" onchange="renderNilOfficeListTable()" class="border border-amber-300 rounded-lg p-1.5 text-xs bg-white font-medium">
-                        <option value="All">All Divisions</option>
-                    </select>
-                </div>
-                <div class="text-xs font-bold text-slate-700">
-                    Total Nil Offices Listed: <span id="nilOfficeCountBadge" class="text-[#8B0000]">0</span>
-                </div>
-            </div>
-            <div class="p-6 overflow-y-auto flex-grow">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse" id="tableNilOfficeList">
-                        <thead>
-                            <tr class="bg-[#FDF3E6] text-[#4B1D24] text-xs font-bold uppercase border-b border-amber-300">
-                                <th class="py-3 px-4">#</th>
-                                <th class="py-3 px-4">Office ID</th>
-                                <th class="py-3 px-4">Branch Office Name (BO)</th>
-                                <th class="py-3 px-4">Sub-Division Name (SD)</th>
-                                <th class="py-3 px-4">Division Name</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700">
-                            <tr>
-                                <td colspan="5" class="py-8 text-center text-slate-400 font-medium">Please upload a PLI or Booking raw report file to compute Nil transaction Branch Offices.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal 1: Detailed Offices Modal -->
     <div id="drilldownModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-amber-300">
@@ -253,7 +204,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="exportModalToExcel()" class="bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportSingleTableToPDF('tableModalOffices', 'Office Details')" class="bg-rose-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF</button>
+                    <button onclick="exportSingleTableToPDF('tableModalOffices', 'Office Details')" class="bg-rose-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
                     <button onclick="closeModal()" class="bg-amber-950 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer">✕</button>
                 </div>
             </div>
@@ -289,7 +240,7 @@
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button onclick="exportDigitalExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportDigitalPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF</button>
+                    <button onclick="exportDigitalPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
                     <button onclick="closeDigitalModal()" class="bg-amber-950 hover:bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer ml-2">✕</button>
                 </div>
             </div>
@@ -352,11 +303,10 @@
             <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                     <h3 class="font-extrabold text-lg flex items-center gap-2">🛡️ PLI / RPLI Nil Transaction Report (Indore Region - Branch Offices Only)</h3>
-                    <p class="text-xs text-amber-200">Strictly matching spreadsheet BO IDs with Excel. Missing BOs are treated as active/1-10 txn to maintain baseline count integrity.</p>
+                    <p class="text-xs text-amber-200">Strictly matching spreadsheet BO IDs with PLI Excel. Missing BOs are treated as active/1-10 txn.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <button onclick="openNilOfficeListModal()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer flex items-center gap-1">📋 Office List (Nil BO)</button>
-                    <button onclick="exportPliExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
+                    <button onclick="exportPliExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel (2 Sheets)</button>
                     <button onclick="exportPliPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
                     <button onclick="exportPliJPEG()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG Download</button>
                     <button onclick="closePliModal()" class="bg-amber-950 hover:bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer ml-2">✕</button>
@@ -415,7 +365,6 @@
             <div class="p-6 space-y-4">
                 <div>
                     <label class="block text-xs font-bold uppercase text-amber-900 mb-1">Admin ID</label>
-                    <!-- FIX: changed type="text" to type="password" so ID is hidden -->
                     <input type="password" id="adminUser" placeholder="Enter Admin ID" class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-amber-50/50 font-medium outline-none focus:ring-2 focus:ring-amber-800"/>
                 </div>
                 <div>
@@ -475,7 +424,7 @@
         const MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1575541045&single=true&output=csv";
 
         let masterOfficesMap = {}, serviceMapping = {}, rawData = [], digitalRawData = [], pliRawData = [], currentFilteredRows = [], modalExportData = [], globalAllFilteredOffices = [];
-        let currentDigitalProcessedList = [], currentPliProcessedList = [], globalNilBoList = [];
+        let currentDigitalProcessedList = [], currentPliProcessedList = [], globalNilBoList = [], currentNilPliOfficesList = [];
         let generatedReportsLog = [];
 
         function logGeneratedReport(reportName, exportFunction) {
@@ -594,10 +543,8 @@
         function initDropdowns() {
             const divs = [...new Set(Object.values(masterOfficesMap).map(o => o.division))].filter(Boolean).sort();
             const divSelect = document.getElementById('filterDivision');
-            const nilModalDivSelect = document.getElementById('nilModalDivisionFilter');
             divs.forEach(d => { 
                 const opt = document.createElement('option'); opt.value = d; opt.textContent = d; divSelect.appendChild(opt); 
-                const opt2 = document.createElement('option'); opt2.value = d; opt2.textContent = d; nilModalDivSelect.appendChild(opt2); 
             });
             const cats = [...new Set(Object.values(serviceMapping))].filter(Boolean).sort();
             const catSelect = document.getElementById('filterCategory');
@@ -857,10 +804,10 @@
                     tr.className = "hover:bg-amber-50 border-b border-amber-100";
                     tr.innerHTML = `
                         <td class="py-3 px-4 font-bold text-[#4B1D24]">${item.division}</td>
-                        <td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-800 hover:underline" onclick='openOfficeListModal("${item.division}", "All Offices", ${JSON.stringify(item.offices)})'>${totalCount}</td>
-                        <td class="py-3 px-3 text-center font-bold text-[#0B6623] bg-emerald-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division}", "Active", ${JSON.stringify(item.active)})'>${item.active.length}</td>
-                        <td class="py-3 px-3 text-center font-bold text-[#8B0000] bg-rose-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division}", "Nil", ${JSON.stringify(item.nil)})'>${item.nil.length}</td>
-                        <td class="py-3 px-3 text-center font-bold text-indigo-800 bg-indigo-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division}", "> 10", ${JSON.stringify(item.above10)})'>${item.above10.length}</td>
+                        <td class="py-3 px-3 text-center font-semibold">${totalCount}</td>
+                        <td class="py-3 px-3 text-center font-bold text-[#0B6623] bg-emerald-50/40">${item.active.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-[#8B0000] bg-rose-50/40">${item.nil.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-indigo-800 bg-indigo-50/40">${item.above10.length}</td>
                         <td class="py-3 px-3 text-center font-extrabold text-rose-700 bg-rose-100/50">${nilPct}%</td>
                         <td class="py-3 px-3 text-center font-extrabold text-indigo-700 bg-indigo-100/50">${above10Pct}%</td>
                     `;
@@ -915,10 +862,10 @@
                     tr.innerHTML = `
                         <td class="py-3 px-4 font-bold text-[#4B1D24]">${item.division}</td>
                         <td class="py-3 px-4 font-bold text-blue-900">${item.sd}</td>
-                        <td class="py-3 px-3 text-center font-semibold cursor-pointer text-blue-800 hover:underline" onclick='openOfficeListModal("${item.division} - ${item.sd}", "All Offices", ${JSON.stringify(item.offices)})'>${totalCount}</td>
-                        <td class="py-3 px-3 text-center font-bold text-[#0B6623] bg-emerald-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division} - ${item.sd}", "Active", ${JSON.stringify(item.active)})'>${item.active.length}</td>
-                        <td class="py-3 px-3 text-center font-bold text-[#8B0000] bg-rose-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division} - ${item.sd}", "Nil", ${JSON.stringify(item.nil)})'>${item.nil.length}</td>
-                        <td class="py-3 px-3 text-center font-bold text-indigo-800 bg-indigo-50/40 cursor-pointer" onclick='openOfficeListModal("${item.division} - ${item.sd}", "> 10", ${JSON.stringify(item.above10)})'>${item.above10.length}</td>
+                        <td class="py-3 px-3 text-center font-semibold">${totalCount}</td>
+                        <td class="py-3 px-3 text-center font-bold text-[#0B6623] bg-emerald-50/40">${item.active.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-[#8B0000] bg-rose-50/40">${item.nil.length}</td>
+                        <td class="py-3 px-3 text-center font-bold text-indigo-800 bg-indigo-50/40">${item.above10.length}</td>
                         <td class="py-3 px-3 text-center font-extrabold text-rose-700 bg-rose-100/50">${nilPct}%</td>
                         <td class="py-3 px-3 text-center font-extrabold text-indigo-700 bg-indigo-100/50">${above10Pct}%</td>
                     `;
@@ -955,106 +902,6 @@
                     tBody.appendChild(tr);
                 });
             });
-        }
-
-        // ==========================================
-        // NIL BO OFFICE LIST MODAL LOGIC
-        // ==========================================
-        function openNilOfficeListModal() {
-            // FIX: Populating Nil BO list properly from globalAllFilteredOffices
-            globalNilBoList = globalAllFilteredOffices.filter(o => {
-                const cls = String(o.class || "").toUpperCase();
-                const name = String(o.name || "").toUpperCase();
-                return cls === "BO" && o.articles === 0 && !name.includes("IDC");
-            });
-            renderNilOfficeListTable();
-            document.getElementById('nilOfficeListModal').classList.remove('hidden');
-        }
-
-        function closeNilOfficeListModal() {
-            document.getElementById('nilOfficeListModal').classList.add('hidden');
-        }
-
-        function renderNilOfficeListTable() {
-            const tbody = document.querySelector('#tableNilOfficeList tbody');
-            const countBadge = document.getElementById('nilOfficeCountBadge');
-            const selDiv = document.getElementById('nilModalDivisionFilter').value;
-            tbody.innerHTML = "";
-
-            const filteredList = globalNilBoList.filter(o => selDiv === "All" || o.division === selDiv);
-            countBadge.textContent = filteredList.length;
-
-            if (filteredList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 font-medium">No Nil Branch Offices found for the selected criteria. Please upload a booking raw file first.</td></tr>`;
-                return;
-            }
-
-            filteredList.forEach((o, index) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-amber-50 border-b border-amber-100 text-xs md:text-sm";
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-bold text-slate-500">${index + 1}</td>
-                    <td class="py-3 px-4 font-mono font-semibold text-[#4B1D24]">${o.officeId}</td>
-                    <td class="py-3 px-4 font-semibold">${o.name}</td>
-                    <td class="py-3 px-4 text-blue-900 font-medium">${o.sd}</td>
-                    <td class="py-3 px-4 font-bold text-slate-700">${o.division}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function exportNilOfficeListExcel() {
-            const selDiv = document.getElementById('nilModalDivisionFilter').value;
-            const filteredList = globalNilBoList.filter(o => selDiv === "All" || o.division === selDiv);
-            if (filteredList.length === 0) {
-                alert("No data available to export.");
-                return;
-            }
-            const excelRows = filteredList.map((o, idx) => ({
-                "S.No": idx + 1,
-                "Office ID": o.officeId,
-                "Branch Office Name (BO)": o.name,
-                "Sub-Division Name (SD)": o.sd,
-                "Division Name": o.division
-            }));
-            const worksheet = XLSX.utils.json_to_sheet(excelRows);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Nil_BO_Offices");
-            XLSX.writeFile(workbook, "Nil_Branch_Offices_List.xlsx");
-            logGeneratedReport("Nil Branch Offices List (Excel)", () => exportNilOfficeListExcel());
-        }
-
-        // ==========================================
-        // EXCEL EXPORT WITH 2 SHEETS (Summary + Nil BO List)
-        // ==========================================
-        function exportSummaryWithNilExcel() {
-            const workbook = XLSX.utils.book_new();
-            
-            // Sheet 1: Summary Table
-            const summaryTable = document.getElementById('tableDivisionSummary');
-            const ws1 = XLSX.utils.table_to_sheet(summaryTable);
-            XLSX.utils.book_append_sheet(workbook, ws1, "Summary_Report");
-
-            // Sheet 2: Nil Offices List (SD & Division wise)
-            const nilOfficesForExcel = globalAllFilteredOffices.filter(o => {
-                const cls = String(o.class || "").toUpperCase();
-                const name = String(o.name || "").toUpperCase();
-                return cls === "BO" && o.articles === 0 && !name.includes("IDC");
-            });
-
-            const excelRows2 = nilOfficesForExcel.map((o, idx) => ({
-                "S.No": idx + 1,
-                "Office ID": o.officeId,
-                "Branch Office Name (BO)": o.name,
-                "Sub-Division Name (SD)": o.sd,
-                "Division Name": o.division
-            }));
-
-            const ws2 = excelRows2.length > 0 ? XLSX.utils.json_to_sheet(excelRows2) : XLSX.utils.json_to_sheet([{ "Message": "No Nil BO offices found or file not uploaded yet" }]);
-            XLSX.utils.book_append_sheet(workbook, ws2, "Nil_Offices_List");
-
-            XLSX.writeFile(workbook, "Summary_And_Nil_Offices_Report.xlsx");
-            logGeneratedReport("Summary & Nil Offices (2-Sheet Excel)", () => exportSummaryWithNilExcel());
         }
 
         // ==========================================
@@ -1155,6 +1002,22 @@
                 officeTxnMap[item.officeId] = (officeTxnMap[item.officeId] || 0) + item.transCount;
             });
 
+            // Extract exact Nil PLI transaction offices for the second excel sheet
+            currentNilPliOfficesList = [];
+            Object.entries(indoreBoMaster).forEach(([id, m]) => {
+                const hasEntryInExcel = officeTxnMap.hasOwnProperty(id);
+                const txn = officeTxnMap[id] || 0;
+                // If present in excel with 0 txn
+                if (hasEntryInExcel && txn === 0) {
+                    currentNilPliOfficesList.push({
+                        officeId: id,
+                        officeName: m.name,
+                        subDivision: m.sd,
+                        division: m.division
+                    });
+                }
+            });
+
             const sdMap = {};
             Object.entries(indoreBoMaster).forEach(([id, m]) => {
                 const div = m.division || "UNKNOWN DIVISION";
@@ -1243,12 +1106,19 @@
                 </tr>`;
         }
 
+        // ==========================================
+        // EXCEL EXPORT FOR PLI (2 SHEETS: Summary + Nil PLI Offices)
+        // ==========================================
         function exportPliExcel() {
             if (!currentPliProcessedList || currentPliProcessedList.length === 0) {
                 alert("No PLI report data available to export. Please upload raw file first.");
                 return;
             }
-            const excelRows = currentPliProcessedList.map(item => ({
+
+            const workbook = XLSX.utils.book_new();
+
+            // Sheet 1: Summary Table Data
+            const excelRows1 = currentPliProcessedList.map(item => ({
                 "Name of Division": item.division,
                 "Name of SD": item.sd,
                 "Total Office in SD": item.totalOffices,
@@ -1258,11 +1128,23 @@
                 "% of Offices with Nil Txn": Number(((item.nilOffices / item.totalOffices) * 100).toFixed(2)),
                 "% of Offices with >10 Txn": Number(((item.above10Offices / item.totalOffices) * 100).toFixed(2))
             }));
-            const worksheet = XLSX.utils.json_to_sheet(excelRows);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "PLI_BO_Nil_Report");
+            const ws1 = XLSX.utils.json_to_sheet(excelRows1);
+            XLSX.utils.book_append_sheet(workbook, ws1, "PLI_Summary_Report");
+
+            // Sheet 2: Exact Nil PLI Txn Offices List
+            const excelRows2 = currentNilPliOfficesList.length > 0 ? currentNilPliOfficesList.map((o, idx) => ({
+                "S.No": idx + 1,
+                "Office ID": o.officeId,
+                "Branch Office Name (BO)": o.officeName,
+                "Sub-Division Name (SD)": o.subDivision,
+                "Division Name": o.division
+            })) : [{ "Message": "No Nil PLI transaction offices found" }];
+
+            const ws2 = XLSX.utils.json_to_sheet(excelRows2);
+            XLSX.utils.book_append_sheet(workbook, ws2, "Nil_PLI_Offices_List");
+
             XLSX.writeFile(workbook, "PLI_Nil_Transaction_Report_Indore_Region_BO.xlsx");
-            logGeneratedReport("PLI Nil Transaction Report (Excel)", () => exportPliExcel());
+            logGeneratedReport("PLI Nil Transaction Report (2-Sheet Excel)", () => exportPliExcel());
         }
 
         function exportPliPDF() {
@@ -1330,13 +1212,6 @@
             document.getElementById('drilldownModal').classList.remove('hidden');
         }
 
-        function openOfficeListModal(titlePrefix, categoryTitle, officesArray) {
-            document.getElementById('modalTitle').textContent = `${titlePrefix} - ${categoryTitle}`;
-            modalExportData = officesArray.map(o => ({ officeId: o.officeId, officeName: o.name, officeClass: o.class, sd: o.sd, division: o.division, cats: o.categories || {PARCEL:{articles:0,postage:0}, MO:{articles:0,postage:0}, IRGB:{articles:0,postage:0}}, totalArt: o.articles || 0, totalPost: o.postage || 0 }));
-            renderModalTable(modalExportData);
-            document.getElementById('drilldownModal').classList.remove('hidden');
-        }
-
         function renderModalTable(dataArray) {
             const modalBody = document.querySelector('#tableModalOffices tbody');
             modalBody.innerHTML = "";
@@ -1361,7 +1236,7 @@
         }
 
         function exportAllToExcel() { 
-            exportSummaryWithNilExcel();
+            exportTableToExcel('tableDivisionSummary', 'Complete_Summary_Report.xlsx');
         }
 
         function generatePdfDoc(tableId, titleText) {
