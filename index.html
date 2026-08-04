@@ -154,7 +154,7 @@
                 </table>
             </div>
             <div class="px-6 py-2.5 bg-amber-50 border-t border-amber-200 text-[11px] text-amber-900 font-medium">
-                ⚠️ <strong>Note:</strong> Total region master count is fixed at <strong>2,492 offices</strong>[cite: 1]. Missing offices from Excel uploads are treated as active/1-10 transaction offices to preserve absolute spreadsheet count matching.
+                ⚠️ <strong>Note:</strong> Total region master count is fixed at <strong>2,492 offices</strong>. Missing offices from Excel uploads are treated as active/1-10 transaction offices to preserve absolute spreadsheet count matching.
             </div>
         </div>
 
@@ -424,8 +424,8 @@
         const MASTER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=0&single=true&output=csv";
         const MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1575541045&single=true&output=csv";
         
-        // 👉 Yahan apni IDP sheet ka Published CSV link daal dena (Jisme columns hon: Admin_ID, Password)
-        const IDP_CSV_URL = "YOUR_IDP_GOOGLE_SHEET_CSV_URL_HERE";
+        // 👉 IDP Sheet Published CSV Link
+        const IDP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1439866773&single=true&output=csv";
 
         let masterOfficesMap = {}, serviceMapping = {}, rawData = [], digitalRawData = [], pliRawData = [], currentFilteredRows = [], modalExportData = [], globalAllFilteredOffices = [];
         let currentDigitalProcessedList = [], currentPliProcessedList = [], globalNilBoList = [], currentNilPliOfficesList = [];
@@ -456,14 +456,8 @@
             document.getElementById('adminLoginModal').classList.add('hidden');
         }
 
-        // Google Sheet se IDP credentials fetch karna
         async function loadIdpCredentials() {
             try {
-                if(IDP_CSV_URL.includes("YOUR_IDP")) {
-                    // Fallback agar link nahi daali ho taaki error na aaye
-                    idpCredentialsMap = { "7697": "5250" };
-                    return;
-                }
                 const res = await fetch(IDP_CSV_URL);
                 const text = await res.text();
                 const parsed = XLSX.read(text, {type: 'string'});
@@ -480,7 +474,7 @@
                 }
             } catch (err) {
                 console.error("Error loading IDP credentials:", err);
-                idpCredentialsMap = { "7697": "5250" }; // Default fallback
+                idpCredentialsMap = { "7697": "5250" };
             }
         }
 
@@ -488,11 +482,9 @@
             const u = document.getElementById('adminUser').value.trim();
             const p = document.getElementById('adminPass').value.trim();
             
-            // Check against Google Sheet IDP map
             if (idpCredentialsMap[u] && idpCredentialsMap[u] === p) {
                 loggedInAdminId = u;
                 
-                // Login audit log record add karna with tarikh, time & ID
                 const now = new Date();
                 const timeString = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
                 generatedReportsLog.unshift({
@@ -552,7 +544,7 @@
         }
 
         async function loadMasterData() {
-            loadIdpCredentials(); // Load IDP credentials on startup
+            loadIdpCredentials();
             try {
                 const [masterRes, mapRes] = await Promise.all([fetch(MASTER_CSV_URL), fetch(MAPPING_CSV_URL)]);
                 const masterText = await masterRes.text(), mapText = await mapRes.text();
@@ -1343,7 +1335,7 @@
                     return {
                         officeId: String(row["office-id"] || row["Office ID"] || Object.values(row)[0] || "").trim(),
                         service: String(row["product-name"] || row["Service Name"] || Object.values(row)[2] || "").trim(),
-                        articles: Number(row["article-count"] || row["Articles Book2"] || Object.values(row)[3] || 0),
+                        articles: Number(row["article-count"] || row["Articles Booked"] || Object.values(row)[3] || 0),
                         postage: Number(row["postage"] || row["Postage Collected"] || Object.values(row)[4] || 0)
                     };
                 }).filter(i => i !== null && i.officeId && i.service && !i.officeId.toUpperCase().includes("TOTAL"));
