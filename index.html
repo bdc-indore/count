@@ -155,7 +155,7 @@
                 </table>
             </div>
             <div class="px-6 py-2.5 bg-amber-50 border-t border-amber-200 text-[11px] text-amber-900 font-medium">
-                ⚠️ <strong>Note:</strong> Total region master count is fixed at <strong>2,492 offices</strong>[cite: 1]. Missing offices from Excel uploads are treated as having 1-10 transactions/active to preserve absolute spreadsheet count matching.
+                ⚠️ <strong>Note:</strong> Total region master count is fixed at <strong>2,492 offices</strong>[cite: 1]. Missing offices from Excel uploads are treated as active/1-10 transaction offices to preserve absolute spreadsheet count matching.
             </div>
         </div>
 
@@ -352,9 +352,10 @@
             <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                     <h3 class="font-extrabold text-lg flex items-center gap-2">🛡️ PLI / RPLI Nil Transaction Report (Indore Region - Branch Offices Only)</h3>
-                    <p class="text-xs text-amber-200">Strictly matching spreadsheet BO IDs with Excel. Missing BOs are counted as active/1-10 txn to maintain baseline count integrity.</p>
+                    <p class="text-xs text-amber-200">Strictly matching spreadsheet BO IDs with Excel. Missing BOs are treated as active/1-10 txn to maintain baseline count integrity.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
+                    <button onclick="openNilOfficeListModal()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer flex items-center gap-1">📋 Office List (Nil BO)</button>
                     <button onclick="exportPliExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
                     <button onclick="exportPliPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
                     <button onclick="exportPliJPEG()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG Download</button>
