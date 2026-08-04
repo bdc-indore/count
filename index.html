@@ -324,7 +324,7 @@
             <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                     <h3 class="font-extrabold text-lg flex items-center gap-2">🛡️ PLI / RPLI Nil Transaction Report (Indore Region - Branch Offices Only)</h3>
-                    <p class="text-xs text-amber-200">Strictly filtering for BO Class (approx. 2492 offices in Indore Region) & matching CSI Office ID (Column I) & Transcount</p>
+                    <p class="text-xs text-amber-200">Strictly filtering for BO Class & matching CSI Office ID (Column I) with 0 Transactions in Excel</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button onclick="exportPliExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
@@ -354,7 +354,7 @@
                     <div class="text-center mb-3">
                         <h2 class="text-lg font-extrabold text-[#4B1D24]">DEPARTMENT OF POSTS — REGIONAL OFFICE INDORE</h2>
                         <h3 class="text-sm font-bold text-slate-700">PLI / RPLI Nil & Active Transaction Analysis Report (Indore Region - Branch Offices Only)</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Matching CSI Office IDs for BO Class Offices (Excluding SO/HO/IDC)</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Only offices present in Excel with 0 Transactions are counted as Nil (Missing BOs from Excel are excluded)</p>
                     </div>
                     <table class="w-full text-left border-collapse" id="tablePliSummary">
                         <thead>
@@ -929,7 +929,7 @@
         }
 
         // ==========================================
-        // PLI / RPLI NIL TRANSACTION REPORT LOGIC (BO ONLY - LARGE FILE OPTIMIZED)
+        // PLI / RPLI NIL TRANSACTION REPORT LOGIC (BO ONLY - ONLY EXCEL-PRESENT 0 TXN OFFICES COUNTED AS NIL)
         // ==========================================
         function openPliModal() {
             document.getElementById('pliModal').classList.remove('hidden');
@@ -1005,7 +1005,6 @@
                         
                         processPliData(indoreBoMaster);
 
-                        // Log to Admin Dashboard
                         logGeneratedReport("PLI / RPLI Nil Transaction Report (Indore Region BO)", () => exportPliExcel());
                     }, 50);
 
@@ -1023,8 +1022,17 @@
             const tfoot = document.querySelector('#tablePliSummary tfoot');
             tbody.innerHTML = ""; tfoot.innerHTML = "";
 
+            // Map transaction counts from pliRawData for offices present in Excel
+            const officeTxnMap = {};
+            pliRawData.forEach(item => {
+                officeTxnMap[item.officeId] = (officeTxnMap[item.officeId] || 0) + item.transCount;
+            });
+
+            // Initialize SD mapping strictly for offices present in the uploaded Excel file
             const sdMap = {};
-            Object.entries(indoreBoMaster).forEach(([id, m]) => {
+            pliRawData.forEach(item => {
+                const m = indoreBoMaster[item.officeId];
+                if (!m) return;
                 const div = m.division || "UNKNOWN DIVISION";
                 const sd = m.sd || "UNKNOWN SD";
                 const key = div + "||" + sd;
@@ -1032,26 +1040,22 @@
                     sdMap[key] = {
                         division: div,
                         sd: sd,
-                        allOfficeIds: new Set(),
+                        officesPresent: new Set(),
                         nilOffices: 0,
                         above10Offices: 0,
                         totalTxn: 0
                     };
                 }
-                sdMap[key].allOfficeIds.add(id);
+                sdMap[key].officesPresent.add(item.officeId);
             });
 
-            const officeTxnMap = {};
-            pliRawData.forEach(item => {
-                officeTxnMap[item.officeId] = (officeTxnMap[item.officeId] || 0) + item.transCount;
-            });
-
+            // Populate SD metrics using only offices present in the Excel file
             Object.values(sdMap).forEach(item => {
                 let nilCount = 0;
                 let above10Count = 0;
                 let sdTotalTxn = 0;
 
-                item.allOfficeIds.forEach(id => {
+                item.officesPresent.forEach(id => {
                     const txn = officeTxnMap[id] || 0;
                     sdTotalTxn += txn;
                     if (txn === 0) {
@@ -1062,7 +1066,7 @@
                     }
                 });
 
-                item.totalOffices = item.allOfficeIds.size;
+                item.totalOffices = item.officesPresent.size;
                 item.nilOffices = nilCount;
                 item.above10Offices = above10Count;
                 item.totalTxn = sdTotalTxn;
@@ -1323,7 +1327,7 @@
                     const sheetName = workbook.SheetNames[0];
                     const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
                     callback(json);
-                } catch (err) {
+                }catch (err) {
                     console.error("Excel Read Error:", err);
                     alert("Error reading file. Please re-select a valid Excel (.xlsx, .xls) or .csv file.");
                 }
