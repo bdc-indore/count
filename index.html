@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking & PLI Nil Txn Calculator - Department of Posts</title>
+    <title>Booking & Txn Calculator - Department of Posts</title>
     <meta name="application-name" content="Booking Calculator">
     <meta name="apple-mobile-web-app-title" content="Booking Calculator">
 
@@ -17,14 +17,15 @@
     <!-- html2canvas for JPEG export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
-    <meta name="theme-color" content="#4B1D24">
+    <meta name="theme-color" content="#31103f">
     <style>
-        .report-header { background-color: #4B1D24; color: #ffffff; }
+        /* Exact Color Coding & Styling from Reference Dashboard */
+        .report-header { background: linear-gradient(135deg, #2c0c38 0%, #3f1251 100%); color: #ffffff; }
         .report-subhead { background-color: #FDF3E6; color: #2b1d0c; }
         .report-total { background-color: #FAEEDD; color: #38220f; font-weight: bold; }
-        .report-grand { background-color: #4B1D24; color: #ffffff; font-weight: bold; }
+        .report-grand { background-color: #31103f; color: #ffffff; font-weight: bold; }
 
-        /* Exact Styling for Nil Booking Table & PLI/Digital Report Tables */
+        /* Exact Styling for Nil Booking Table & PLI Report Tables */
         .nil-table { border-collapse: collapse; width: 100%; font-size: 11px; text-align: center; }
         .nil-table th, .nil-table td { border: 1px solid #707070; padding: 5px 8px; }
         .nil-table th { background-color: #b8cce4; color: #000; font-weight: bold; vertical-align: middle; }
@@ -45,188 +46,331 @@
         .clickable-cell:hover { opacity: 0.7; }
     </style>
 </head>
-<body class="bg-amber-50/30 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col justify-between">
 
-    <!-- Header with India Post Logo -->
-    <header class="report-header shadow-xl py-4 px-4 md:px-8 border-b-4 border-amber-900">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
+    <!-- Header Section with Exact Reference Styling & User Specified Heading -->
+    <header class="report-header shadow-xl py-5 px-4 md:px-8 border-b-4 border-purple-950">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="bg-white p-1.5 rounded-xl shadow-md border border-amber-300 flex items-center justify-center">
+                <div class="bg-white p-1.5 rounded-xl shadow-md border border-purple-300 flex items-center justify-center">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/c/c4/India_Post_Day_Block.png" 
                          onerror="this.onerror=null; this.src='https://www.indiapost.gov.in/VAS/Pages/images/IndiaPost_Logo.png';" 
                          alt="India Post Logo" 
                          class="h-10 w-auto object-contain"/>
                 </div>
                 <div>
-                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
-                        Booking & PLI Calculator
+                    <span class="text-[11px] font-bold tracking-widest text-purple-200 uppercase bg-purple-950/60 px-2.5 py-0.5 rounded-md border border-purple-800">DEPARTMENT OF POSTS</span>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white mt-1">
+                        Booking & Txn Calculator
                     </h1>
-                    <p class="text-xs md:text-sm text-amber-200 mt-0.5">Department of Posts - Regional Office Indore Analytics</p>
+                    <p class="text-xs md:text-sm text-purple-200 mt-0.5 font-medium">for Regional/Divisional Monitoring</p>
                 </div>
             </div>
             <div class="flex items-center flex-wrap gap-3">
-                <span id="masterStatus" class="bg-amber-700 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow animate-pulse">Loading Master Offices...</span>
+                <span id="masterStatus" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Live Synced
+                </span>
                 
-                <!-- Global Buttons -->
+                <!-- Global Top Right Buttons matching reference UI -->
                 <div class="flex items-center gap-2">
-                    <button onclick="openPliModal()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer flex items-center gap-1">🛡️ PLI Nil Txn Report</button>
-                    <button onclick="openDigitalModal()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer flex items-center gap-1">📲 Digital Txn Report</button>
-                    <button onclick="openAdminLoginModal()" class="bg-slate-800 hover:bg-slate-900 text-amber-300 text-xs font-bold px-3 py-2 rounded-xl shadow transition cursor-pointer border border-amber-600 flex items-center gap-1">🔒 Admin View</button>
-                    <button onclick="exportAllToExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📥 Excel</button>
-                    <button onclick="exportAllToPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition cursor-pointer">📄 PDF Report</button>
+                    <button onclick="openAdminLoginModal()" class="bg-slate-800 hover:bg-slate-900 text-purple-300 text-xs font-bold px-3.5 py-2 rounded-xl shadow transition cursor-pointer border border-purple-600 flex items-center gap-1">🔒 Admin View</button>
+                    <button onclick="exportAllToExcel()" class="bg-purple-800 hover:bg-purple-900 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition cursor-pointer flex items-center gap-1">📥 Excel</button>
+                    <button onclick="exportAllToPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition cursor-pointer flex items-center gap-1">📄 PDF Report</button>
                 </div>
             </div>
         </div>
     </header>
 
+    <!-- Navigation / Module Switcher Tabs matching reference image style -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm py-3 px-4 md:px-8">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-2">
+            <button onclick="switchModule('booking')" id="btnNavBooking" class="bg-purple-900 text-white text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border-b-2 border-purple-600">
+                <span>📊</span> Nil Article Booking Calculator
+            </button>
+            <button onclick="switchModule('pli')" id="btnNavPli" class="bg-white hover:bg-slate-100 text-slate-700 text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border border-slate-200">
+                <span>🛡️</span> PLI Txn Calculator
+            </button>
+            <button onclick="switchModule('digital')" id="btnNavDigital" class="bg-white hover:bg-slate-100 text-slate-700 text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border border-slate-200">
+                <span>💳</span> Digital Txn Report
+            </button>
+        </div>
+    </nav>
+
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-3 md:px-8 py-6 space-y-6 w-full flex-grow">
 
-        <!-- Controls Section: File Upload & Filters -->
-        <div class="bg-white p-4 md:p-6 rounded-2xl shadow-md border border-amber-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">📁 Booking Raw File</label>
-                <input type="file" id="rawFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-100 file:text-amber-900 hover:file:bg-amber-200 cursor-pointer border border-amber-300 rounded-xl p-1 bg-amber-50/50"/>
-            </div>
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">Select Division</label>
-                <select id="filterDivision" class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-amber-50/50 font-medium">
-                    <option value="All">All Divisions</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">Select Office Class</label>
-                <select id="filterClass" class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-amber-50/50 font-medium">
-                    <option value="All">All Classes</option>
-                    <option value="BO">BO</option>
-                    <option value="SO">SO</option>
-                    <option value="HO">HO</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-2">Select Category</label>
-                <select id="filterCategory" class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-amber-50/50 font-medium">
-                    <option value="All">All Categories</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-            <div class="bg-gradient-to-br from-[#4B1D24] to-slate-900 text-white p-5 rounded-2xl shadow-md border border-amber-900">
-                <p class="text-xs font-bold uppercase tracking-wider text-amber-200">Total Articles Booked</p>
-                <p id="kpiArticles" class="text-3xl font-extrabold mt-2">0</p>
-            </div>
-            <div class="bg-gradient-to-br from-emerald-800 to-emerald-950 text-white p-5 rounded-2xl shadow-md border border-emerald-700">
-                <p class="text-xs font-bold uppercase tracking-wider text-emerald-200">Total Postage (Rupye)</p>
-                <p id="kpiPostage" class="text-3xl font-extrabold mt-2">0.00</p>
-            </div>
-            <div class="bg-gradient-to-br from-blue-900 to-slate-900 text-white p-5 rounded-2xl shadow-md border border-blue-800">
-                <p class="text-xs font-bold uppercase tracking-wider text-blue-200">Total Offices (Master)</p>
-                <p id="kpiOffices" class="text-3xl font-extrabold mt-2">0</p>
-            </div>
-        </div>
-
-        <!-- Section 1: Summary Report -->
-        <div class="bg-white rounded-2xl shadow-md border border-amber-200 overflow-hidden" id="sectionSummaryContainer">
-            <div class="px-6 py-4 report-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <!-- MODULE 1: NIL ARTICLE BOOKING CALCULATOR -->
+        <div id="moduleBooking" class="space-y-6">
+            <!-- Controls Section: File Upload & Filters matching reference modern card style -->
+            <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                 <div>
-                    <h2 class="font-bold text-base flex items-center gap-2"><span>📊</span> Division & Sub-Division Category-wise Articles & Revenue Report</h2>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-purple-950 mb-2">📁 Booking Raw File</label>
+                    <input type="file" id="rawFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-100 file:text-purple-950 hover:file:bg-purple-200 cursor-pointer border border-slate-300 rounded-xl p-1 bg-slate-50"/>
                 </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <select id="summaryViewType" onchange="updateDashboard()" class="bg-[#361318] text-white text-xs font-bold px-3 py-1.5 rounded-lg border-0 outline-none cursor-pointer">
-                        <option value="subdivision">Sub-Division Wise</option>
-                        <option value="division">Division Wise</option>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-purple-950 mb-2">Select Division</label>
+                    <select id="filterDivision" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 font-medium outline-none focus:border-purple-800">
+                        <option value="All">All Divisions</option>
                     </select>
-                    <button onclick="exportTableToExcel('tableDivisionSummary', 'Summary_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportSingleTableToPDF('tableDivisionSummary', 'Summary Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
-                    <button onclick="exportTableJPEG('sectionSummaryContainer', 'Summary_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
                 </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse" id="tableDivisionSummary">
-                    <thead><tr class="report-header text-xs font-bold border-b border-amber-900 uppercase"></tr></thead>
-                    <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700"></tbody>
-                    <tfoot class="font-bold text-xs md:text-sm"></tfoot>
-                </table>
-            </div>
-        </div>
-
-        <!-- Section 2: Office Activity Status & Nil Booking -->
-        <div class="bg-white rounded-2xl shadow-md border border-amber-200 overflow-hidden" id="sectionNilBookingContainer">
-            <div class="px-6 py-4 report-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
-                    <h2 class="font-bold text-base flex items-center gap-2"><span>🏢</span> Nil Booking Report & Office Activity Status</h2>
-                </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <label class="text-xs font-bold text-amber-200">Office Class:</label>
-                    <select id="nilFilterClass" onchange="updateDashboard()" class="bg-[#361318] text-white text-xs font-bold px-3 py-1.5 rounded-lg border-0 outline-none cursor-pointer">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-purple-950 mb-2">Select Office Class</label>
+                    <select id="filterClass" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 font-medium outline-none focus:border-purple-800">
                         <option value="All">All Classes</option>
                         <option value="BO">BO</option>
                         <option value="SO">SO</option>
                         <option value="HO">HO</option>
                     </select>
-                    <button onclick="exportTableToExcel('tableNilBookingSummary', 'Nil_Booking_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportSingleTableToPDF('tableNilBookingSummary', 'Nil Booking Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
-                    <button onclick="exportTableJPEG('sectionNilBookingContainer', 'Nil_Booking_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-purple-950 mb-2">Select Category</label>
+                    <select id="filterCategory" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 font-medium outline-none focus:border-purple-800">
+                        <option value="All">All Categories</option>
+                    </select>
                 </div>
             </div>
-            <div class="overflow-x-auto p-3">
-                <table class="nil-table" id="tableNilBookingSummary">
-                    <thead>
-                        <tr>
-                            <th style="width: 5%;">S.No.</th>
-                            <th style="width: 15%;">Name of Division</th>
-                            <th style="width: 20%;">Name of Sub Dn</th>
-                            <th style="width: 12%;">Total Offices in Sub Dn</th>
-                            <th style="width: 12%;">NIL (0) Offices</th>
-                            <th style="width: 12%;">Low Booking (1-10)*</th>
-                            <th style="width: 12%;">Good Booking (>10)</th>
-                            <th style="width: 12%;">% NIL Offices in Sub Dn</th>
-                            <th style="width: 12%;">% Offices with >10 Booking</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                    <tfoot></tfoot>
-                </table>
+
+            <!-- KPI Cards matching reference colour borders -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-purple-900">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Articles Booked</p>
+                    <p id="kpiArticles" class="text-3xl font-extrabold mt-2 text-purple-950">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-600">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Postage (Rupye)</p>
+                    <p id="kpiPostage" class="text-3xl font-extrabold mt-2 text-emerald-700">0.00</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-blue-600">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Offices (Master)</p>
+                    <p id="kpiOffices" class="text-3xl font-extrabold mt-2 text-blue-900">0</p>
+                </div>
             </div>
-            <div class="px-6 py-2.5 bg-amber-50 border-t border-amber-200 text-[11px] text-amber-900 font-medium">
-                ⚠️ <strong>Note:</strong> Khudel BO is excluded / merged into Khudel SO automatically. IDC offices are non-booking offices and included under Low Booking. Click on any office number count to download the corresponding office list in Excel.
+
+            <!-- Section 1: Summary Report -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" id="sectionSummaryContainer">
+                <div class="px-6 py-4 report-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h2 class="font-bold text-base flex items-center gap-2"><span>📊</span> Division & Sub-Division Category-wise Articles & Revenue Report</h2>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <select id="summaryViewType" onchange="updateDashboard()" class="bg-[#31103f] text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-purple-700 outline-none cursor-pointer">
+                            <option value="subdivision">Sub-Division Wise</option>
+                            <option value="division">Division Wise</option>
+                        </select>
+                        <button onclick="exportTableToExcel('tableDivisionSummary', 'Summary_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
+                        <button onclick="exportSingleTableToPDF('tableDivisionSummary', 'Summary Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
+                        <button onclick="exportTableJPEG('sectionSummaryContainer', 'Summary_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="tableDivisionSummary">
+                        <thead><tr class="report-header text-xs font-bold border-b border-purple-950 uppercase"></tr></thead>
+                        <tbody class="text-xs md:text-sm divide-y divide-slate-100 text-slate-700"></tbody>
+                        <tfoot class="font-bold text-xs md:text-sm"></tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Section 2: Office Activity Status & Nil Booking -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" id="sectionNilBookingContainer">
+                <div class="px-6 py-4 report-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h2 class="font-bold text-base flex items-center gap-2"><span>🏢</span> Nil Booking Report & Office Activity Status</h2>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <label class="text-xs font-bold text-purple-200">Office Class:</label>
+                        <select id="nilFilterClass" onchange="updateDashboard()" class="bg-[#31103f] text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-purple-700 outline-none cursor-pointer">
+                            <option value="All">All Classes</option>
+                            <option value="BO">BO</option>
+                            <option value="SO">SO</option>
+                            <option value="HO">HO</option>
+                        </select>
+                        <button onclick="exportTableToExcel('tableNilBookingSummary', 'Nil_Booking_Report.xlsx')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
+                        <button onclick="exportSingleTableToPDF('tableNilBookingSummary', 'Nil Booking Report')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
+                        <button onclick="exportTableJPEG('sectionNilBookingContainer', 'Nil_Booking_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto p-3">
+                    <table class="nil-table" id="tableNilBookingSummary">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">S.No.</th>
+                                <th style="width: 15%;">Name of Division</th>
+                                <th style="width: 20%;">Name of Sub Dn</th>
+                                <th style="width: 12%;">Total Offices in Sub Dn</th>
+                                <th style="width: 12%;">NIL (0) Offices</th>
+                                <th style="width: 12%;">Low Booking (1-10)*</th>
+                                <th style="width: 12%;">Good Booking (>10)</th>
+                                <th style="width: 12%;">% NIL Offices in Sub Dn</th>
+                                <th style="width: 12%;">% Offices with >10 Booking</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot></tfoot>
+                    </table>
+                </div>
+                <div class="px-6 py-2.5 bg-slate-50 border-t border-slate-200 text-[11px] text-slate-600 font-medium">
+                    ⚠️ <strong>Note:</strong> Khudel BO is excluded / merged into Khudel SO automatically (Indore city count restricted to 10 BOs). IDC offices are non-booking offices and included under Low Booking. Click on any office number count to download the corresponding office list in Excel.
+                </div>
+            </div>
+
+            <!-- Section 3: Top & Bottom 10 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" id="sectionTop10Container">
+                    <div class="px-5 py-3.5 bg-[#0B6623] text-white flex justify-between items-center">
+                        <h3 class="font-bold text-sm">🏆 Top 10 Performing Offices</h3>
+                        <div class="flex gap-1.5">
+                            <button onclick="exportTableToExcel('tableTop10', 'Top_10.xlsx')" class="bg-emerald-950 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
+                            <button onclick="exportSingleTableToPDF('tableTop10', 'Top 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 PDF</button>
+                            <button onclick="exportTableJPEG('sectionTop10Container', 'Top_10_Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📸 JPEG</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse" id="tableTop10">
+                            <thead><tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase"><th class="py-2.5 px-4">Office Name</th><th class="py-2.5 px-4">Division / SD</th><th class="py-2.5 px-4 text-right">Articles</th></tr></thead>
+                            <tbody class="text-xs divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" id="sectionBottom10Container">
+                    <div class="px-5 py-3.5 bg-[#8B0000] text-white flex justify-between items-center">
+                        <h3 class="font-bold text-sm">⚠️ Bottom 10 / Nil Booking Offices</h3>
+                        <div class="flex gap-1.5">
+                            <button onclick="exportTableToExcel('tableBottom10', 'Bottom_10.xlsx')" class="bg-rose-950 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
+                            <button onclick="exportSingleTableToPDF('tableBottom10', 'Bottom 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 PDF</button>
+                            <button onclick="exportTableJPEG('sectionBottom10Container', 'Bottom_10_Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📸 JPEG</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse" id="tableBottom10">
+                            <thead><tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase"><th class="py-2.5 px-4">Office Name</th><th class="py-2.5 px-4">Division / SD</th><th class="py-2.5 px-4 text-right">Articles</th></tr></thead>
+                            <tbody class="text-xs divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Section 3: Top & Bottom 10 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-2xl shadow-md border border-amber-200 overflow-hidden" id="sectionTop10Container">
-                <div class="px-5 py-3.5 bg-[#0B6623] text-white flex justify-between items-center">
-                    <h3 class="font-bold text-sm">🏆 Top 10 Performing Offices</h3>
-                    <div class="flex gap-1.5">
-                        <button onclick="exportTableToExcel('tableTop10', 'Top_10.xlsx')" class="bg-emerald-950 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
-                        <button onclick="exportSingleTableToPDF('tableTop10', 'Top 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 PDF</button>
-                        <button onclick="exportTableJPEG('sectionTop10Container', 'Top_10_Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📸 JPEG</button>
+        <!-- MODULE 2: PLI TXN CALCULATOR -->
+        <div id="modulePli" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h3 class="font-extrabold text-lg flex items-center gap-2">🛡️ PLI / RPLI Nil Transaction Report (Indore Region - Branch Offices Only)</h3>
+                        <p class="text-xs text-purple-200">Strictly matching spreadsheet BO IDs with PLI Excel. Click any count to view/download office list.</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="exportPliExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel (2 Sheets)</button>
+                        <button onclick="exportPliPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
+                        <button onclick="exportTableJPEG('pliTableContainer', 'PLI_Nil_Txn_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse" id="tableTop10">
-                        <thead><tr class="bg-[#FDF3E6] text-[#4B1D24] text-xs font-bold uppercase"><th class="py-2.5 px-4">Office Name</th><th class="py-2.5 px-4">Division / SD</th><th class="py-2.5 px-4 text-right">Articles</th></tr></thead>
-                        <tbody class="text-xs divide-y divide-amber-100"></tbody>
-                    </table>
+                <div class="p-6 space-y-5" id="pliTableContainer">
+                    <div class="bg-purple-50/60 p-4 rounded-xl border border-purple-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="w-full md:w-2/3">
+                            <label class="block text-xs font-bold uppercase text-purple-950 mb-1">📤 Upload PLI/RPLI Raw Report File (Pan India Excel / CSV - Large File Optimized)</label>
+                            <input type="file" id="pliFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-purple-900 file:text-white hover:file:bg-purple-950 cursor-pointer border border-purple-300 rounded-lg bg-white p-1"/>
+                        </div>
+                        <div class="w-full md:w-1/3 text-right">
+                            <div id="pliUploadStatus" class="text-xs font-bold text-purple-950 bg-purple-200/80 p-2.5 rounded-xl border border-purple-300 inline-block">
+                                ⏳ Waiting for file upload...
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto p-3">
+                        <div class="text-center mb-3">
+                            <h2 class="text-lg font-extrabold text-[#31103f]">DEPARTMENT OF POSTS — REGIONAL OFFICE INDORE</h2>
+                            <h3 class="text-sm font-bold text-slate-700">PLI / RPLI Nil & Active Transaction Analysis Report (Indore Region - Branch Offices Only)</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Spreadsheet BOs missing from uploaded Excel are treated as active transaction offices</p>
+                        </div>
+                        <table class="nil-table" id="tablePliSummary">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">S.No.</th>
+                                    <th style="width: 15%;">Name of Division</th>
+                                    <th style="width: 20%;">Name of Sub Dn</th>
+                                    <th style="width: 12%;">Total Offices in SD</th>
+                                    <th style="width: 12%;">Nil PLI/RPLI Txn (0)</th>
+                                    <th style="width: 12%;">Good PLI Txn (>10)</th>
+                                    <th style="width: 12%;">% Nil Offices</th>
+                                    <th style="width: 12%;">% Offices with >10 Txn</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="8" class="py-8 text-center text-slate-400 font-medium">Please upload Pan India PLI Transaction Excel/CSV raw data to generate Indore Region Branch Offices Report.</td>
+                                </tr>
+                            </tbody>
+                            <tfoot></tfoot>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <div class="bg-white rounded-2xl shadow-md border border-amber-200 overflow-hidden" id="sectionBottom10Container">
-                <div class="px-5 py-3.5 bg-[#8B0000] text-white flex justify-between items-center">
-                    <h3 class="font-bold text-sm">⚠️ Bottom 10 / Nil Booking Offices</h3>
-                    <div class="flex gap-1.5">
-                        <button onclick="exportTableToExcel('tableBottom10', 'Bottom_10.xlsx')" class="bg-rose-950 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📥 Excel</button>
-                        <button onclick="exportSingleTableToPDF('tableBottom10', 'Bottom 10 Offices')" class="bg-rose-800 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📄 PDF</button>
-                        <button onclick="exportTableJPEG('sectionBottom10Container', 'Bottom_10_Offices')" class="bg-indigo-700 text-white text-[11px] px-2.5 py-1 rounded shadow cursor-pointer">📸 JPEG</button>
+        </div>
+
+        <!-- MODULE 3: DIGITAL TXN REPORT CALCULATOR -->
+        <div id="moduleDigital" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h3 class="font-extrabold text-lg flex items-center gap-2">💳 Digital Booking Txn Status Calculator</h3>
+                        <p class="text-xs text-purple-200">Upload Booking Paymentwise Report to calculate Cash, DQR Scan, SBIPOS Bharat QR and % Digital Txn.</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button onclick="exportDigitalExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
+                        <button onclick="exportSingleTableToPDF('tableDigitalSummary', 'Digital Booking Txn Status')" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
+                        <button onclick="exportTableJPEG('digitalTableContainer', 'Digital_Booking_Txn_Status')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse" id="tableBottom10">
-                        <thead><tr class="bg-[#FDF3E6] text-[#4B1D24] text-xs font-bold uppercase"><th class="py-2.5 px-4">Office Name</th><th class="py-2.5 px-4">Division / SD</th><th class="py-2.5 px-4 text-right">Articles</th></tr></thead>
-                        <tbody class="text-xs divide-y divide-amber-100"></tbody>
-                    </table>
+                <div class="p-6 space-y-5" id="digitalTableContainer">
+                    <div class="bg-purple-50/60 p-4 rounded-xl border border-purple-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold uppercase text-purple-950 mb-1">📤 Upload Booking Paymentwise Report (Excel / CSV)</label>
+                            <input type="file" id="digitalFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-purple-900 file:text-white hover:file:bg-purple-950 cursor-pointer border border-purple-300 rounded-lg bg-white p-1"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-purple-950 mb-1">Select Mode</label>
+                            <select id="digitalModeSelect" onchange="processDigitalReport()" class="w-full border border-purple-300 rounded-lg p-2 text-xs bg-white font-bold text-purple-950 outline-none">
+                                <option value="excluding_bo">Excluding BO</option>
+                                <option value="including_bo">Including BO (HO+BO+SO)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center px-2">
+                        <div id="digitalUploadStatus" class="text-xs font-bold text-purple-950">
+                            ⏳ Waiting for Booking Paymentwise Report file upload...
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-slate-700">View By:</label>
+                            <select id="digitalViewType" onchange="processDigitalReport()" class="bg-[#31103f] text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-purple-700 outline-none cursor-pointer">
+                                <option value="division">Division Level</option>
+                                <option value="subdivision">Sub-Division Level</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto p-3">
+                        <div class="text-center mb-3">
+                            <h2 id="digitalReportTitle" class="text-lg font-extrabold text-[#31103f]">Digital Booking Txn Status (Excluding BO)</h2>
+                            <p class="text-xs text-slate-500 mt-0.5" id="digitalReportDate">Report Date: --</p>
+                        </div>
+                        <table class="nil-table" id="tableDigitalSummary">
+                            <thead>
+                                <tr>
+                                    <th id="digitalHeaderGrouping" style="width: 25%;">Division</th>
+                                    <th style="width: 15%;">Cash (Cnt)</th>
+                                    <th style="width: 15%;">DQR Scan (Cnt)</th>
+                                    <th style="width: 20%;">SBIPOS BHARAT QR (Cnt)</th>
+                                    <th style="width: 25%;">% of Digital Txn</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="py-8 text-center text-slate-400 font-medium">Please upload Booking Paymentwise Report file to generate Digital Txn Report.</td>
+                                </tr>
+                            </tbody>
+                            <tfoot></tfoot>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -235,23 +379,23 @@
 
     <!-- Modal 1: Detailed Offices Modal -->
     <div id="drilldownModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-amber-300">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-purple-300">
             <div class="report-header px-6 py-4 flex justify-between items-center">
                 <div>
                     <h3 id="modalTitle" class="font-bold text-lg">Office Details List</h3>
-                    <p id="modalSubtitle" class="text-xs text-amber-200">Complete office list with category breakdown & postage (Rupye)</p>
+                    <p id="modalSubtitle" class="text-xs text-purple-200">Complete office list with category breakdown & postage (Rupye)</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="exportModalToExcel()" class="bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
                     <button onclick="exportSingleTableToPDF('tableModalOffices', 'Office Details')" class="bg-rose-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
-                    <button onclick="closeModal()" class="bg-amber-950 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer">✕</button>
+                    <button onclick="closeModal()" class="bg-purple-950 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer">✕</button>
                 </div>
             </div>
             <div class="p-6 overflow-y-auto flex-grow">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse" id="tableModalOffices">
                         <thead>
-                            <tr class="bg-[#FDF3E6] text-[#4B1D24] text-xs font-bold uppercase border-b border-amber-300">
+                            <tr class="bg-slate-100 text-slate-800 text-xs font-bold uppercase border-b border-slate-200">
                                 <th class="py-3 px-4">Office ID & Name</th>
                                 <th class="py-3 px-4">Class</th>
                                 <th class="py-3 px-4">SD / Division</th>
@@ -262,134 +406,39 @@
                                 <th class="py-3 px-4 text-right">Total Postage (Rupye)</th>
                             </tr>
                         </thead>
-                        <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700"></tbody>
+                        <tbody class="text-xs md:text-sm divide-y divide-slate-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal 2: Digital Booking / COD Transaction Status Modal -->
-    <div id="digitalModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-amber-400">
-            <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+    <!-- Modal 2: Dedicated PLI Office List Modal -->
+    <div id="pliDrilldownModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-purple-300">
+            <div class="report-header px-6 py-4 flex justify-between items-center">
                 <div>
-                    <h3 id="digitalModalMainTitle" class="font-extrabold text-lg flex items-center gap-2">📲 Digital Txn Status Report</h3>
-                    <p id="digitalModalSubTitle" class="text-xs text-amber-200">Upload Raw Excel to analyze Cash vs. Digital Transactions</p>
+                    <h3 id="pliModalTitle" class="font-bold text-lg">PLI Office Details List</h3>
+                    <p id="pliModalSubtitle" class="text-xs text-purple-200">Branch Office list with PLI Transaction status</p>
                 </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <button onclick="exportDigitalExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
-                    <button onclick="exportDigitalPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
-                    <button onclick="exportTableJPEG('digitalTableContainer', 'Digital_Txn_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
-                    <button onclick="closeDigitalModal()" class="bg-amber-950 hover:bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer ml-2">✕</button>
+                <div class="flex items-center gap-3">
+                    <button onclick="exportPliModalToExcel()" class="bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel</button>
+                    <button onclick="closePliModalDetails()" class="bg-purple-950 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer">✕</button>
                 </div>
             </div>
-            <div class="p-6 overflow-y-auto flex-grow space-y-5" id="digitalTableContainer">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button id="btnModeBooking" onclick="switchDigitalMode('booking')" class="p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-800 bg-amber-800 text-white shadow-md cursor-pointer transition-all">
-                        <span>📦</span> Digital Booking Txn Report
-                    </button>
-                    <button id="btnModeCod" onclick="switchDigitalMode('cod')" class="p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 shadow-sm cursor-pointer transition-all">
-                        <span>💵</span> COD Digital Txn Report
-                    </button>
-                </div>
-                <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-amber-900 mb-1" id="lblUploadRaw">📤 Upload Digital Raw File</label>
-                        <input type="file" id="digitalFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-800 file:text-white hover:file:bg-amber-900 cursor-pointer border border-amber-300 rounded-lg bg-white p-1"/>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-amber-900 mb-1">🏢 View Type</label>
-                        <select id="digitalViewType" onchange="processDigitalData()" class="w-full border border-amber-300 rounded-lg p-2 text-xs bg-white font-bold">
-                            <option value="division">Division View</option>
-                            <option value="subdivision">Sub-Division View</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-amber-900 mb-1">⚙️ BO Inclusion Report Option</label>
-                        <select id="digitalBoFilter" onchange="processDigitalData()" class="w-full border border-amber-300 rounded-lg p-2 text-xs bg-white font-bold">
-                            <option value="including">Including BO (SO + HO + BO)</option>
-                            <option value="excluding">Excluding BO (SO + HO Only)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="overflow-x-auto p-3">
-                    <table class="nil-table" id="digitalStatusTable">
+            <div class="p-6 overflow-y-auto flex-grow">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="tablePliModalOffices">
                         <thead>
-                            <tr>
-                                <th style="width: 6%;">S.No.</th>
-                                <th style="width: 18%;">Name of Division</th>
-                                <th style="width: 22%;" id="thSubDivCol" style="display:none;">Name of Sub Dn</th>
-                                <th style="width: 14%;">Total Offices</th>
-                                <th style="width: 13%;" id="thCol1Label">Digital Txn Offices</th>
-                                <th style="width: 13%;" id="thCol2Label">Cash / Zero Txn Offices</th>
-                                <th style="width: 14%;" id="thCol3Label">% Digital Txn</th>
+                            <tr class="bg-slate-100 text-slate-800 text-xs font-bold uppercase border-b border-slate-200">
+                                <th class="py-3 px-4">S.No.</th>
+                                <th class="py-3 px-4">Office ID & Name</th>
+                                <th class="py-3 px-4">Class</th>
+                                <th class="py-3 px-4">SD / Division</th>
+                                <th class="py-3 px-4 text-right">PLI Transactions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="7" class="py-8 text-center text-slate-400 font-medium">Please upload Digital/COD Raw Excel/CSV file to generate report.</td>
-                            </tr>
-                        </tbody>
-                        <tfoot></tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 3: PLI / RPLI Nil Transaction Report Modal (Fully Functional with Reference Color Styling & Clickable Office Counts) -->
-    <div id="pliModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 md:p-6">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-amber-400">
-            <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div>
-                    <h3 class="font-extrabold text-lg flex items-center gap-2">🛡️ PLI / RPLI Nil Transaction Report (Indore Region - Branch Offices Only)</h3>
-                    <p class="text-xs text-amber-200">Strictly matching spreadsheet BO IDs with PLI Excel. Click any count to view/download office list.</p>
-                </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <button onclick="exportPliExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel (2 Sheets)</button>
-                    <button onclick="exportPliPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
-                    <button onclick="exportTableJPEG('pliTableContainer', 'PLI_Nil_Txn_Report')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
-                    <button onclick="closePliModal()" class="bg-amber-950 hover:bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer ml-2">✕</button>
-                </div>
-            </div>
-            <div class="p-6 overflow-y-auto flex-grow space-y-5" id="pliTableContainer">
-                <div class="bg-amber-50/80 p-4 rounded-xl border border-amber-200 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div class="w-full md:w-2/3">
-                        <label class="block text-xs font-bold uppercase text-amber-900 mb-1">📤 Upload PLI/RPLI Raw Report File (Pan India Excel / CSV - Large File Optimized)</label>
-                        <input type="file" id="pliFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-800 file:text-white hover:file:bg-amber-900 cursor-pointer border border-amber-300 rounded-lg bg-white p-1"/>
-                    </div>
-                    <div class="w-full md:w-1/3 text-right">
-                        <div id="pliUploadStatus" class="text-xs font-bold text-amber-900 bg-amber-200/60 p-2.5 rounded-xl border border-amber-300 inline-block">
-                            ⏳ Waiting for file upload...
-                        </div>
-                    </div>
-                </div>
-                <div class="overflow-x-auto p-3">
-                    <div class="text-center mb-3">
-                        <h2 class="text-lg font-extrabold text-[#4B1D24]">DEPARTMENT OF POSTS — REGIONAL OFFICE INDORE</h2>
-                        <h3 class="text-sm font-bold text-slate-700">PLI / RPLI Nil & Active Transaction Analysis Report (Indore Region - Branch Offices Only)</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Spreadsheet BOs missing from uploaded Excel are treated as active transaction offices</p>
-                    </div>
-                    <table class="nil-table" id="tablePliSummary">
-                        <thead>
-                            <tr>
-                                <th style="width: 5%;">S.No.</th>
-                                <th style="width: 15%;">Name of Division</th>
-                                <th style="width: 20%;">Name of Sub Dn</th>
-                                <th style="width: 12%;">Total Offices in SD</th>
-                                <th style="width: 12%;">Nil PLI/RPLI Txn (0)</th>
-                                <th style="width: 12%;">Good PLI Txn (>10)</th>
-                                <th style="width: 12%;">% Nil Offices</th>
-                                <th style="width: 12%;">% Offices with >10 Txn</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="8" class="py-8 text-center text-slate-400 font-medium">Please upload Pan India PLI Transaction Excel/CSV raw data to generate Indore Region Branch Offices Report.</td>
-                            </tr>
-                        </tbody>
-                        <tfoot></tfoot>
+                        <tbody class="text-xs md:text-sm divide-y divide-slate-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -398,45 +447,45 @@
 
     <!-- Modal 4: Admin Login Modal -->
     <div id="adminLoginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-amber-400">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-purple-400">
             <div class="report-header px-6 py-4 flex justify-between items-center">
                 <h3 class="font-extrabold text-base flex items-center gap-2">🔒 Admin Login</h3>
-                <button onclick="closeAdminLoginModal()" class="bg-amber-950 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold cursor-pointer">✕</button>
+                <button onclick="closeAdminLoginModal()" class="bg-purple-950 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold cursor-pointer">✕</button>
             </div>
             <div class="p-6 space-y-4">
                 <div>
-                    <label class="block text-xs font-bold uppercase text-amber-900 mb-1">Admin ID</label>
-                    <input type="password" id="adminUser" placeholder="Enter Admin ID" class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-amber-50/50 font-medium outline-none focus:ring-2 focus:ring-amber-800"/>
+                    <label class="block text-xs font-bold uppercase text-purple-950 mb-1">Admin ID</label>
+                    <input type="password" id="adminUser" placeholder="Enter Admin ID" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 font-medium outline-none focus:ring-2 focus:ring-purple-800"/>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase text-amber-900 mb-1">Password</label>
-                    <input type="password" id="adminPass" placeholder="Enter Password" class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-amber-50/50 font-medium outline-none focus:ring-2 focus:ring-amber-800"/>
+                    <label class="block text-xs font-bold uppercase text-purple-950 mb-1">Password</label>
+                    <input type="password" id="adminPass" placeholder="Enter Password" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 font-medium outline-none focus:ring-2 focus:ring-purple-800"/>
                 </div>
                 <div id="adminLoginError" class="text-xs text-rose-600 font-bold hidden">❌ Invalid Admin ID or Password.</div>
-                <button onclick="verifyAdminLogin()" class="w-full bg-[#4B1D24] hover:bg-black text-white font-bold py-2.5 rounded-xl shadow transition cursor-pointer text-sm">Login to Admin Dashboard</button>
+                <button onclick="verifyAdminLogin()" class="w-full bg-[#31103f] hover:bg-purple-950 text-white font-bold py-2.5 rounded-xl shadow transition cursor-pointer text-sm">Login to Admin Dashboard</button>
             </div>
         </div>
     </div>
 
     <!-- Modal 5: Admin Dashboard Modal -->
     <div id="adminDashboardModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 md:p-6">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-amber-400">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-purple-400">
             <div class="report-header px-6 py-4 flex justify-between items-center">
                 <div>
                     <h3 class="font-extrabold text-lg flex items-center gap-2">🛠️ Admin Audit Log & Generated Reports Dashboard</h3>
-                    <p class="text-xs text-amber-200">Track all generated analytical reports, login timestamps, and direct downloads</p>
+                    <p class="text-xs text-purple-200">Track all generated analytical reports, login timestamps, and direct downloads</p>
                 </div>
-                <button onclick="closeAdminDashboard()" class="bg-amber-950 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer">✕</button>
+                <button onclick="closeAdminDashboard()" class="bg-purple-950 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold cursor-pointer">✕</button>
             </div>
             <div class="p-6 overflow-y-auto flex-grow space-y-4">
                 <div class="flex justify-between items-center">
-                    <p class="text-xs font-bold text-slate-600">Total Audit Logs: <span id="adminReportCount" class="text-[#4B1D24]">0</span></p>
+                    <p class="text-xs font-bold text-slate-600">Total Audit Logs: <span id="adminReportCount" class="text-purple-950">0</span></p>
                     <button onclick="clearAdminLogs()" class="bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-semibold px-3 py-1.5 rounded-lg transition cursor-pointer">🗑️ Clear Logs</button>
                 </div>
-                <div class="overflow-x-auto border border-amber-200 rounded-xl shadow-sm bg-white">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm bg-white">
                     <table class="w-full text-left border-collapse" id="adminReportTable">
                         <thead>
-                            <tr class="bg-[#FDF3E6] text-[#4B1D24] text-xs font-bold uppercase border-b border-amber-300">
+                            <tr class="bg-slate-100 text-slate-800 text-xs font-bold uppercase border-b border-slate-200">
                                 <th class="py-3 px-4">#</th>
                                 <th class="py-3 px-4">Action / Report Name</th>
                                 <th class="py-3 px-4">Login ID / User</th>
@@ -445,7 +494,7 @@
                                 <th class="py-3 px-4 text-right">Action / Download</th>
                             </tr>
                         </thead>
-                        <tbody class="text-xs md:text-sm divide-y divide-amber-100 text-slate-700">
+                        <tbody class="text-xs md:text-sm divide-y divide-slate-100 text-slate-700">
                             <tr>
                                 <td colspan="6" class="py-8 text-center text-slate-400 font-medium">No activity logged yet in this session.</td>
                             </tr>
@@ -457,7 +506,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="report-header text-amber-200 text-xs py-4 px-6 text-center border-t border-amber-900 mt-12">
+    <footer class="report-header text-purple-200 text-xs py-4 px-6 text-center border-t border-purple-950 mt-12">
         <p class="font-medium">Developed by <span class="text-white font-bold">Kapil Rajput</span>, PA, Regional Office Indore</p>
     </footer>
 
@@ -467,8 +516,9 @@
         const IDP_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1439866773&single=true&output=csv";
 
         let masterOfficesMap = {}, serviceMapping = {}, rawData = [], currentFilteredRows = [], modalExportData = [], globalAllFilteredOffices = [];
-        let digitalRawData = [], currentDigitalMode = 'booking', currentDigitalProcessedList = [];
         let pliRawData = [], currentPliProcessedList = [], currentNilPliOfficesList = [];
+        let digitalRawData = [];
+        let pliModalExportData = [];
         let idpCredentialsMap = {};
         let generatedReportsLog = [];
         let loggedInAdminId = "";
@@ -483,6 +533,33 @@
             "UJJAIN": "div-bg-ujjain",
             "ID DIVISION": "div-bg-id-division"
         };
+
+        function switchModule(mod) {
+            const bMod = document.getElementById('moduleBooking');
+            const pMod = document.getElementById('modulePli');
+            const dMod = document.getElementById('moduleDigital');
+            const btnB = document.getElementById('btnNavBooking');
+            const btnP = document.getElementById('btnNavPli');
+            const btnD = document.getElementById('btnNavDigital');
+
+            bMod.classList.add('hidden');
+            pMod.classList.add('hidden');
+            dMod.classList.add('hidden');
+            btnB.className = "bg-white hover:bg-slate-100 text-slate-700 text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border border-slate-200";
+            btnP.className = "bg-white hover:bg-slate-100 text-slate-700 text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border border-slate-200";
+            btnD.className = "bg-white hover:bg-slate-100 text-slate-700 text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border border-slate-200";
+
+            if (mod === 'booking') {
+                bMod.classList.remove('hidden');
+                btnB.className = "bg-purple-900 text-white text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border-b-2 border-purple-600";
+            } else if (mod === 'pli') {
+                pMod.classList.remove('hidden');
+                btnP.className = "bg-purple-900 text-white text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border-b-2 border-purple-600";
+            } else if (mod === 'digital') {
+                dMod.classList.remove('hidden');
+                btnD.className = "bg-purple-900 text-white text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border-b-2 border-purple-600";
+            }
+        }
 
         function logGeneratedReport(reportName, exportFunction) {
             const now = new Date();
@@ -579,9 +656,9 @@
 
             generatedReportsLog.forEach((rep, idx) => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
                 tr.innerHTML = `
-                    <td class="py-3 px-4 font-bold text-[#4B1D24]">${idx + 1}</td>
+                    <td class="py-3 px-4 font-bold text-purple-950">${idx + 1}</td>
                     <td class="py-3 px-4 font-semibold">${rep.name}</td>
                     <td class="py-3 px-4 font-bold text-blue-900">${rep.user}</td>
                     <td class="py-3 px-4 text-slate-600">${rep.time}</td>
@@ -632,14 +709,12 @@
                     const row = mapRows[i], sName = String(row[0] || "").trim(), cName = String(row[1] || "").trim().toUpperCase();
                     if (sName && cName) serviceMapping[sName.toLowerCase()] = cName;
                 }
-                document.getElementById('masterStatus').textContent = `Master Loaded (${Object.keys(masterOfficesMap).length} Offices)`;
-                document.getElementById('masterStatus').className = "bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow";
+                document.getElementById('masterStatus').innerHTML = `<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Live Synced (${Object.keys(masterOfficesMap).length} Offices)`;
             } catch (err) {
                 masterOfficesMap = { "23108926": { name: "AGARCANTT B.O", class: "BO", sd: "AGAR SD", division: "UJJAIN", ro: "INDORE REGION" } };
                 serviceMapping = { "inland speed post document": "MO", "indiapost parcel retail": "PARCEL" };
                 rawData = [{ officeId: "23108926", service: "Inland Speed Post Document", articles: 7, postage: 157 }];
                 document.getElementById('masterStatus').textContent = `Loaded Offline Data`;
-                document.getElementById('masterStatus').className = "bg-blue-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow";
             }
             initDropdowns();
             updateDashboard();
@@ -676,14 +751,6 @@
                 return { officeId: offId, service: item.service, articles: Number(item.articles) || 0, postage: Number(item.postage) || 0, officeName: master.name, officeClass: master.class, subDivision: master.sd, division: master.division, category: cat };
             }).filter(Boolean);
 
-            const filteredOfficesMap = {};
-            Object.entries(masterOfficesMap).forEach(([id, m]) => {
-                if (m.name.toUpperCase().includes("KHUDEL") && m.class === "BO") return;
-                if (selDiv !== "All" && m.division !== selDiv) return;
-                if (selClass !== "All" && m.class !== selClass) return;
-                filteredOfficesMap[id] = m;
-            });
-
             const filteredRows = processed.filter(item => {
                 if (selDiv !== "All" && item.division !== selDiv) return false;
                 if (selClass !== "All" && item.officeClass !== selClass) return false;
@@ -697,6 +764,7 @@
             Object.entries(masterOfficesMap).forEach(([id, m]) => {
                 if (m.name.toUpperCase().includes("KHUDEL") && m.class === "BO") return;
                 if (selDiv !== "All" && m.division !== selDiv) return;
+                if (selClass !== "All" && m.class !== selClass) return;
                 allMasterOfficesMap[id] = m;
             });
 
@@ -719,7 +787,7 @@
             globalAllFilteredOffices = Object.values(officeTotals);
             document.getElementById('kpiArticles').textContent = filteredRows.reduce((a, c) => a + c.articles, 0).toLocaleString('en-IN');
             document.getElementById('kpiPostage').textContent = filteredRows.reduce((a, c) => a + c.postage, 0).toLocaleString('en-IN', {minimumFractionDigits: 2});
-            document.getElementById('kpiOffices').textContent = `${Object.keys(masterOfficesMap).length}`;
+            document.getElementById('kpiOffices').textContent = `${Object.keys(allMasterOfficesMap).length}`;
 
             renderSummaryTable(globalAllFilteredOffices, summaryView);
             renderNilBookingTable(globalAllFilteredOffices, nilFilterClass);
@@ -733,7 +801,7 @@
             tbody.innerHTML = ""; tfoot.innerHTML = "";
 
             if (viewType === 'division') {
-                thead.innerHTML = `<tr class="report-header text-[11px] font-bold border-b border-amber-900 uppercase">
+                thead.innerHTML = `<tr class="report-header text-[11px] font-bold border-b border-purple-950 uppercase">
                     <th class="py-2.5 px-3">Division Name</th>
                     <th class="py-2.5 px-2 text-center">Total Offices</th>
                     <th class="py-2.5 px-2 text-right">Parcel Art</th>
@@ -770,9 +838,9 @@
                     gTotArt += item.totalArt; gTotPost += item.totalPostage;
 
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-amber-50 border-b border-amber-100 text-[11px]";
+                    tr.className = "hover:bg-slate-50 border-b border-slate-100 text-[11px]";
                     tr.innerHTML = `
-                        <td class="py-2.5 px-3 font-bold text-[#4B1D24]">${item.division}</td>
+                        <td class="py-2.5 px-3 font-bold text-purple-950">${item.division}</td>
                         <td class="py-2.5 px-2 text-center">${item.offices.size}</td>
                         <td class="py-2.5 px-2 text-right">${item.cats.PARCEL.a}</td>
                         <td class="py-2.5 px-2 text-right">${item.cats.PARCEL.p.toLocaleString('en-IN')}</td>
@@ -780,14 +848,14 @@
                         <td class="py-2.5 px-2 text-right">${item.cats.MO.p.toLocaleString('en-IN')}</td>
                         <td class="py-2.5 px-2 text-right">${item.cats.IRGB.a}</td>
                         <td class="py-2.5 px-2 text-right">${item.cats.IRGB.p.toLocaleString('en-IN')}</td>
-                        <td class="py-2.5 px-3 text-right font-extrabold text-[#4B1D24] bg-[#FDF3E6]">${item.totalArt}</td>
-                        <td class="py-2.5 px-3 text-right font-extrabold text-emerald-800 bg-[#FDF3E6]">${item.totalPostage.toLocaleString('en-IN')}</td>
+                        <td class="py-2.5 px-3 text-right font-extrabold text-purple-950 bg-purple-50">${item.totalArt}</td>
+                        <td class="py-2.5 px-3 text-right font-extrabold text-emerald-800 bg-emerald-50">${item.totalPostage.toLocaleString('en-IN')}</td>
                     `;
                     tbody.appendChild(tr);
                 });
 
                 tfoot.innerHTML = `
-                    <tr class="report-grand text-[11px] bg-[#4B1D24] text-white">
+                    <tr class="report-grand text-[11px]">
                         <td class="py-3 px-3">GRAND TOTAL</td>
                         <td class="py-3 px-2 text-center">${gOffices.size}</td>
                         <td class="py-3 px-2 text-right">${gParcelA}</td>
@@ -802,7 +870,7 @@
                 `;
 
             } else {
-                thead.innerHTML = `<tr class="report-header text-[11px] font-bold border-b border-amber-900 uppercase">
+                thead.innerHTML = `<tr class="report-header text-[11px] font-bold border-b border-purple-950 uppercase">
                     <th class="py-2.5 px-3">Division</th>
                     <th class="py-2.5 px-3">Sub-Division (SD)</th>
                     <th class="py-2.5 px-2 text-center">Total Offices</th>
@@ -845,9 +913,9 @@
                         gTotArt += data.totalArt; gTotPost += data.totalPostage;
 
                         const tr = document.createElement('tr');
-                        tr.className = "hover:bg-amber-50 border-b border-amber-100 cursor-pointer text-[11px]";
+                        tr.className = "hover:bg-slate-50 border-b border-slate-100 cursor-pointer text-[11px]";
                         tr.onclick = () => openDrilldown(sdName, divName);
-                        let divisionCellHTML = index === 0 ? `<td rowspan="${subEntries.length}" class="py-2.5 px-3 font-extrabold text-[#4B1D24] bg-[#FDF3E6] align-middle border-r border-amber-200">${divName}</td>` : '';
+                        let divisionCellHTML = index === 0 ? `<td rowspan="${subEntries.length}" class="py-2.5 px-3 font-extrabold text-purple-950 bg-purple-50 align-middle border-r border-slate-200">${divName}</td>` : '';
                         tr.innerHTML = `
                             ${divisionCellHTML}
                             <td class="py-2.5 px-3 font-bold text-blue-900">${sdName}</td>
@@ -858,15 +926,15 @@
                             <td class="py-2.5 px-2 text-right">${data.cats.MO.p.toLocaleString('en-IN')}</td>
                             <td class="py-2.5 px-2 text-right">${data.cats.IRGB.a}</td>
                             <td class="py-2.5 px-2 text-right">${data.cats.IRGB.p.toLocaleString('en-IN')}</td>
-                            <td class="py-2.5 px-3 text-right font-bold text-[#4B1D24] bg-[#FDF3E6]">${data.totalArt}</td>
-                            <td class="py-2.5 px-3 text-right font-bold text-emerald-800 bg-[#FDF3E6]">${data.totalPostage.toLocaleString('en-IN')}</td>
+                            <td class="py-2.5 px-3 text-right font-bold text-purple-950 bg-purple-50">${data.totalArt}</td>
+                            <td class="py-2.5 px-3 text-right font-bold text-emerald-800 bg-emerald-50">${data.totalPostage.toLocaleString('en-IN')}</td>
                         `;
                         tbody.appendChild(tr);
                     });
                 });
 
                 tfoot.innerHTML = `
-                    <tr class="report-grand text-[11px] bg-[#4B1D24] text-white">
+                    <tr class="report-grand text-[11px]">
                         <td colspan="2" class="py-3 px-3">GRAND TOTAL</td>
                         <td class="py-3 px-2 text-center">${gOffices.size}</td>
                         <td class="py-3 px-2 text-right">${gParcelA}</td>
@@ -1058,15 +1126,15 @@
             modalBody.innerHTML = "";
             targetOffices.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-semibold">${item.officeName} <span class="text-xs text-slate-400">(${item.officeId})</span></td>
-                    <td class="py-3 px-4"><span class="bg-amber-100 text-[#4B1D24] text-xs px-2 py-1 rounded font-bold">${item.class}</span></td>
+                    <td class="py-3 px-4"><span class="bg-purple-100 text-purple-950 text-xs px-2 py-1 rounded font-bold">${item.class}</span></td>
                     <td class="py-3 px-4 text-xs text-slate-600">${item.division} / ${item.subDivision}</td>
                     <td class="py-3 px-4 text-center text-xs">-</td>
                     <td class="py-3 px-4 text-center text-xs">-</td>
                     <td class="py-3 px-4 text-center text-xs">-</td>
-                    <td class="py-3 px-4 text-right font-extrabold text-[#4B1D24]">${item.articles}</td>
+                    <td class="py-3 px-4 text-right font-extrabold text-purple-950">${item.articles}</td>
                     <td class="py-3 px-4 text-right font-extrabold text-emerald-800">-</td>
                 `;
                 modalBody.appendChild(tr);
@@ -1085,7 +1153,7 @@
                 tBody.innerHTML = "";
                 (idx === 0 ? top10 : bottom10).forEach(o => {
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                    tr.className = "hover:bg-slate-50 border-b border-slate-100";
                     tr.innerHTML = `<td class="py-2.5 px-4 font-medium">${o.name} <span class="text-slate-400 text-[10px]">(${o.officeId})</span></td><td class="py-2.5 px-4 text-slate-600">${o.division} / ${o.sd}</td><td class="py-2.5 px-4 text-right font-bold ${idx === 0 ? 'text-[#0B6623]': 'text-[#8B0000]'}">${o.articles}</td>`;
                     tBody.appendChild(tr);
                 });
@@ -1111,8 +1179,8 @@
             modalBody.innerHTML = "";
             dataArray.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-amber-50 border-b border-amber-100";
-                tr.innerHTML = `<td class="py-3 px-4 font-semibold">${item.officeName} <span class="text-xs text-slate-400">(${item.officeId})</span></td><td class="py-3 px-4"><span class="bg-amber-100 text-[#4B1D24] text-xs px-2 py-1 rounded font-bold">${item.officeClass || 'BO'}</span></td><td class="py-3 px-4 text-xs text-slate-600">${item.division} / ${item.sd}</td><td class="py-3 px-4 text-center text-xs"><b>${item.cats.PARCEL.articles || item.cats.PARCEL.a || 0}</b></td><td class="py-3 px-4 text-center text-xs"><b>${item.cats.MO.articles || item.cats.MO.a || 0}</b></td><td class="py-3 px-4 text-center text-xs"><b>${item.cats.IRGB.articles || item.cats.IRGB.a || 0}</b></td><td class="py-3 px-4 text-right font-extrabold text-[#4B1D24]">${(item.totalArt || 0)}</td><td class="py-3 px-4 text-right font-extrabold text-emerald-800">${(item.totalPost || item.totalPostage || 0).toLocaleString('en-IN')}</td>`;
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `<td class="py-3 px-4 font-semibold">${item.officeName} <span class="text-xs text-slate-400">(${item.officeId})</span></td><td class="py-3 px-4"><span class="bg-purple-100 text-purple-950 text-xs px-2 py-1 rounded font-bold">${item.officeClass || 'BO'}</span></td><td class="py-3 px-4 text-xs text-slate-600">${item.division} / ${item.sd}</td><td class="py-3 px-4 text-center text-xs"><b>${item.cats.PARCEL.articles || item.cats.PARCEL.a || 0}</b></td><td class="py-3 px-4 text-center text-xs"><b>${item.cats.MO.articles || item.cats.MO.a || 0}</b></td><td class="py-3 px-4 text-center text-xs"><b>${item.cats.IRGB.articles || item.cats.IRGB.a || 0}</b></td><td class="py-3 px-4 text-right font-extrabold text-purple-950">${(item.totalArt || 0)}</td><td class="py-3 px-4 text-right font-extrabold text-emerald-800">${(item.totalPost || item.totalPostage || 0).toLocaleString('en-IN')}</td>`;
                 modalBody.appendChild(tr);
             });
         }
@@ -1150,7 +1218,7 @@
             const doc = new jsPDF('l', 'mm', 'a4');
             const pageWidth = 297, pageHeight = 210;
 
-            doc.setFillColor(75, 29, 36);
+            doc.setFillColor(44, 12, 56);
             doc.rect(0, 0, pageWidth, 18, "F");
             doc.setTextColor(255, 255, 255); 
             doc.setFontSize(12); 
@@ -1193,218 +1261,221 @@
         }
 
         // ==========================================
-        // DIGITAL TXN REPORT LOGIC (HOME BUTTON LINKED)
+        // DIGITAL TXN REPORT CALCULATOR LOGIC (Robust Header Matching & Parsing)
         // ==========================================
-        function openDigitalModal() {
-            document.getElementById('digitalModal').classList.remove('hidden');
-        }
-
-        function closeDigitalModal() {
-            document.getElementById('digitalModal').classList.add('hidden');
-        }
-
-        function switchDigitalMode(mode) {
-            currentDigitalMode = mode;
-            const btnB = document.getElementById('btnModeBooking');
-            const btnC = document.getElementById('btnModeCod');
-            if (mode === 'booking') {
-                btnB.className = "p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-800 bg-amber-800 text-white shadow-md cursor-pointer transition-all";
-                btnC.className = "p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 shadow-sm cursor-pointer transition-all";
-                document.getElementById('digitalModalMainTitle').textContent = "📲 Digital Booking Txn Status Report";
-            } else {
-                btnC.className = "p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-800 bg-amber-800 text-white shadow-md cursor-pointer transition-all";
-                btnB.className = "p-3.5 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-2 border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 shadow-sm cursor-pointer transition-all";
-                document.getElementById('digitalModalMainTitle').textContent = "💵 COD Digital Txn Status Report";
-            }
-            processDigitalData();
-        }
-
         document.getElementById('digitalFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-            parseExcelFile(file, function(json) {
-                digitalRawData = json;
-                processDigitalData();
-                logGeneratedReport("Digital Txn Report Raw Data Upload", () => {});
-            });
+
+            const statusEl = document.getElementById('digitalUploadStatus');
+            statusEl.innerHTML = `🔄 Reading Booking Paymentwise Report...`;
+            statusEl.className = "text-xs font-bold text-purple-950 bg-purple-200 p-2.5 rounded-xl border border-purple-400 inline-block animate-pulse";
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data = e.target.result;
+                    let workbook = XLSX.read(data, {type: 'array', cellDates: true, dense: true});
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    
+                    statusEl.innerHTML = `🔄 Parsing rows & calculating digital metrics...`;
+
+                    setTimeout(() => {
+                        const jsonRows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
+                        
+                        if (jsonRows.length === 0) {
+                            throw new Error("Empty Excel file");
+                        }
+
+                        // Locate header row dynamically by searching for 'Office ID' or 'Office Name'
+                        let headerRowIdx = 0;
+                        for (let i = 0; i < Math.min(10, jsonRows.length); i++) {
+                            let rStr = jsonRows[i].map(c => String(c).trim().toLowerCase());
+                            if (rStr.includes('office id') || rStr.includes('office name')) {
+                                headerRowIdx = i;
+                                break;
+                            }
+                        }
+
+                        const headers = jsonRows[headerRowIdx].map(c => String(c).trim());
+                        let idIdx = headers.findIndex(h => h.toLowerCase() === 'office id');
+                        let nameIdx = headers.findIndex(h => h.toLowerCase() === 'office name');
+                        let cashIdx = headers.findIndex(h => h.toLowerCase() === 'cash (cnt)');
+                        let dqrIdx = headers.findIndex(h => h.toLowerCase() === 'dqr scan (cnt)');
+                        let sbiposIdx = headers.findIndex(h => h.toLowerCase() === 'sbipos bharatqr (cnt)');
+
+                        if (idIdx === -1) idIdx = 0;
+                        if (nameIdx === -1) nameIdx = 1;
+                        if (cashIdx === -1) cashIdx = 3;
+                        if (dqrIdx === -1) dqrIdx = 15;
+                        if (sbiposIdx === -1) sbiposIdx = 21;
+
+                        digitalRawData = [];
+                        for (let i = headerRowIdx + 1; i < jsonRows.length; i++) {
+                            const row = jsonRows[i];
+                            if (!row || row.length === 0) continue;
+
+                            let oId = String(row[idIdx] || "").trim().replace(/\.0$/, '');
+                            let oName = String(row[nameIdx] || "").trim();
+
+                            if (!oName || oName.toUpperCase().includes("SUMMARY")) continue;
+
+                            let cashCnt = Number(row[cashIdx]) || 0;
+                            let dqrCnt = Number(row[dqrIdx]) || 0;
+                            let sbiposQrCnt = Number(row[sbiposIdx]) || 0;
+
+                            digitalRawData.push({
+                                officeId: oId,
+                                officeName: oName,
+                                cash: cashCnt,
+                                dqr: dqrCnt,
+                                sbiposQr: sbiposQrCnt
+                            });
+                        }
+
+                        statusEl.innerHTML = `✅ Uploaded Successfully! (${digitalRawData.length} records parsed)`;
+                        statusEl.className = "text-xs font-bold text-emerald-900 bg-emerald-200 p-2.5 rounded-xl border border-emerald-400 inline-block";
+                        
+                        processDigitalReport();
+                        logGeneratedReport("Digital Booking Txn Status Report", () => exportDigitalExcel());
+                    }, 50);
+
+                } catch (err) {
+                    console.error("Digital File Parsing Error:", err);
+                    statusEl.innerHTML = `❌ Error reading file. Try CSV format.`;
+                    statusEl.className = "text-xs font-bold text-rose-900 bg-rose-200 p-2.5 rounded-xl border border-rose-400 inline-block";
+                }
+            };
+            reader.readAsArrayBuffer(file);
         });
 
-        function processDigitalData() {
-            const tbody = document.querySelector('#digitalStatusTable tbody');
-            const tfoot = document.querySelector('#digitalStatusTable tfoot');
+        function processDigitalReport() {
+            if (!digitalRawData || digitalRawData.length === 0) return;
+
+            const mode = document.getElementById('digitalModeSelect').value;
             const viewType = document.getElementById('digitalViewType').value;
-            const boFilter = document.getElementById('digitalBoFilter').value;
-            const thSubDivCol = document.getElementById('thSubDivCol');
+            
+            const isExcludingBo = (mode === 'excluding_bo');
+            const titleText = `Digital Booking Txn Status (${isExcludingBo ? 'Excluding BO' : 'Including BO'})`;
+            document.getElementById('digitalReportTitle').textContent = titleText;
+            document.getElementById('digitalHeaderGrouping').textContent = (viewType === 'division') ? 'Division' : 'Sub-Division';
 
-            if (!digitalRawData || digitalRawData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400 font-medium">Please upload Digital/COD Raw Excel/CSV file to generate report.</td></tr>`;
-                tfoot.innerHTML = "";
-                return;
-            }
+            let d = new Date();
+            d.setDate(d.getDate() - 1);
+            if (d.getDay() === 0) d.setDate(d.getDate() - 1);
+            const dateStr = String(d.getDate()).padStart(2, '0') + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + d.getFullYear();
+            document.getElementById('digitalReportDate').textContent = `Report Date: ${dateStr}`;
 
-            if (viewType === 'subdivision') {
-                thSubDivCol.style.display = '';
-            } else {
-                thSubDivCol.style.display = 'none';
-            }
+            const groupingMap = {};
 
-            const groupedMap = {};
-            digitalRawData.forEach(row => {
-                let offId = String(row["office-id"] || row["Office ID"] || Object.values(row)[0] || "").trim();
-                let master = masterOfficesMap[offId];
+            digitalRawData.forEach(item => {
+                const master = masterOfficesMap[item.officeId];
                 if (!master) return;
 
-                if (boFilter === 'excluding' && master.class === 'BO') return;
                 if (master.name.toUpperCase().includes("KHUDEL") && master.class === "BO") return;
 
-                let div = master.division || "OTHER";
-                let sd = master.sd || "OTHER SD";
-                let key = viewType === 'subdivision' ? (div + "||" + sd) : div;
+                if (isExcludingBo && master.class === "BO") return;
 
-                if (!groupedMap[key]) {
-                    groupedMap[key] = { division: div, sd: sd, offices: new Set(), digitalCount: 0, cashCount: 0, totalCount: 0, digitalOfficesList: [], cashOfficesList: [] };
+                let groupKey = (viewType === 'division') ? (master.division || "OTHER DIVISION") : (master.sd || "OTHER SD");
+
+                if (!groupingMap.hasOwnProperty(groupKey)) {
+                    groupingMap[groupKey] = {
+                        name: groupKey,
+                        cash: 0,
+                        dqr: 0,
+                        sbiposQr: 0
+                    };
                 }
 
-                groupedMap[key].offices.add(offId);
-                let isDigital = String(Object.values(row)[3] || row["is-digital"] || "").trim().toUpperCase();
-                let mode = String(Object.values(row)[4] || row["payment-mode"] || "").trim().toUpperCase();
-
-                let isDigTxn = (isDigital.includes('YES') || isDigital.includes('TRUE') || mode.includes('QR') || mode.includes('UPI') || mode.includes('DIGITAL') || mode.includes('ONLINE'));
-
-                groupedMap[key].totalCount++;
-                if (isDigTxn) {
-                    groupedMap[key].digitalCount++;
-                    groupedMap[key].digitalOfficesList.push({ officeId: offId, officeName: master.name, class: master.class, division: div, sd: sd });
-                } else {
-                    groupedMap[key].cashCount++;
-                    groupedMap[key].cashOfficesList.push({ officeId: offId, officeName: master.name, class: master.class, division: div, sd: sd });
-                }
+                groupingMap[groupKey].cash += item.cash;
+                groupingMap[groupKey].dqr += item.dqr;
+                groupingMap[groupKey].sbiposQr += item.sbiposQr;
             });
 
-            currentDigitalProcessedList = Object.values(groupedMap);
-            tbody.innerHTML = "";
-            let sno = 1, totOff = 0, totDig = 0, totCash = 0, totAll = 0;
+            let rowsArray = Object.values(groupingMap);
 
-            currentDigitalProcessedList.forEach(item => {
-                totOff += item.offices.size;
-                totDig += item.digitalCount;
-                totCash += item.cashCount;
-                totAll += item.totalCount;
+            rowsArray.forEach(r => {
+                let totalDigital = r.dqr + r.sbiposQr;
+                let totalTxn = r.cash + totalDigital;
+                r.pct = totalTxn > 0 ? (totalDigital / totalTxn) * 100 : 0;
+            });
 
-                let pct = item.totalCount > 0 ? Math.round((item.digitalCount / item.totalCount) * 100) + "%" : "0%";
-                let cssClass = divClassMap[item.division] || "div-bg-indore-city";
+            if (viewType === 'division') {
+                rowsArray.sort((a, b) => b.pct - a.pct);
+            } else {
+                rowsArray.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            const tbody = document.querySelector('#tableDigitalSummary tbody');
+            const tfoot = document.querySelector('#tableDigitalSummary tfoot');
+            tbody.innerHTML = ""; tfoot.innerHTML = "";
+
+            let totCash = 0, totDqr = 0, totSbipos = 0;
+
+            rowsArray.forEach(r => {
+                totCash += r.cash;
+                totDqr += r.dqr;
+                totSbipos += r.sbiposQr;
+
+                let pctVal = r.pct;
+                let bgStyle = "";
+
+                if (pctVal < 60) {
+                    bgStyle = "background-color: #f8cbad; color: #a61c1c;";
+                } else if (pctVal >= 60 && pctVal < 75) {
+                    bgStyle = "background-color: #ffeb9c; color: #835c00;";
+                } else if (pctVal >= 75 && pctVal < 85) {
+                    bgStyle = "background-color: #c6efce; color: #006100;";
+                } else {
+                    bgStyle = "background-color: #a9d18e; color: #003800;";
+                }
 
                 const tr = document.createElement('tr');
-                let sdColHTML = viewType === 'subdivision' ? `<td style="text-align: left; font-weight: 600;">${item.sd}</td>` : '';
                 tr.innerHTML = `
-                    <td>${sno++}</td>
-                    <td class="${cssClass}">${item.division}</td>
-                    ${sdColHTML}
-                    <td>${item.offices.size}</td>
-                    <td class="clickable-cell font-bold text-emerald-700 bg-emerald-50/50" onclick="openDigitalOfficeListModal('${item.division}', '${item.sd}', 'DIGITAL')">${item.digitalCount}</td>
-                    <td class="clickable-cell font-bold text-rose-700 bg-rose-50/50" onclick="openDigitalOfficeListModal('${item.division}', '${item.sd}', 'CASH')">${item.cashCount}</td>
-                    <td class="font-bold text-emerald-800 bg-emerald-100/60">${pct}</td>
+                    <td class="font-bold text-left px-3">${r.name}</td>
+                    <td class="text-right px-3">${r.cash.toLocaleString('en-IN')}</td>
+                    <td class="text-right px-3">${r.dqr.toLocaleString('en-IN')}</td>
+                    <td class="text-right px-3">${r.sbiposQr.toLocaleString('en-IN')}</td>
+                    <td class="text-right px-3 font-bold" style="${bgStyle}">${pctVal.toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            let grandPct = totAll > 0 ? Math.round((totDig / totAll) * 100) + "%" : "0%";
-            let colspanVal = viewType === 'subdivision' ? 3 : 2;
+            let grandTotalDigital = totDqr + totSbipos;
+            let grandTotalTxn = totCash + grandTotalDigital;
+            let grandPct = grandTotalTxn > 0 ? (grandTotalDigital / grandTotalTxn) * 100 : 0;
 
             tfoot.innerHTML = `
                 <tr class="row-grand-total">
-                    <td colspan="${colspanVal}">Grand Total</td>
-                    <td>${totOff}</td>
-                    <td class="clickable-cell underline" onclick="openDigitalOfficeListModal('ALL', 'ALL', 'DIGITAL')">${totDig}</td>
-                    <td class="clickable-cell underline" onclick="openDigitalOfficeListModal('ALL', 'ALL', 'CASH')">${totCash}</td>
-                    <td>${grandPct}</td>
+                    <td class="text-left px-3">Total</td>
+                    <td class="text-right px-3">${totCash.toLocaleString('en-IN')}</td>
+                    <td class="text-right px-3">${totDqr.toLocaleString('en-IN')}</td>
+                    <td class="text-right px-3">${totSbipos.toLocaleString('en-IN')}</td>
+                    <td class="text-right px-3 font-bold" style="background-color: #f8cbad; color: #a61c1c;">${grandPct.toFixed(2)}</td>
                 </tr>
             `;
         }
 
-        function openDigitalOfficeListModal(divisionName, subDivisionName, type) {
-            let targetList = [];
-            currentDigitalProcessedList.forEach(item => {
-                if (divisionName !== 'ALL' && item.division !== divisionName) return;
-                if (subDivisionName !== 'ALL' && item.sd !== subDivisionName) return;
-
-                if (type === 'DIGITAL') targetList.push(...item.digitalOfficesList);
-                else targetList.push(...item.cashOfficesList);
-            });
-
-            if (targetList.length === 0) {
-                alert(`No offices found under ${type} category.`);
-                return;
-            }
-
-            modalExportData = targetList.map(o => ({
-                "Office ID": o.officeId,
-                "Office Name": o.officeName,
-                "Class": o.class,
-                "Sub-Division": o.sd,
-                "Division": o.division,
-                "Category": type
-            }));
-
-            document.getElementById('modalTitle').textContent = `Digital Report Office List (${type} - ${subDivisionName === 'ALL' ? divisionName : subDivisionName})`;
-            document.getElementById('modalSubtitle').textContent = `Total ${targetList.length} offices found.`;
-
-            const modalBody = document.querySelector('#tableModalOffices tbody');
-            modalBody.innerHTML = "";
-            targetList.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-amber-50 border-b border-amber-100";
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-semibold">${item.officeName} <span class="text-xs text-slate-400">(${item.officeId})</span></td>
-                    <td class="py-3 px-4"><span class="bg-amber-100 text-[#4B1D24] text-xs px-2 py-1 rounded font-bold">${item.class}</span></td>
-                    <td class="py-3 px-4 text-xs text-slate-600">${item.division} / ${item.sd}</td>
-                    <td class="py-3 px-4 text-center text-xs">-</td>
-                    <td class="py-3 px-4 text-center text-xs">-</td>
-                    <td class="py-3 px-4 text-center text-xs">-</td>
-                    <td class="py-3 px-4 text-right font-extrabold text-[#4B1D24]">${type}</td>
-                    <td class="py-3 px-4 text-right font-extrabold text-emerald-800">-</td>
-                `;
-                modalBody.appendChild(tr);
-            });
-
-            document.getElementById('drilldownModal').classList.remove('hidden');
-        }
-
         function exportDigitalExcel() {
-            if (!currentDigitalProcessedList || currentDigitalProcessedList.length === 0) {
-                alert("No digital report data available to export.");
+            if (!digitalRawData || digitalRawData.length === 0) {
+                alert("No Digital Txn data available to export. Please upload file first.");
                 return;
             }
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.table_to_sheet(document.getElementById('digitalStatusTable'));
-            XLSX.utils.book_append_sheet(wb, ws, "Digital_Report");
-            XLSX.writeFile(wb, "Digital_Txn_Report.xlsx");
-            logGeneratedReport("Digital Txn Report (Excel)", () => exportDigitalExcel());
-        }
-
-        function exportDigitalPDF() {
-            exportSingleTableToPDF('digitalStatusTable', 'Digital Txn Status Report');
-            logGeneratedReport("Digital Txn Report (PDF)", () => exportDigitalPDF());
+            XLSX.writeFile(XLSX.utils.table_to_book(document.getElementById('tableDigitalSummary'), {sheet: "Digital_Txn_Status"}), "Digital_Booking_Txn_Status.xlsx");
+            logGeneratedReport("Digital Booking Txn Status Report (Excel)", () => exportDigitalExcel());
         }
 
         // ==========================================
-        // PLI / RPLI NIL TRANSACTION REPORT LOGIC (HOME BUTTON LINKED & FIXED DRILLDOWN)
+        // PLI / RPLI NIL TRANSACTION REPORT LOGIC
         // ==========================================
-        function openPliModal() {
-            document.getElementById('pliModal').classList.remove('hidden');
-        }
-
-        function closePliModal() {
-            document.getElementById('pliModal').classList.add('hidden');
-        }
-
         document.getElementById('pliFileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
             const statusEl = document.getElementById('pliUploadStatus');
             statusEl.innerHTML = `🔄 Reading Large Excel File (Chunked)...`;
-            statusEl.className = "text-xs font-bold text-amber-900 bg-amber-200 p-2.5 rounded-xl border border-amber-400 inline-block animate-pulse";
+            statusEl.className = "text-xs font-bold text-purple-950 bg-purple-200 p-2.5 rounded-xl border border-purple-400 inline-block animate-pulse";
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -1424,6 +1495,10 @@
                             const cls = String(m.class || "").toUpperCase();
                             const div = String(m.division || "").toUpperCase();
                             const ro = String(m.ro || "").toUpperCase();
+                            const name = String(m.name || "").toUpperCase();
+
+                            if (name.includes("KHUDEL") && cls === "BO") return;
+
                             if (cls === "BO" && (!ro || ro.includes("INDORE") || ["INDORE", "UJJAIN", "KHANDWA", "DEWAS", "DHAR", "KHARGONE", "MANDSAUR", "NEEMUCH", "RATLAM", "SHAJAPUR"].includes(div))) {
                                 indoreBoMaster[id] = m;
                             }
@@ -1431,6 +1506,8 @@
 
                         if (Object.keys(indoreBoMaster).length === 0) {
                             Object.entries(masterOfficesMap).forEach(([id, m]) => {
+                                const name = String(m.name || "").toUpperCase();
+                                if (name.includes("KHUDEL") && String(m.class).toUpperCase() === "BO") return;
                                 if (String(m.class).toUpperCase() === "BO") indoreBoMaster[id] = m;
                             });
                         }
@@ -1494,7 +1571,8 @@
                         officeId: id,
                         officeName: m.name,
                         subDivision: m.sd,
-                        division: m.division
+                        division: m.division,
+                        txn: 0
                     });
                 }
             });
@@ -1527,9 +1605,9 @@
                     const txn = officeTxnMap[id] || 0;
 
                     if (hasEntryInExcel && txn === 0) {
-                        nilList.push({ officeId: id, officeName: m.name, class: m.class, division: item.division, sd: item.sd });
+                        nilList.push({ officeId: id, officeName: m.name, class: m.class, division: item.division, sd: item.sd, txn: 0 });
                     } else {
-                        goodList.push({ officeId: id, officeName: m.name, class: m.class, division: item.division, sd: item.sd });
+                        goodList.push({ officeId: id, officeName: m.name, class: m.class, division: item.division, sd: item.sd, txn: txn });
                     }
                 });
 
@@ -1617,42 +1695,49 @@
             });
 
             if (targetList.length === 0) {
-                alert(`No offices found under ${type} PLI category.`);
+                alert(`No offices found under ${type === 'NIL' ? 'PLI Nil Txn' : 'Good PLI Txn'} category.`);
                 return;
             }
 
-            modalExportData = targetList.map(o => ({
+            pliModalExportData = targetList.map((o, idx) => ({
+                "S.No": idx + 1,
                 "Office ID": o.officeId,
                 "Office Name": o.officeName,
                 "Class": o.class,
                 "Sub-Division": o.sd,
                 "Division": o.division,
-                "Category": type === 'NIL' ? 'Nil PLI Txn' : 'Active PLI Txn'
+                "PLI Transactions": o.txn
             }));
 
-            document.getElementById('modalTitle').textContent = `PLI Report Office List (${type === 'NIL' ? 'Nil Txn' : 'Active Txn'} - ${subDivisionName === 'ALL' ? divisionName : subDivisionName})`;
-            document.getElementById('modalSubtitle').textContent = `Total ${targetList.length} offices found. Click Excel button to download list.`;
+            document.getElementById('pliModalTitle').textContent = `PLI Office List (${type === 'NIL' ? 'PLI Txn Nil' : 'Good PLI Txn'} - ${subDivisionName === 'ALL' ? divisionName : subDivisionName})`;
+            document.getElementById('pliModalSubtitle').textContent = `Total ${targetList.length} branch offices found.`;
 
-            const modalBody = document.querySelector('#tableModalOffices tbody');
+            const modalBody = document.querySelector('#tablePliModalOffices tbody');
             modalBody.innerHTML = "";
-            targetList.forEach(item => {
+            targetList.forEach((item, idx) => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-amber-50 border-b border-amber-100";
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
                 tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold">${idx + 1}</td>
                     <td class="py-3 px-4 font-semibold">${item.officeName} <span class="text-xs text-slate-400">(${item.officeId})</span></td>
-                    <td class="py-3 px-4"><span class="bg-amber-100 text-[#4B1D24] text-xs px-2 py-1 rounded font-bold">${item.class}</span></td>
+                    <td class="py-3 px-4"><span class="bg-purple-100 text-purple-950 text-xs px-2 py-1 rounded font-bold">${item.class}</span></td>
                     <td class="py-3 px-4 text-xs text-slate-600">${item.division} / ${item.sd}</td>
-                    <td class="py-3 px-4 text-center text-xs">-</td>
-                    <td class="py-3 px-4 text-center text-xs">-</td>
-                    <td class="py-3 px-4 text-center text-xs">-</td>
-                    <td class="py-3 px-4 text-right font-extrabold text-[#4B1D24]">${type === 'NIL' ? '0 Txn' : '>0 Txn'}</td>
-                    <td class="py-3 px-4 text-right font-extrabold text-emerald-800">-</td>
+                    <td class="py-3 px-4 text-right font-extrabold ${item.txn === 0 ? 'text-rose-700' : 'text-emerald-800'}">${item.txn}</td>
                 `;
                 modalBody.appendChild(tr);
             });
 
-            document.getElementById('drilldownModal').classList.remove('hidden');
-            logGeneratedReport(`PLI Office List (${type} - ${subDivisionName})`, () => exportModalToExcel());
+            document.getElementById('pliDrilldownModal').classList.remove('hidden');
+            logGeneratedReport(`PLI Office List Details (${type} - ${subDivisionName})`, () => exportPliModalToExcel());
+        }
+
+        function closePliModalDetails() {
+            document.getElementById('pliDrilldownModal').classList.add('hidden');
+        }
+
+        function exportPliModalToExcel() {
+            XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(pliModalExportData), "PLI_Offices"), "PLI_Office_Details_List.xlsx");
+            logGeneratedReport("PLI Office Details List (Excel)", () => exportPliModalToExcel());
         }
 
         function exportPliExcel() {
