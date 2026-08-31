@@ -307,12 +307,12 @@
             <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                     <h3 class="font-extrabold text-lg flex items-center gap-2">🚚 D+0 Delivery & Processing Monitoring</h3>
-                    <p class="text-xs text-purple-200">Parcel & Mail Operations (Excluding, Including & Only BO) Multi-File Synthesis</p>
+                    <p class="text-xs text-purple-200">Parcel & Mail Operations Multi-File Synthesis (% Calculated on Received)</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <button onclick="exportD0AllSheetsExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow cursor-pointer border border-emerald-500">📥 Complete D+0 Excel (7 Sheets)</button>
-                    <button onclick='exportSingleTableToPDF("tableD0Summary","D0 Monitoring Report")' class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
-                    <button onclick='exportTableJPEG("d0TableContainer","D0_Monitoring_Report")' class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
+                    <button onclick="exportD0AllSheetsExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shadow cursor-pointer border border-emerald-500">📥 Complete D+0 Excel (7 Sheets)</button>
+                    <button onclick='exportSingleTableToPDF("tableD0Summary","D0 Monitoring Report")' class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
+                    <button onclick='exportTableJPEG("d0TableContainer","D0_Monitoring_Report")' class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
                 </div>
             </div>
 
@@ -406,18 +406,19 @@
                 <div class="overflow-x-auto p-1">
                     <div class="text-center mb-3">
                         <h2 id="d0TableTitle" class="text-lg font-extrabold text-[#31103f]">D+0 Parcel Performance Report (Excluding BO)</h2>
-                        <p class="text-xs text-slate-500">D+0 Delivered, Redirected, Returned Counts & Actioned Percentages.</p>
+                        <p class="text-xs text-slate-500">D+0 Delivered, Redirected, Returned Counts, Total Actioned & % calculated on Total Received.</p>
                     </div>
                     <table class="nil-table" id="tableD0Summary">
                         <thead>
                             <tr>
-                                <th rowspan="2" id="d0ColDiv" style="width:12%">Division</th>
-                                <th rowspan="2" id="d0ColSubDiv" style="width:14%">Sub-Division</th>
-                                <th rowspan="2" style="width:7%;background-color:#d9edf7">Total Received</th>
-                                <th rowspan="2" style="width:7%;background-color:#d9edf7">Total Invoiced</th>
+                                <th rowspan="2" id="d0ColDiv" style="width:11%">Division</th>
+                                <th rowspan="2" id="d0ColSubDiv" style="width:13%">Sub-Division</th>
+                                <th rowspan="2" style="width:6%;background-color:#d9edf7">Total Received</th>
+                                <th rowspan="2" style="width:6%;background-color:#d9edf7">Total Invoiced</th>
                                 <th colspan="2" style="background-color:#c6efce">D+0 Delivered</th>
                                 <th colspan="2" style="background-color:#fff2cc">D+0 Redirected</th>
                                 <th colspan="2" style="background-color:#fce4d6">D+0 Returned</th>
+                                <th rowspan="2" style="background-color:#fed7aa;width:8%">% of D+0 (RTS+Redirect)</th>
                                 <th colspan="2" style="background-color:#e1d5e7">Total D+0 Actioned</th>
                             </tr>
                             <tr>
@@ -427,12 +428,12 @@
                                 <th style="background-color:#fff2cc">%</th>
                                 <th style="background-color:#fce4d6">Count</th>
                                 <th style="background-color:#fce4d6">%</th>
-                                <th style="background-color:#e1d5e7">Total (Delivered + Redirected + Returned)</th>
+                                <th style="background-color:#e1d5e7">Total (Del+Redir+Ret)</th>
                                 <th style="background-color:#e1d5e7">Total %</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="12" class="py-8 text-center text-slate-400 font-medium">Please upload required files and click "Submit & Generate Reports".</td></tr>
+                            <tr><td colspan="13" class="py-8 text-center text-slate-400 font-medium">Please upload required files and click "Submit & Generate Reports".</td></tr>
                         </tbody>
                         <tfoot></tfoot>
                     </table>
@@ -467,11 +468,12 @@
                                 <label class="block text-xs font-bold uppercase text-purple-950 mb-1">Sort By Metric</label>
                                 <select id="d0OfficeSortMetric" onchange="renderOfficeD0Table()" class="w-full border border-slate-300 rounded-xl p-2 text-xs bg-white font-semibold outline-none focus:border-purple-800">
                                     <option value="pctTotal">Total Actioned %</option>
+                                    <option value="pctRtsRedir">% of D+0 (RTS + Redirect)</option>
                                     <option value="pctDel">D+0 Delivered %</option>
                                     <option value="pctRedir">D+0 Redirected %</option>
                                     <option value="pctRet">D+0 Returned %</option>
-                                    <option value="invoiced">Total Invoiced</option>
                                     <option value="received">Total Received</option>
+                                    <option value="invoiced">Total Invoiced</option>
                                 </select>
                             </div>
                             <div>
@@ -488,16 +490,17 @@
                                 <thead>
                                     <tr>
                                         <th rowspan="2" style="width:3%">#</th>
-                                        <th rowspan="2" style="width:9%">Office ID</th>
-                                        <th rowspan="2" style="width:16%;text-align:left">Office Name</th>
-                                        <th rowspan="2" style="width:6%">Class</th>
-                                        <th rowspan="2" style="width:11%">Sub-Division</th>
-                                        <th rowspan="2" style="width:9%">Division</th>
+                                        <th rowspan="2" style="width:8%">Office ID</th>
+                                        <th rowspan="2" style="width:15%;text-align:left">Office Name</th>
+                                        <th rowspan="2" style="width:5%">Class</th>
+                                        <th rowspan="2" style="width:10%">Sub-Division</th>
+                                        <th rowspan="2" style="width:8%">Division</th>
                                         <th rowspan="2" style="width:6%;background-color:#d9edf7">Total Received</th>
                                         <th rowspan="2" style="width:6%;background-color:#d9edf7">Total Invoiced</th>
                                         <th colspan="2" style="background-color:#c6efce">D+0 Delivered</th>
                                         <th colspan="2" style="background-color:#fff2cc">D+0 Redirected</th>
                                         <th colspan="2" style="background-color:#fce4d6">D+0 Returned</th>
+                                        <th rowspan="2" style="background-color:#fed7aa;width:7%">% D+0 (RTS+Redirect)</th>
                                         <th colspan="2" style="background-color:#e1d5e7">Total D+0 Actioned</th>
                                     </tr>
                                     <tr>
@@ -512,7 +515,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td colspan="16" class="py-8 text-center text-slate-400 font-medium">Please generate D+0 report to view office level data.</td></tr>
+                                    <tr><td colspan="17" class="py-8 text-center text-slate-400 font-medium">Please generate D+0 report to view office level data.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -544,9 +547,11 @@
                                 <label class="block text-xs font-bold uppercase text-purple-950 mb-1">Rank By Metric</label>
                                 <select id="tb20Metric" onchange="renderTopBottom20Table()" class="w-full border border-slate-300 rounded-xl p-2 text-xs bg-white font-semibold outline-none focus:border-purple-800">
                                     <option value="pctTotal">Total Actioned %</option>
+                                    <option value="pctRtsRedir">% of D+0 (RTS + Redirect)</option>
                                     <option value="pctDel">D+0 Delivered %</option>
                                     <option value="pctRedir">D+0 Redirected %</option>
                                     <option value="pctRet">D+0 Returned %</option>
+                                    <option value="received">Total Received</option>
                                     <option value="invoiced">Total Invoiced</option>
                                 </select>
                             </div>
@@ -569,16 +574,17 @@
                                 <thead>
                                     <tr>
                                         <th rowspan="2" style="width:4%">Rank</th>
-                                        <th rowspan="2" style="width:9%">Office ID</th>
-                                        <th rowspan="2" style="width:16%;text-align:left">Office Name</th>
-                                        <th rowspan="2" style="width:6%">Class</th>
-                                        <th rowspan="2" style="width:11%">Sub-Division</th>
-                                        <th rowspan="2" style="width:9%">Division</th>
+                                        <th rowspan="2" style="width:8%">Office ID</th>
+                                        <th rowspan="2" style="width:15%;text-align:left">Office Name</th>
+                                        <th rowspan="2" style="width:5%">Class</th>
+                                        <th rowspan="2" style="width:10%">Sub-Division</th>
+                                        <th rowspan="2" style="width:8%">Division</th>
                                         <th rowspan="2" style="width:6%;background-color:#d9edf7">Total Received</th>
                                         <th rowspan="2" style="width:6%;background-color:#d9edf7">Total Invoiced</th>
                                         <th colspan="2" style="background-color:#c6efce">D+0 Delivered</th>
                                         <th colspan="2" style="background-color:#fff2cc">D+0 Redirected</th>
                                         <th colspan="2" style="background-color:#fce4d6">D+0 Returned</th>
+                                        <th rowspan="2" style="background-color:#fed7aa;width:7%">% D+0 (RTS+Redirect)</th>
                                         <th colspan="2" style="background-color:#e1d5e7">Total D+0 Actioned</th>
                                     </tr>
                                     <tr>
@@ -593,7 +599,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td colspan="16" class="py-8 text-center text-slate-400 font-medium">Please generate D+0 report to view rankings.</td></tr>
+                                    <tr><td colspan="17" class="py-8 text-center text-slate-400 font-medium">Please generate D+0 report to view rankings.</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -633,14 +639,15 @@
                 <thead>
                     <tr>
                         <th rowspan="2" style="width:4%">#</th>
-                        <th rowspan="2" style="width:10%">Office ID</th>
-                        <th rowspan="2" style="width:18%;text-align:left">Office Name</th>
-                        <th rowspan="2" style="width:6%">Class</th>
+                        <th rowspan="2" style="width:9%">Office ID</th>
+                        <th rowspan="2" style="width:16%;text-align:left">Office Name</th>
+                        <th rowspan="2" style="width:5%">Class</th>
                         <th rowspan="2" style="width:6%;background-color:#d9edf7">Received</th>
                         <th rowspan="2" style="width:6%;background-color:#d9edf7">Invoiced</th>
                         <th colspan="2" style="background-color:#c6efce">D+0 Delivered</th>
                         <th colspan="2" style="background-color:#fff2cc">D+0 Redirected</th>
                         <th colspan="2" style="background-color:#fce4d6">D+0 Returned</th>
+                        <th rowspan="2" style="background-color:#fed7aa;width:8%">% D+0 (RTS+Redirect)</th>
                         <th colspan="2" style="background-color:#e1d5e7">Total D+0 Actioned</th>
                     </tr>
                     <tr>
@@ -791,7 +798,6 @@ async function loadMasterData(){
             }
         }
         
-        // Ensure Explicit Mapping for NDC Indore
         masterOfficesMap["23660715"] = {
             name: "NODAL DELIVERY CENTER INDORE",
             class: "NODAL DELIVERY CENTER",
@@ -1064,7 +1070,7 @@ function renderD0Table(){
 
     const rowsList = Object.values(grouped);
     if(!rowsList.length){
-        tbody.innerHTML = `<tr><td colspan="${isDivisionView?11:12}" class="py-8 text-center text-slate-400 font-medium">No matching D+0 data found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${isDivisionView?12:13}" class="py-8 text-center text-slate-400 font-medium">No matching D+0 data found.</td></tr>`;
         return;
     }
 
@@ -1080,10 +1086,13 @@ function renderD0Table(){
             grandRet += item.d0Return;
 
             const totalAct = item.d0Deliver + item.d0Redirect + item.d0Return;
-            const pctDel = item.invoiced > 0 ? ((item.d0Deliver / item.invoiced)*100).toFixed(1)+"%" : "0.0%";
-            const pctRedir = item.invoiced > 0 ? ((item.d0Redirect / item.invoiced)*100).toFixed(1)+"%" : "0.0%";
-            const pctRet = item.invoiced > 0 ? ((item.d0Return / item.invoiced)*100).toFixed(1)+"%" : "0.0%";
-            const pctTotal = item.invoiced > 0 ? ((totalAct / item.invoiced)*100).toFixed(1)+"%" : "0.0%";
+            const rtsRedirCount = item.d0Redirect + item.d0Return;
+            // Percentage based on RECEIVED
+            const pctDel = item.received > 0 ? ((item.d0Deliver / item.received)*100).toFixed(1)+"%" : "0.0%";
+            const pctRedir = item.received > 0 ? ((item.d0Redirect / item.received)*100).toFixed(1)+"%" : "0.0%";
+            const pctRet = item.received > 0 ? ((item.d0Return / item.received)*100).toFixed(1)+"%" : "0.0%";
+            const pctRtsRedir = item.received > 0 ? ((rtsRedirCount / item.received)*100).toFixed(1)+"%" : "0.0%";
+            const pctTotal = item.received > 0 ? ((totalAct / item.received)*100).toFixed(1)+"%" : "0.0%";
 
             const divStyle = divClassMap[item.division] || "";
             const tr = document.createElement("tr");
@@ -1097,6 +1106,7 @@ function renderD0Table(){
                 <td class="font-bold text-amber-900 bg-amber-50">${pctRedir}</td>
                 <td class="font-semibold text-rose-800">${item.d0Return.toLocaleString("en-IN")}</td>
                 <td class="font-bold text-rose-900 bg-rose-50">${pctRet}</td>
+                <td class="font-black text-orange-950 bg-orange-100">${pctRtsRedir}</td>
                 <td class="font-black text-purple-950 bg-purple-100/70">${totalAct.toLocaleString("en-IN")}</td>
                 <td class="font-black text-purple-950 bg-purple-200">${pctTotal}</td>
             `;
@@ -1127,10 +1137,13 @@ function renderD0Table(){
                 grandRet += sub.d0Return;
 
                 const totalAct = sub.d0Deliver + sub.d0Redirect + sub.d0Return;
-                const pctDel = sub.invoiced > 0 ? ((sub.d0Deliver / sub.invoiced)*100).toFixed(1)+"%" : "0.0%";
-                const pctRedir = sub.invoiced > 0 ? ((sub.d0Redirect / sub.invoiced)*100).toFixed(1)+"%" : "0.0%";
-                const pctRet = sub.invoiced > 0 ? ((sub.d0Return / sub.invoiced)*100).toFixed(1)+"%" : "0.0%";
-                const pctTotal = sub.invoiced > 0 ? ((totalAct / sub.invoiced)*100).toFixed(1)+"%" : "0.0%";
+                const rtsRedirCount = sub.d0Redirect + sub.d0Return;
+                // Percentage based on RECEIVED
+                const pctDel = sub.received > 0 ? ((sub.d0Deliver / sub.received)*100).toFixed(1)+"%" : "0.0%";
+                const pctRedir = sub.received > 0 ? ((sub.d0Redirect / sub.received)*100).toFixed(1)+"%" : "0.0%";
+                const pctRet = sub.received > 0 ? ((sub.d0Return / sub.received)*100).toFixed(1)+"%" : "0.0%";
+                const pctRtsRedir = sub.received > 0 ? ((rtsRedirCount / sub.received)*100).toFixed(1)+"%" : "0.0%";
+                const pctTotal = sub.received > 0 ? ((totalAct / sub.received)*100).toFixed(1)+"%" : "0.0%";
 
                 const tr = document.createElement("tr");
                 const rowSpanCell = sIdx === 0 ? `<td rowspan="${subItems.length}" class="${divStyle} text-left font-bold clickable-cell align-middle" onclick="openD0OfficeModal('${divName}','ALL')">${divName}</td>` : "";
@@ -1146,6 +1159,7 @@ function renderD0Table(){
                     <td class="font-bold text-amber-900 bg-amber-50">${pctRedir}</td>
                     <td class="font-semibold text-rose-800">${sub.d0Return.toLocaleString("en-IN")}</td>
                     <td class="font-bold text-rose-900 bg-rose-50">${pctRet}</td>
+                    <td class="font-black text-orange-950 bg-orange-100">${pctRtsRedir}</td>
                     <td class="font-black text-purple-950 bg-purple-100/70">${totalAct.toLocaleString("en-IN")}</td>
                     <td class="font-black text-purple-950 bg-purple-200">${pctTotal}</td>
                 `;
@@ -1153,10 +1167,13 @@ function renderD0Table(){
             });
 
             const divTotalAct = divDel + divRedir + divRet;
-            const divPctDel = divInv > 0 ? ((divDel / divInv)*100).toFixed(1)+"%" : "0.0%";
-            const divPctRedir = divInv > 0 ? ((divRedir / divInv)*100).toFixed(1)+"%" : "0.0%";
-            const divPctRet = divInv > 0 ? ((divRet / divInv)*100).toFixed(1)+"%" : "0.0%";
-            const divPctTotal = divInv > 0 ? ((divTotalAct / divInv)*100).toFixed(1)+"%" : "0.0%";
+            const divRtsRedir = divRedir + divRet;
+            // Percentage based on RECEIVED
+            const divPctDel = divRec > 0 ? ((divDel / divRec)*100).toFixed(1)+"%" : "0.0%";
+            const divPctRedir = divRec > 0 ? ((divRedir / divRec)*100).toFixed(1)+"%" : "0.0%";
+            const divPctRet = divRec > 0 ? ((divRet / divRec)*100).toFixed(1)+"%" : "0.0%";
+            const divPctRtsRedir = divRec > 0 ? ((divRtsRedir / divRec)*100).toFixed(1)+"%" : "0.0%";
+            const divPctTotal = divRec > 0 ? ((divTotalAct / divRec)*100).toFixed(1)+"%" : "0.0%";
 
             const trTotal = document.createElement("tr");
             trTotal.className = "row-div-total";
@@ -1170,6 +1187,7 @@ function renderD0Table(){
                 <td>${divPctRedir}</td>
                 <td>${divRet.toLocaleString("en-IN")}</td>
                 <td>${divPctRet}</td>
+                <td class="font-black text-orange-950">${divPctRtsRedir}</td>
                 <td class="font-black text-purple-950">${divTotalAct.toLocaleString("en-IN")}</td>
                 <td class="font-black text-purple-950">${divPctTotal}</td>
             `;
@@ -1178,10 +1196,13 @@ function renderD0Table(){
     }
 
     const grandTotalAct = grandDel + grandRedir + grandRet;
-    const grandPctDel = grandInv > 0 ? ((grandDel / grandInv)*100).toFixed(1)+"%" : "0.0%";
-    const grandPctRedir = grandInv > 0 ? ((grandRedir / grandInv)*100).toFixed(1)+"%" : "0.0%";
-    const grandPctRet = grandInv > 0 ? ((grandRet / grandInv)*100).toFixed(1)+"%" : "0.0%";
-    const grandPctTotal = grandInv > 0 ? ((grandTotalAct / grandInv)*100).toFixed(1)+"%" : "0.0%";
+    const grandRtsRedir = grandRedir + grandRet;
+    // Percentage based on RECEIVED
+    const grandPctDel = grandRec > 0 ? ((grandDel / grandRec)*100).toFixed(1)+"%" : "0.0%";
+    const grandPctRedir = grandRec > 0 ? ((grandRedir / grandRec)*100).toFixed(1)+"%" : "0.0%";
+    const grandPctRet = grandRec > 0 ? ((grandRet / grandRec)*100).toFixed(1)+"%" : "0.0%";
+    const grandPctRtsRedir = grandRec > 0 ? ((grandRtsRedir / grandRec)*100).toFixed(1)+"%" : "0.0%";
+    const grandPctTotal = grandRec > 0 ? ((grandTotalAct / grandRec)*100).toFixed(1)+"%" : "0.0%";
 
     tfoot.innerHTML = `
         <tr class="row-grand-total">
@@ -1194,6 +1215,7 @@ function renderD0Table(){
             <td>${grandPctRedir}</td>
             <td>${grandRet.toLocaleString("en-IN")}</td>
             <td>${grandPctRet}</td>
+            <td class="font-black text-orange-950">${grandPctRtsRedir}</td>
             <td>${grandTotalAct.toLocaleString("en-IN")}</td>
             <td>${grandPctTotal}</td>
         </tr>
@@ -1217,10 +1239,13 @@ function renderOfficeD0Table(){
         if(selClass !== "All" && master.class !== selClass) return;
 
         const totalAct = row.d0Deliver + row.d0Redirect + row.d0Return;
-        const pctDel = row.invoiced > 0 ? (row.d0Deliver / row.invoiced * 100) : 0;
-        const pctRedir = row.invoiced > 0 ? (row.d0Redirect / row.invoiced * 100) : 0;
-        const pctRet = row.invoiced > 0 ? (row.d0Return / row.invoiced * 100) : 0;
-        const pctTotal = row.invoiced > 0 ? (totalAct / row.invoiced * 100) : 0;
+        const rtsRedirCount = row.d0Redirect + row.d0Return;
+        // Percentage based on RECEIVED
+        const pctDel = row.received > 0 ? (row.d0Deliver / row.received * 100) : 0;
+        const pctRedir = row.received > 0 ? (row.d0Redirect / row.received * 100) : 0;
+        const pctRet = row.received > 0 ? (row.d0Return / row.received * 100) : 0;
+        const pctRtsRedir = row.received > 0 ? (rtsRedirCount / row.received * 100) : 0;
+        const pctTotal = row.received > 0 ? (totalAct / row.received * 100) : 0;
 
         list.push({
             officeId: row.officeId,
@@ -1236,6 +1261,7 @@ function renderOfficeD0Table(){
             pctRedir: pctRedir,
             d0Return: row.d0Return,
             pctRet: pctRet,
+            pctRtsRedir: pctRtsRedir,
             totalAct: totalAct,
             pctTotal: pctTotal
         });
@@ -1249,7 +1275,7 @@ function renderOfficeD0Table(){
 
     const tbody = document.querySelector("#tableOfficeD0 tbody");
     if(!list.length){
-        tbody.innerHTML = '<tr><td colspan="16" class="py-8 text-center text-slate-400 font-medium">No matching office records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="17" class="py-8 text-center text-slate-400 font-medium">No matching office records found.</td></tr>';
         return;
     }
 
@@ -1269,6 +1295,7 @@ function renderOfficeD0Table(){
             <td class="font-bold text-amber-900 bg-amber-50">${item.pctRedir.toFixed(1)}%</td>
             <td class="font-semibold text-rose-800">${item.d0Return.toLocaleString("en-IN")}</td>
             <td class="font-bold text-rose-900 bg-rose-50">${item.pctRet.toFixed(1)}%</td>
+            <td class="font-black text-orange-950 bg-orange-100">${item.pctRtsRedir.toFixed(1)}%</td>
             <td class="font-black text-purple-950 bg-purple-100/70">${item.totalAct.toLocaleString("en-IN")}</td>
             <td class="font-black text-purple-950 bg-purple-200">${item.pctTotal.toFixed(1)}%</td>
         </tr>
@@ -1292,10 +1319,13 @@ function renderTopBottom20Table(){
         if(selClass !== "All" && master.class !== selClass) return;
 
         const totalAct = row.d0Deliver + row.d0Redirect + row.d0Return;
-        const pctDel = row.invoiced > 0 ? (row.d0Deliver / row.invoiced * 100) : 0;
-        const pctRedir = row.invoiced > 0 ? (row.d0Redirect / row.invoiced * 100) : 0;
-        const pctRet = row.invoiced > 0 ? (row.d0Return / row.invoiced * 100) : 0;
-        const pctTotal = row.invoiced > 0 ? (totalAct / row.invoiced * 100) : 0;
+        const rtsRedirCount = row.d0Redirect + row.d0Return;
+        // Percentage based on RECEIVED
+        const pctDel = row.received > 0 ? (row.d0Deliver / row.received * 100) : 0;
+        const pctRedir = row.received > 0 ? (row.d0Redirect / row.received * 100) : 0;
+        const pctRet = row.received > 0 ? (row.d0Return / row.received * 100) : 0;
+        const pctRtsRedir = row.received > 0 ? (rtsRedirCount / row.received * 100) : 0;
+        const pctTotal = row.received > 0 ? (totalAct / row.received * 100) : 0;
 
         list.push({
             officeId: row.officeId,
@@ -1311,6 +1341,7 @@ function renderTopBottom20Table(){
             pctRedir: pctRedir,
             d0Return: row.d0Return,
             pctRet: pctRet,
+            pctRtsRedir: pctRtsRedir,
             totalAct: totalAct,
             pctTotal: pctTotal
         });
@@ -1326,7 +1357,7 @@ function renderTopBottom20Table(){
     const tbody = document.querySelector("#tableTopBottom20 tbody");
 
     if(!sliced.length){
-        tbody.innerHTML = '<tr><td colspan="16" class="py-8 text-center text-slate-400 font-medium">No matching office records found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="17" class="py-8 text-center text-slate-400 font-medium">No matching office records found.</td></tr>';
         return;
     }
 
@@ -1346,6 +1377,7 @@ function renderTopBottom20Table(){
             <td class="font-bold text-amber-900 bg-amber-50">${item.pctRedir.toFixed(1)}%</td>
             <td class="font-semibold text-rose-800">${item.d0Return.toLocaleString("en-IN")}</td>
             <td class="font-bold text-rose-900 bg-rose-50">${item.pctRet.toFixed(1)}%</td>
+            <td class="font-black text-orange-950 bg-orange-100">${item.pctRtsRedir.toFixed(1)}%</td>
             <td class="font-black text-purple-950 bg-purple-100/70">${item.totalAct.toLocaleString("en-IN")}</td>
             <td class="font-black text-purple-950 bg-purple-200">${item.pctTotal.toFixed(1)}%</td>
         </tr>
@@ -1367,10 +1399,13 @@ function openD0OfficeModal(division, sd){
         if("ALL" !== sd && master.sd !== sd) return;
 
         const totalAct = row.d0Deliver + row.d0Redirect + row.d0Return;
-        const pctDel = row.invoiced > 0 ? (row.d0Deliver / row.invoiced * 100) : 0;
-        const pctRedir = row.invoiced > 0 ? (row.d0Redirect / row.invoiced * 100) : 0;
-        const pctRet = row.invoiced > 0 ? (row.d0Return / row.invoiced * 100) : 0;
-        const pct = row.invoiced > 0 ? (totalAct / row.invoiced * 100) : 0;
+        const rtsRedirCount = row.d0Redirect + row.d0Return;
+        // Percentage based on RECEIVED
+        const pctDel = row.received > 0 ? (row.d0Deliver / row.received * 100) : 0;
+        const pctRedir = row.received > 0 ? (row.d0Redirect / row.received * 100) : 0;
+        const pctRet = row.received > 0 ? (row.d0Return / row.received * 100) : 0;
+        const pctRtsRedir = row.received > 0 ? (rtsRedirCount / row.received * 100) : 0;
+        const pct = row.received > 0 ? (totalAct / row.received * 100) : 0;
 
         list.push({
             officeId: row.officeId,
@@ -1386,6 +1421,7 @@ function openD0OfficeModal(division, sd){
             pctRedir: pctRedir,
             d0Return: row.d0Return,
             pctRet: pctRet,
+            pctRtsRedir: pctRtsRedir,
             totalAct: totalAct,
             pct: pct
         });
@@ -1409,6 +1445,7 @@ function openD0OfficeModal(division, sd){
         "% D+0 Redirected": `${item.pctRedir.toFixed(2)}%`,
         "D+0 Returned": item.d0Return,
         "% D+0 Returned": `${item.pctRet.toFixed(2)}%`,
+        "% of D+0 (RTS + Redirect)": `${item.pctRtsRedir.toFixed(2)}%`,
         "Total D+0 Actioned": item.totalAct,
         "Total % Actioned": `${item.pct.toFixed(2)}%`
     }));
@@ -1430,6 +1467,7 @@ function openD0OfficeModal(division, sd){
             <td class="text-amber-900 font-bold bg-amber-50">${item.pctRedir.toFixed(1)}%</td>
             <td class="text-rose-800 font-semibold">${item.d0Return.toLocaleString("en-IN")}</td>
             <td class="text-rose-900 font-bold bg-rose-50">${item.pctRet.toFixed(1)}%</td>
+            <td class="font-black text-orange-950 bg-orange-100">${item.pctRtsRedir.toFixed(1)}%</td>
             <td class="font-black bg-purple-100/70 text-purple-950">${item.totalAct.toLocaleString("en-IN")}</td>
             <td class="font-black bg-purple-200 text-purple-950">${item.pct.toFixed(1)}%</td>
         </tr>
@@ -1461,10 +1499,13 @@ function exportOfficeD0Excel(){
         if(selClass !== "All" && master.class !== selClass) return;
 
         const totalAct = row.d0Deliver + row.d0Redirect + row.d0Return;
-        const pctDel = row.invoiced > 0 ? (row.d0Deliver / row.invoiced * 100) : 0;
-        const pctRedir = row.invoiced > 0 ? (row.d0Redirect / row.invoiced * 100) : 0;
-        const pctRet = row.invoiced > 0 ? (row.d0Return / row.invoiced * 100) : 0;
-        const pct = row.invoiced > 0 ? (totalAct / row.invoiced * 100) : 0;
+        const rtsRedirCount = row.d0Redirect + row.d0Return;
+        // Percentage based on RECEIVED
+        const pctDel = row.received > 0 ? (row.d0Deliver / row.received * 100) : 0;
+        const pctRedir = row.received > 0 ? (row.d0Redirect / row.received * 100) : 0;
+        const pctRet = row.received > 0 ? (row.d0Return / row.received * 100) : 0;
+        const pctRtsRedir = row.received > 0 ? (rtsRedirCount / row.received * 100) : 0;
+        const pct = row.received > 0 ? (totalAct / row.received * 100) : 0;
 
         list.push({
             "Office ID": row.officeId,
@@ -1480,11 +1521,13 @@ function exportOfficeD0Excel(){
             "% D+0 Redirected": Number(pctRedir.toFixed(2)),
             "D+0 Returned": row.d0Return,
             "% D+0 Returned": Number(pctRet.toFixed(2)),
+            "% of D+0 (RTS + Redirect)": Number(pctRtsRedir.toFixed(2)),
             "Total D+0 Actioned": totalAct,
             "% Total Actioned": Number(pct.toFixed(2)),
             _sortDel: pctDel,
             _sortRedir: pctRedir,
             _sortRet: pctRet,
+            _sortRtsRedir: pctRtsRedir,
             _sortTotal: pct,
             _inv: row.invoiced,
             _rec: row.received
@@ -1492,12 +1535,12 @@ function exportOfficeD0Excel(){
     });
 
     list.sort((a,b)=>{
-        let key = sortMetric === "pctTotal" ? "_sortTotal" : sortMetric === "pctDel" ? "_sortDel" : sortMetric === "pctRedir" ? "_sortRedir" : sortMetric === "pctRet" ? "_sortRet" : sortMetric === "invoiced" ? "_inv" : "_rec";
+        let key = sortMetric === "pctTotal" ? "_sortTotal" : sortMetric === "pctRtsRedir" ? "_sortRtsRedir" : sortMetric === "pctDel" ? "_sortDel" : sortMetric === "pctRedir" ? "_sortRedir" : sortMetric === "pctRet" ? "_sortRet" : sortMetric === "received" ? "_rec" : "_inv";
         return sortDir === "desc" ? b[key] - a[key] : a[key] - b[key];
     });
 
     const cleanList = list.map((it, idx)=>{
-        const { _sortDel, _sortRedir, _sortRet, _sortTotal, _inv, _rec, ...rest } = it;
+        const { _sortDel, _sortRedir, _sortRet, _sortRtsRedir, _sortTotal, _inv, _rec, ...rest } = it;
         return { "S.No": idx+1, ...rest };
     });
 
@@ -1548,36 +1591,42 @@ function buildD0SheetData(dataset, mode){
     Object.values(divMap).sort((a,b)=>a.division.localeCompare(b.division)).forEach(divItem => {
         Object.values(divItem.sds).sort((a,b)=>a.sd.localeCompare(b.sd)).forEach(sub => {
             const totAct = sub.del + sub.redir + sub.ret;
+            const rtsRedir = sub.redir + sub.ret;
+            // Percentage based on RECEIVED
             exportRows.push({
                 "Division": sub.division,
                 "Sub-Division": sub.sd,
                 "Received": sub.rec,
                 "Invoiced": sub.inv,
                 "D+0 Delivered": sub.del,
-                "% D+0 Delivered": sub.inv > 0 ? Number(((sub.del/sub.inv)*100).toFixed(2)) : 0,
+                "% D+0 Delivered": sub.rec > 0 ? Number(((sub.del/sub.rec)*100).toFixed(2)) : 0,
                 "D+0 Redirected": sub.redir,
-                "% D+0 Redirected": sub.inv > 0 ? Number(((sub.redir/sub.inv)*100).toFixed(2)) : 0,
+                "% D+0 Redirected": sub.rec > 0 ? Number(((sub.redir/sub.rec)*100).toFixed(2)) : 0,
                 "D+0 Returned": sub.ret,
-                "% D+0 Returned": sub.inv > 0 ? Number(((sub.ret/sub.inv)*100).toFixed(2)) : 0,
+                "% D+0 Returned": sub.rec > 0 ? Number(((sub.ret/sub.rec)*100).toFixed(2)) : 0,
+                "% of D+0 (RTS + Redirect)": sub.rec > 0 ? Number(((rtsRedir/sub.rec)*100).toFixed(2)) : 0,
                 "Total D+0 Actioned": totAct,
-                "% Total Actioned": sub.inv > 0 ? Number(((totAct/sub.inv)*100).toFixed(2)) : 0
+                "% Total Actioned": sub.rec > 0 ? Number(((totAct/sub.rec)*100).toFixed(2)) : 0
             });
         });
 
         const divTotAct = divItem.del + divItem.redir + divItem.ret;
+        const divRtsRedir = divItem.redir + divItem.ret;
+        // Percentage based on RECEIVED
         exportRows.push({
             "Division": `${divItem.division} Total`,
             "Sub-Division": "",
             "Received": divItem.rec,
             "Invoiced": divItem.inv,
             "D+0 Delivered": divItem.del,
-            "% D+0 Delivered": divItem.inv > 0 ? Number(((divItem.del/divItem.inv)*100).toFixed(2)) : 0,
+            "% D+0 Delivered": divItem.rec > 0 ? Number(((divItem.del/divItem.rec)*100).toFixed(2)) : 0,
             "D+0 Redirected": divItem.redir,
-            "% D+0 Redirected": divItem.inv > 0 ? Number(((divItem.redir/divItem.inv)*100).toFixed(2)) : 0,
+            "% D+0 Redirected": divItem.rec > 0 ? Number(((divItem.redir/divItem.rec)*100).toFixed(2)) : 0,
             "D+0 Returned": divItem.ret,
-            "% D+0 Returned": divItem.inv > 0 ? Number(((divItem.ret/divItem.inv)*100).toFixed(2)) : 0,
+            "% D+0 Returned": divItem.rec > 0 ? Number(((divItem.ret/divItem.rec)*100).toFixed(2)) : 0,
+            "% of D+0 (RTS + Redirect)": divItem.rec > 0 ? Number(((divRtsRedir/divItem.rec)*100).toFixed(2)) : 0,
             "Total D+0 Actioned": divTotAct,
-            "% Total Actioned": divItem.inv > 0 ? Number(((divTotAct/divItem.inv)*100).toFixed(2)) : 0
+            "% Total Actioned": divItem.rec > 0 ? Number(((divTotAct/divItem.rec)*100).toFixed(2)) : 0
         });
 
         grandRec += divItem.rec;
@@ -1588,19 +1637,22 @@ function buildD0SheetData(dataset, mode){
     });
 
     const grandTotAct = grandDel + grandRedir + grandRet;
+    const grandRtsRedir = grandRedir + grandRet;
+    // Percentage based on RECEIVED
     exportRows.push({
         "Division": "Grand Total",
         "Sub-Division": "",
         "Received": grandRec,
         "Invoiced": grandInv,
         "D+0 Delivered": grandDel,
-        "% D+0 Delivered": grandInv > 0 ? Number(((grandDel/grandInv)*100).toFixed(2)) : 0,
+        "% D+0 Delivered": grandRec > 0 ? Number(((grandDel/grandRec)*100).toFixed(2)) : 0,
         "D+0 Redirected": grandRedir,
-        "% D+0 Redirected": grandInv > 0 ? Number(((grandRedir/grandInv)*100).toFixed(2)) : 0,
+        "% D+0 Redirected": grandRec > 0 ? Number(((grandRedir/grandRec)*100).toFixed(2)) : 0,
         "D+0 Returned": grandRet,
-        "% D+0 Returned": grandInv > 0 ? Number(((grandRet/grandInv)*100).toFixed(2)) : 0,
+        "% D+0 Returned": grandRec > 0 ? Number(((grandRet/grandRec)*100).toFixed(2)) : 0,
+        "% of D+0 (RTS + Redirect)": grandRec > 0 ? Number(((grandRtsRedir/grandRec)*100).toFixed(2)) : 0,
         "Total D+0 Actioned": grandTotAct,
-        "% Total Actioned": grandInv > 0 ? Number(((grandTotAct/grandInv)*100).toFixed(2)) : 0
+        "% Total Actioned": grandRec > 0 ? Number(((grandTotAct/grandRec)*100).toFixed(2)) : 0
     });
 
     return XLSX.utils.json_to_sheet(exportRows);
@@ -1621,31 +1673,73 @@ function exportD0AllSheetsExcel(){
     XLSX.utils.book_append_sheet(wb, buildD0SheetData(d0MailOperationsMap, "including_bo"), "MailOps_Incl_BO");
     XLSX.utils.book_append_sheet(wb, buildD0SheetData(d0MailOperationsMap, "only_bo"), "MailOps_Only_BO");
 
-    const officeRows = Object.values(d0AllProductMap).map((row, idx)=>{
-        const master = getEffectiveOfficeMaster(row.officeId, row.name, row.type);
+    // 7th Detailed Sheet: Office ID, Office Name, Division, Sub Division, Parcel Metrics, Mail Operations Metrics (Percentages based on RECEIVED)
+    const allOfficeIds = [...new Set([...Object.keys(d0AllProductMap), ...Object.keys(d0CombinedParcelMap), ...Object.keys(d0MailOperationsMap)])];
+
+    const officeRows = allOfficeIds.map((offId, idx)=>{
+        const pRow = d0CombinedParcelMap[offId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0, name:"", type:""};
+        const mRow = d0MailOperationsMap[offId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0, name:"", type:""};
+        const allRow = d0AllProductMap[offId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0, name:"", type:""};
+
+        const officeName = allRow.name || pRow.name || mRow.name || "";
+        const officeType = allRow.type || pRow.type || mRow.type || "";
+        const master = getEffectiveOfficeMaster(offId, officeName, officeType);
+
         if(master.name.toUpperCase().includes("KHUDEL") && master.class === "BO") return null;
 
-        const pRow = d0CombinedParcelMap[row.officeId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0};
-        const mRow = d0MailOperationsMap[row.officeId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0};
+        // Parcel Metrics based on RECEIVED
+        const pTotAct = pRow.d0Deliver + pRow.d0Redirect + pRow.d0Return;
+        const pPctDel = pRow.received > 0 ? Number(((pRow.d0Deliver / pRow.received)*100).toFixed(2)) : 0;
+        const pPctRedir = pRow.received > 0 ? Number(((pRow.d0Redirect / pRow.received)*100).toFixed(2)) : 0;
+        const pPctRet = pRow.received > 0 ? Number(((pRow.d0Return / pRow.received)*100).toFixed(2)) : 0;
+        const pPctRtsRedir = pRow.received > 0 ? Number((((pRow.d0Redirect + pRow.d0Return) / pRow.received)*100).toFixed(2)) : 0;
+        const pPctTot = pRow.received > 0 ? Number(((pTotAct / pRow.received)*100).toFixed(2)) : 0;
+
+        // Mail Operations Metrics based on RECEIVED
+        const mTotAct = mRow.d0Deliver + mRow.d0Redirect + mRow.d0Return;
+        const mPctDel = mRow.received > 0 ? Number(((mRow.d0Deliver / mRow.received)*100).toFixed(2)) : 0;
+        const mPctRedir = mRow.received > 0 ? Number(((mRow.d0Redirect / mRow.received)*100).toFixed(2)) : 0;
+        const mPctRet = mRow.received > 0 ? Number(((mRow.d0Return / mRow.received)*100).toFixed(2)) : 0;
+        const mPctRtsRedir = mRow.received > 0 ? Number((((mRow.d0Redirect + mRow.d0Return) / mRow.received)*100).toFixed(2)) : 0;
+        const mPctTot = mRow.received > 0 ? Number(((mTotAct / mRow.received)*100).toFixed(2)) : 0;
 
         return {
             "S.No": idx+1,
-            "Office ID": row.officeId,
+            "Office ID": offId,
             "Office Name": master.name,
             "Class": master.class,
-            "Sub-Division": master.sd,
-            "Division": master.division,
-            "All Prod Received": row.received,
-            "All Prod Invoiced": row.invoiced,
-            "All Prod D+0 Total": row.d0Deliver + row.d0Redirect + row.d0Return,
+            "Name of Sub Division": master.sd,
+            "Name of Division": master.division,
+
+            // Parcel Block
+            "Parcel Received": pRow.received,
             "Parcel Invoiced": pRow.invoiced,
-            "Parcel D+0 Total": pRow.d0Deliver + pRow.d0Redirect + pRow.d0Return,
+            "Parcel D+0 Delivered": pRow.d0Deliver,
+            "Parcel % D+0 Delivered": pPctDel,
+            "Parcel D+0 Redirected": pRow.d0Redirect,
+            "Parcel % D+0 Redirected": pPctRedir,
+            "Parcel D+0 Returned": pRow.d0Return,
+            "Parcel % D+0 Returned": pPctRet,
+            "Parcel % of D+0 (RTS+Redirect)": pPctRtsRedir,
+            "Parcel Total D+0 Actioned": pTotAct,
+            "Parcel % Total Actioned": pPctTot,
+
+            // Mail Operations Block
+            "Mail Ops Received": mRow.received,
             "Mail Ops Invoiced": mRow.invoiced,
-            "Mail Ops D+0 Total": mRow.d0Deliver + mRow.d0Redirect + mRow.d0Return
+            "Mail Ops D+0 Delivered": mRow.d0Deliver,
+            "Mail Ops % D+0 Delivered": mPctDel,
+            "Mail Ops D+0 Redirected": mRow.d0Redirect,
+            "Mail Ops % D+0 Redirected": mPctRedir,
+            "Mail Ops D+0 Returned": mRow.d0Return,
+            "Mail Ops % D+0 Returned": mPctRet,
+            "Mail Ops % of D+0 (RTS+Redirect)": mPctRtsRedir,
+            "Mail Ops Total D+0 Actioned": mTotAct,
+            "Mail Ops % Total Actioned": mPctTot
         };
     }).filter(Boolean);
 
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(officeRows), "All_Offices_Cross_Audit");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(officeRows), "All_Offices_Detailed_7th_Sheet");
     XLSX.writeFile(wb, "D0_Delivery_Complete_Report_7_Sheets.xlsx");
     logGeneratedReport("D+0 Complete Excel (7 Sheets)", ()=>exportD0AllSheetsExcel());
 }
@@ -2292,7 +2386,7 @@ function processDigitalReport(){
         const n=Object.values(e).map(t=>{const e=t.dqr+t.sbiposQr,o=t.cash+e;return{...t,pct:o>0?e/o*100:0}});
         n.sort((t,e)=>e.pct-t.pct);
         let a=0,d=0,r=0;
-        n.forEach(t=>{a+=t.cash,d+=t.dqr,r+=t.sbiposQr;const e=document.createElement("tr");e.innerHTML=`<td class="font-bold text-left px-3 clickable-cell" onclick="openDigitalOfficeModal('${t.name}', 'ALL')">${t.name}</td><td class="text-right px-3">${t.cash.toLocaleString("en-IN")}</td><td class="text-right px-3">${t.dqr.toLocaleString("en-IN")}</td><td class="text-right px-3">${t.sbiposQr.toLocaleString("en-IN")}</td><td class="text-right px-3 font-bold" style="${getDigitalColorStyle(t.pct)}">${t.pct.toFixed(2)}%</td>`,s.appendChild(e)});
+        n.forEach(t=>{a+=t.cash,d+=t.dqr,r+=t.sbiposQr;const e=document.createElement("tr");e.innerHTML=`<td class="font-bold text-left px-3 clickable-cell" onclick="openDigitalOfficeModal('${t.name}', 'ALL')">${t.name}</td><td class="text-right px-3">${t.cash.toLocaleString("en-IN")}</td><td class="text-right px-3">${t.dqr.toLocaleString("en-IN")}</td><td class="text-right px-3">${t.sbiposQr.toLocaleString("en-IN")}</td><td class="text-right font-bold" style="${getDigitalColorStyle(t.pct)}">${t.pct.toFixed(2)}%</td>`,s.appendChild(e)});
         const c=d+r,p=a+c,f=p>0?c/p*100:0;
         l.innerHTML=`<tr class="row-grand-total"><td class="text-left px-3">Grand Total</td><td class="text-right px-3">${a.toLocaleString("en-IN")}</td><td class="text-right px-3">${d.toLocaleString("en-IN")}</td><td class="text-right px-3">${r.toLocaleString("en-IN")}</td><td class="text-right px-3 font-bold" style="${getDigitalColorStyle(f)}">${f.toFixed(2)}%</td></tr>`
     }else{
@@ -2307,11 +2401,11 @@ function processDigitalReport(){
             const e=divClassMap[t.division]||"div-bg-indore-city";
             t.subList.forEach((o,n)=>{
                 const i=document.createElement("tr"),l=0===n?`<td rowspan="${t.subList.length}" class="${e} align-middle clickable-cell" onclick="openDigitalOfficeModal('${t.division}', 'ALL')">${t.division}</td>`:"";
-                i.innerHTML=`${l}<td class="text-left font-semibold px-3 clickable-cell" onclick="openDigitalOfficeModal('${t.division}', '${o.name}')">${o.name}</td><td class="text-right px-3">${o.cash.toLocaleString("en-IN")}</td><td class="text-right px-3">${o.dqr.toLocaleString("en-IN")}</td><td class="text-right px-3">${o.sbiposQr.toLocaleString("en-IN")}</td><td class="text-right px-3 font-bold" style="${getDigitalColorStyle(o.pct)}">${o.pct.toFixed(2)}%</td>`,
+                i.innerHTML=`${l}<td class="text-left font-semibold px-3 clickable-cell" onclick="openDigitalOfficeModal('${t.division}', '${o.name}')">${o.name}</td><td class="text-right px-3">${o.cash.toLocaleString("en-IN")}</td><td class="text-right px-3">${o.dqr.toLocaleString("en-IN")}</td><td class="text-right px-3">${o.sbiposQr.toLocaleString("en-IN")}</td><td class="text-right font-bold" style="${getDigitalColorStyle(o.pct)}">${o.pct.toFixed(2)}%</td>`,
                 s.appendChild(i)
             });
             const o=document.createElement("tr");
-            o.className="row-div-total",o.innerHTML=`<td colspan="2" class="text-left px-3 font-bold">${t.division} Total</td><td class="text-right px-3">${t.cash.toLocaleString("en-IN")}</td><td class="text-right px-3">${t.dqr.toLocaleString("en-IN")}</td><td class="text-right px-3">${t.sbiposQr.toLocaleString("en-IN")}</td><td class="text-right px-3 font-bold" style="${getDigitalColorStyle(t.pct)}">${t.pct.toFixed(2)}%</td>`,
+            o.className="row-div-total",o.innerHTML=`<td colspan="2" class="text-left px-3 font-bold">${t.division} Total</td><td class="text-right px-3">${t.cash.toLocaleString("en-IN")}</td><td class="text-right px-3">${t.dqr.toLocaleString("en-IN")}</td><td class="text-right px-3">${t.sbiposQr.toLocaleString("en-IN")}</td><td class="text-right font-bold" style="${getDigitalColorStyle(t.pct)}">${t.pct.toFixed(2)}%</td>`,
             s.appendChild(o)
         });
         const c=d+r,p=a+c,f=p>0?c/p*100:0;
