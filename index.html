@@ -744,9 +744,10 @@
 const MASTER_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=0&single=true&output=csv",
       MAPPING_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1575541045&single=true&output=csv",
       IDP_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1439866773&single=true&output=csv",
-      PMEGP_MASTER_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vStevNQAAnFwO7ynsa5TWutYsYyKp_tFF2dYymclrvRT2j4trLTGIaPczIeGJWdVahJAbwQOJyrObDI/pub?gid=387173434&single=true&output=csv";
+      PMEGP_MASTER_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vStevNQAAnFwO7ynsa5TWutYsYyKp_tFF2dYymclrvRT2j4trLTGIaPczIeGJWdVahJAbwQOJyrObDI/pub?gid=387173434&single=true&output=csv",
+      OFFICE_ID_REMAP_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vStevNQAAnFwO7ynsa5TWutYsYyKp_tFF2dYymclrvRT2j4trLTGIaPczIeGJWdVahJAbwQOJyrObDI/pub?gid=207311198&single=true&output=csv";
 
-let masterOfficesMap={},serviceMapping={},rawData=[],currentFilteredRows=[],modalExportData=[],globalAllFilteredOffices=[],pliRawData=[],currentPliProcessedList=[],currentNilPliOfficesList=[],currentAllPliOfficesList=[],digitalRawData=[],pliModalExportData=[],idpCredentialsMap={},generatedReportsLog=[],loggedInAdminId="",digitalModalExportData=[],pmegpMasterMap={},pmegpMasterNormalizedMap={},pmegpUploadedRaw=[],pmegpProcessedDivisions=[],pmegpProcessedInspectors=[],pmegpModalExportData=[];
+let masterOfficesMap={},serviceMapping={},rawData=[],currentFilteredRows=[],modalExportData=[],globalAllFilteredOffices=[],pliRawData=[],currentPliProcessedList=[],currentNilPliOfficesList=[],currentAllPliOfficesList=[],digitalRawData=[],pliModalExportData=[],idpCredentialsMap={},generatedReportsLog=[],loggedInAdminId="",digitalModalExportData=[],pmegpMasterMap={},pmegpMasterNormalizedMap={},pmegpUploadedRaw=[],pmegpProcessedDivisions=[],pmegpProcessedInspectors=[],pmegpModalExportData=[],officeIdRemapMap={};
 
 // D+0 Global Storage
 let d0CombinedParcelMap={}, d0AllProductMap={}, d0MailOperationsMap={}, d0ModalExportData=[];
@@ -767,6 +768,40 @@ const closeModal=t=>document.getElementById(t).classList.add("hidden"),openModal
 function cleanUnitId(val){
     if(!val) return "";
     return String(val).trim().toUpperCase().replace(/[\s\-_/]/g,"").replace(/^0+/,"");
+}
+
+// ----------------- OFFICE ID OLD -> NEW REMAP -----------------
+async function loadOfficeIdRemapMap(){
+    try{
+        const res=await fetch(OFFICE_ID_REMAP_CSV_URL),
+              wb=XLSX.read(await res.text(),{type:"string"}),
+              rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
+        officeIdRemapMap={};
+        for(let r=1;r<rows.length;r++){
+            const row=rows[r];
+            if(!row||!row.length) continue;
+            const oldId=String(row[0]||"").trim().replace(/\.0$/,""),
+                  newId=String(row[1]||"").trim().replace(/\.0$/,"");
+            if(oldId && newId && oldId!==newId){
+                officeIdRemapMap[oldId]=newId;
+            }
+        }
+    }catch(t){
+        console.error("Error loading Office ID Remap sheet:",t);
+        officeIdRemapMap={};
+    }
+}
+
+// Resolves an office ID to its correct/current ID using the Old->New mapping sheet.
+// If the raw ID is already recognised in the master, it's used as-is (no remap needed).
+// If not recognised but found as an "OLD" ID in the remap sheet, the "NEW" ID is returned instead,
+// so that all data (old + new) is merged/summed together under the correct current office ID & division.
+function remapOfficeId(id){
+    const raw=String(id||"").trim().replace(/\.0$/,"");
+    if(!raw) return raw;
+    if(masterOfficesMap[raw]) return raw;
+    if(officeIdRemapMap[raw]) return officeIdRemapMap[raw];
+    return raw;
 }
 
 function normalizeDivName(divStr){
@@ -796,7 +831,7 @@ function clearAdminLogs(){generatedReportsLog=[],renderAdminLogs()}
 function renderAdminLogs(){const t=document.querySelector("#adminReportTable tbody"),e=document.getElementById("adminReportCountSpan");e&&(e.textContent=generatedReportsLog.length),t.innerHTML=0===generatedReportsLog.length?'<tr><td colspan="6" class="py-8 text-center text-slate-400 font-medium">No activity logged yet.</td></tr>':generatedReportsLog.map((t,e)=>`\n<tr class="hover:bg-slate-50 border-b border-slate-100">\n<td class="py-3 px-4 font-bold text-purple-950">${e+1}</td>\n<td class="py-3 px-4 font-semibold">${t.name}</td>\n<td class="py-3 px-4 font-bold text-blue-900">${t.user}</td>\n<td class="py-3 px-4 text-slate-600">${t.time}</td>\n<td class="py-3 px-4 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">Logged</span></td>\n<td class="py-3 px-4 text-right">${t.action?`<button onclick="generatedReportsLog[${e}].action()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow">View / Repeat</button>`:"-"}</td>\n</tr>`).join("")}
 
 async function loadMasterData(){
-    loadIdpCredentials(),loadPmegpMasterData();
+    loadIdpCredentials(),loadPmegpMasterData(),loadOfficeIdRemapMap();
     try{
         const[t,e]=await Promise.all([fetch(MASTER_CSV_URL),fetch(MAPPING_CSV_URL)]),o=XLSX.read(await t.text(),{type:"string"}),n=XLSX.utils.sheet_to_json(o.Sheets[o.SheetNames[0]],{header:1});
         masterOfficesMap={};
@@ -912,19 +947,35 @@ async function parseD0ExcelFile(fileInputId){
     for(let r=headerIdx+1; r<json.length; r++){
         const row = json[r];
         if(!row || !row.length) continue;
-        const offId = String(row[idIdx]||"").trim().replace(/\.0$/,"");
-        if(!offId || offId.toUpperCase().includes("TOTAL") || offId.toUpperCase().includes("SUMMARY")) continue;
-        
-        parsedMap[offId] = {
-            officeId: offId,
-            name: String(row[nameIdx]||"").trim(),
-            type: String(row[typeIdx]||"").trim(),
-            received: Number(row[recIdx]) || 0,
-            invoiced: Number(row[invIdx]) || 0,
-            d0Deliver: Number(row[delIdx]) || 0,
-            d0Redirect: Number(row[redirIdx]) || 0,
-            d0Return: Number(row[retIdx]) || 0
-        };
+        const rawOffId = String(row[idIdx]||"").trim().replace(/\.0$/,"");
+        if(!rawOffId || rawOffId.toUpperCase().includes("TOTAL") || rawOffId.toUpperCase().includes("SUMMARY")) continue;
+        const offId = remapOfficeId(rawOffId);
+
+        const rowReceived = Number(row[recIdx]) || 0,
+              rowInvoiced = Number(row[invIdx]) || 0,
+              rowDeliver = Number(row[delIdx]) || 0,
+              rowRedirect = Number(row[redirIdx]) || 0,
+              rowReturn = Number(row[retIdx]) || 0;
+
+        if(parsedMap[offId]){
+            // Old ID remapped to an already-seen New ID within this same file: merge/add the figures.
+            parsedMap[offId].received += rowReceived;
+            parsedMap[offId].invoiced += rowInvoiced;
+            parsedMap[offId].d0Deliver += rowDeliver;
+            parsedMap[offId].d0Redirect += rowRedirect;
+            parsedMap[offId].d0Return += rowReturn;
+        } else {
+            parsedMap[offId] = {
+                officeId: offId,
+                name: String(row[nameIdx]||"").trim(),
+                type: String(row[typeIdx]||"").trim(),
+                received: rowReceived,
+                invoiced: rowInvoiced,
+                d0Deliver: rowDeliver,
+                d0Redirect: rowRedirect,
+                d0Return: rowReturn
+            };
+        }
     }
     return parsedMap;
 }
@@ -2461,7 +2512,7 @@ function openPliOfficeListModal(t,e,o){const n=[];currentPliProcessedList.forEac
 function exportPliModalToExcel(){XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(),XLSX.utils.json_to_sheet(pliModalExportData),"PLI_Offices"),"PLI_Office_Details_List.xlsx")}
 function exportPliExcel(){if(!currentPliProcessedList||!currentPliProcessedList.length)return alert("No PLI report data available. Please upload raw file first.");const t=XLSX.utils.book_new(),e=XLSX.utils.table_to_sheet(document.getElementById("tablePliSummary"));XLSX.utils.book_append_sheet(t,e,"PLI_Summary_Report");const o=currentNilPliOfficesList.length>0?currentNilPliOfficesList.map((t,e)=>({"S.No":e+1,"Office ID":t.officeId,"Branch Office Name (BO)":t.officeName,"Sub-Division Name (SD)":t.subDivision,"Division Name":t.division,"PLI Transactions":0})):[{Message:"No Nil PLI transaction offices found"}],n=XLSX.utils.json_to_sheet(o);XLSX.utils.book_append_sheet(t,n,"Nil_PLI_Offices_List");const i=currentAllPliOfficesList.length>0?currentAllPliOfficesList.map((t,e)=>({"S.No":e+1,"Office ID":t.officeId,"Branch Office Name (BO)":t.officeName,Class:t.class,"Sub-Division Name (SD)":t.subDivision,"Division Name":t.division,"PLI Transactions":t.txn,Status:0===t.txn?"NIL":t.txn<=10?"LOW (1-10)":"GOOD (>10)"})):[{Message:"No branch offices available"}],s=XLSX.utils.json_to_sheet(i);XLSX.utils.book_append_sheet(t,s,"All_BO_Txn_Details"),XLSX.writeFile(t,"PLI_Nil_Transaction_Report_3_Sheets.xlsx"),logGeneratedReport("PLI Nil Transaction Report (3 Sheets Excel)",()=>exportPliExcel())}
 
-document.getElementById("pliFileInput").addEventListener("change",function(t){const e=t.target.files[0];if(!e)return;const o=document.getElementById("pliUploadStatus");o.innerHTML="🔄 Reading File...";const n=new FileReader;n.onload=function(t){try{const e=XLSX.read(t.target.result,{type:"array",cellDates:!0,dense:!0}).Sheets[XLSX.read(t.target.result,{type:"array"}).SheetNames[0]],n=XLSX.utils.sheet_to_json(e,{header:1,defval:""}),i={};Object.entries(masterOfficesMap).forEach(([t,e])=>{String(e.name||"").toUpperCase().includes("KHUDEL")&&"BO"===String(e.class).toUpperCase()||"BO"===String(e.class).toUpperCase()&&(i[t]=e)}),pliRawData=[];for(let t=1;t<n.length;t++){const e=n[t];if(!e||0===e.length)continue;let o=String(e[8]||e[0]||"").trim().replace(/\.0$/,"");if(!o)continue;let i=0;for(let t=0;t<e.length;t++){let o=Number(e[t]);!isNaN(o)&&o>=0&&o<5e5&&8!==t&&(i=o)}pliRawData.push({officeId:o,transCount:i})}o.innerHTML=`✅ Uploaded! (${Object.keys(i).length} BOs matched)`,processPliData(i)}catch(t){console.error(t),o.innerHTML="❌ Error reading PLI file."}},n.readAsArrayBuffer(e)});
+document.getElementById("pliFileInput").addEventListener("change",function(t){const e=t.target.files[0];if(!e)return;const o=document.getElementById("pliUploadStatus");o.innerHTML="🔄 Reading File...";const n=new FileReader;n.onload=function(t){try{const e=XLSX.read(t.target.result,{type:"array",cellDates:!0,dense:!0}).Sheets[XLSX.read(t.target.result,{type:"array"}).SheetNames[0]],n=XLSX.utils.sheet_to_json(e,{header:1,defval:""}),i={};Object.entries(masterOfficesMap).forEach(([t,e])=>{String(e.name||"").toUpperCase().includes("KHUDEL")&&"BO"===String(e.class).toUpperCase()||"BO"===String(e.class).toUpperCase()&&(i[t]=e)}),pliRawData=[];for(let t=1;t<n.length;t++){const e=n[t];if(!e||0===e.length)continue;let o=remapOfficeId(String(e[8]||e[0]||"").trim().replace(/\.0$/,""));if(!o)continue;let i=0;for(let t=0;t<e.length;t++){let o=Number(e[t]);!isNaN(o)&&o>=0&&o<5e5&&8!==t&&(i=o)}pliRawData.push({officeId:o,transCount:i})}o.innerHTML=`✅ Uploaded! (${Object.keys(i).length} BOs matched)`,processPliData(i)}catch(t){console.error(t),o.innerHTML="❌ Error reading PLI file."}},n.readAsArrayBuffer(e)});
 const exportPliPDF=()=>exportSingleTableToPDF("tablePliSummary","PLI Nil Transaction Report");
 
 // Digital Routine
@@ -2566,7 +2617,21 @@ document.getElementById("digitalFileInput").addEventListener("change",function(t
             let i=0;for(let t=0;t<Math.min(10,n.length);t++){const e=n[t].map(t=>String(t).trim().toLowerCase());if(e.includes("office id")||e.includes("office name")){i=t;break}}
             const s=n[i].map(t=>String(t).trim().toLowerCase()),l=Math.max(s.indexOf("office id"),0),a=Math.max(s.indexOf("office name"),1),d=s.indexOf("cash (cnt)")>-1?s.indexOf("cash (cnt)"):3,r=s.indexOf("dqr scan (cnt)")>-1?s.indexOf("dqr scan (cnt)"):15,c=s.indexOf("sbipos bharatqr (cnt)")>-1?s.indexOf("sbipos bharatqr (cnt)"):21;
             digitalRawData=[];
-            for(let t=i+1;t<n.length;t++){const e=n[t];if(!e||!e.length)continue;const o=String(e[a]||"").trim();o&&!o.toUpperCase().includes("SUMMARY")&&digitalRawData.push({officeId:String(e[l]||"").trim().replace(/\.0$/,""),officeName:o,cash:Number(e[d])||0,dqr:Number(e[r])||0,sbiposQr:Number(e[c])||0})}
+            const digitalMergeMap={};
+            for(let t=i+1;t<n.length;t++){
+                const e=n[t];if(!e||!e.length)continue;
+                const o=String(e[a]||"").trim();
+                if(!o||o.toUpperCase().includes("SUMMARY"))continue;
+                const remappedId=remapOfficeId(String(e[l]||"").trim().replace(/\.0$/,""));
+                if(digitalMergeMap[remappedId]){
+                    digitalMergeMap[remappedId].cash+=Number(e[d])||0;
+                    digitalMergeMap[remappedId].dqr+=Number(e[r])||0;
+                    digitalMergeMap[remappedId].sbiposQr+=Number(e[c])||0;
+                }else{
+                    digitalMergeMap[remappedId]={officeId:remappedId,officeName:o,cash:Number(e[d])||0,dqr:Number(e[r])||0,sbiposQr:Number(e[c])||0};
+                    digitalRawData.push(digitalMergeMap[remappedId]);
+                }
+            }
             o.innerHTML=`✅ Uploaded! (${digitalRawData.length} records parsed)`,processDigitalReport(),renderOfficeDigitalTable()
         }catch(t){o.innerHTML="❌ Error reading file."}
     },n.readAsArrayBuffer(e)
@@ -2587,7 +2652,7 @@ document.getElementById("rawFileInput").addEventListener("change",function(t){
     o.onload=function(t){
         try{
             const e=XLSX.read(t.target.result,{type:t.target.result instanceof ArrayBuffer?"array":"binary"}).Sheets[XLSX.read(t.target.result,{type:t.target.result instanceof ArrayBuffer?"array":"binary"}).SheetNames[0]];
-            rawData=XLSX.utils.sheet_to_json(e,{defval:""}).map(t=>{const e=String(Object.values(t)[0]||"").trim().toUpperCase();return e.includes("TOTAL")||e.includes("SUMMARY")?null:{officeId:String(t["office-id"]||t["Office ID"]||Object.values(t)[0]||"").trim(),service:String(t["product-name"]||t["Service Name"]||Object.values(t)[2]||"").trim(),articles:Number(t["article-count"]||t["Articles Booked"]||Object.values(t)[3]||0),postage:Number(t.postage||t["Postage Collected"]||Object.values(t)[4]||0)}}).filter(t=>t&&t.officeId&&t.service&&!t.officeId.toUpperCase().includes("TOTAL")),
+            rawData=XLSX.utils.sheet_to_json(e,{defval:""}).map(t=>{const e=String(Object.values(t)[0]||"").trim().toUpperCase();return e.includes("TOTAL")||e.includes("SUMMARY")?null:{officeId:remapOfficeId(String(t["office-id"]||t["Office ID"]||Object.values(t)[0]||"").trim()),service:String(t["product-name"]||t["Service Name"]||Object.values(t)[2]||"").trim(),articles:Number(t["article-count"]||t["Articles Booked"]||Object.values(t)[3]||0),postage:Number(t.postage||t["Postage Collected"]||Object.values(t)[4]||0)}}).filter(t=>t&&t.officeId&&t.service&&!t.officeId.toUpperCase().includes("TOTAL")),
             updateDashboard()
         }catch(t){alert("Error reading raw file.")}
     },o.readAsArrayBuffer?o.readAsArrayBuffer(e):o.readAsBinaryString(e)
