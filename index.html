@@ -337,35 +337,23 @@
             </div>
 
             <div class="p-6 space-y-6" id="d0TableContainer">
-                <!-- 6 Excel Upload Section -->
+                <!-- Excel Upload Section -->
                 <div class="bg-purple-50/70 p-5 rounded-2xl border border-purple-200 space-y-4">
                     <h4 class="font-bold text-sm text-[#31103f] flex items-center gap-2 border-b border-purple-200 pb-2">
-                        <span>📦</span> 1. Parcel Delivery Raw Files (5 Reports Combined)
+                        <span>📦</span> 1. Combined Parcel Delivery Raw File
                     </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div class="bg-amber-50 border border-amber-300 text-amber-950 text-xs px-3.5 py-2.5 rounded-xl mb-1 font-semibold flex items-center gap-2 shadow-sm">
+                        <span class="text-base">ℹ️</span>
+                        <span><b>नोट:</b> Parcel, Speed Parcel, Track Parcel, Foreign Registered Parcel, Foreign Speed Parcel और DDD Parcel — इन सभी categories की एक <b>combined</b> Excel (जिसमें Product Name कॉलम भी हो) यहाँ अपलोड करें। अब अलग-अलग Excel डालने की जरूरत नहीं है।</span>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3">
                         <div class="bg-white p-2.5 rounded-xl border border-rose-300 shadow-sm">
-                            <label class="block text-[11px] font-extrabold text-rose-900 mb-1">Speed Parcel <span class="text-rose-600 font-black">🔴 (Compulsory)</span></label>
-                            <input type="file" id="d0File_speed_parcel" accept=".xlsx,.xls,.csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-purple-900 file:text-white cursor-pointer border border-slate-300 rounded-lg bg-slate-50 p-1">
-                        </div>
-                        <div class="bg-white p-2.5 rounded-xl border border-rose-300 shadow-sm">
-                            <label class="block text-[11px] font-extrabold text-rose-900 mb-1">Parcel <span class="text-rose-600 font-black">🔴 (Compulsory)</span></label>
-                            <input type="file" id="d0File_parcel" accept=".xlsx,.xls,.csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-purple-900 file:text-white cursor-pointer border border-slate-300 rounded-lg bg-slate-50 p-1">
-                        </div>
-                        <div class="bg-white p-2.5 rounded-xl border border-purple-200 shadow-sm">
-                            <label class="block text-[11px] font-bold text-purple-950 mb-1">DDD Parcel <span class="text-slate-500 font-medium">(Optional)</span></label>
-                            <input type="file" id="d0File_ddd_parcel" accept=".xlsx,.xls,.csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-purple-900 file:text-white cursor-pointer border border-slate-300 rounded-lg bg-slate-50 p-1">
-                        </div>
-                        <div class="bg-white p-2.5 rounded-xl border border-purple-200 shadow-sm">
-                            <label class="block text-[11px] font-bold text-purple-950 mb-1">Foreign Registered Parcel <span class="text-slate-500 font-medium">(Optional)</span></label>
-                            <input type="file" id="d0File_foreign_reg_parcel" accept=".xlsx,.xls,.csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-purple-900 file:text-white cursor-pointer border border-slate-300 rounded-lg bg-slate-50 p-1">
-                        </div>
-                        <div class="bg-white p-2.5 rounded-xl border border-purple-200 shadow-sm">
-                            <label class="block text-[11px] font-bold text-purple-950 mb-1">Foreign Speed Parcel <span class="text-slate-500 font-medium">(Optional)</span></label>
-                            <input type="file" id="d0File_foreign_speed_parcel" accept=".xlsx,.xls,.csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-purple-900 file:text-white cursor-pointer border border-slate-300 rounded-lg bg-slate-50 p-1">
+                            <label class="block text-[11px] font-extrabold text-rose-900 mb-1">Combined Parcel Excel (All Parcel Products) <span class="text-rose-600 font-black">🔴 (Compulsory)</span></label>
+                            <input type="file" id="d0File_combined_parcel" accept=".xlsx,.xls,.csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-purple-900 file:text-white cursor-pointer border border-slate-300 rounded-lg bg-slate-50 p-1">
                         </div>
                     </div>
 
-                    <!-- 6th File Option with Hindi Instruction -->
+                    <!-- 2nd File Option with Hindi Instruction -->
                     <div class="pt-2 border-t border-purple-200">
                         <h4 class="font-bold text-sm text-[#31103f] flex items-center gap-2 mb-2">
                             <span>🏢</span> 2. All Offices All Product Report
@@ -981,49 +969,25 @@ async function parseD0ExcelFile(fileInputId){
 }
 
 async function processD0Synthesis(){
-    const speedParElem = document.getElementById("d0File_speed_parcel");
-    const parElem = document.getElementById("d0File_parcel");
+    const combinedParElem = document.getElementById("d0File_combined_parcel");
     const allProdElem = document.getElementById("d0File_all_product");
 
-    if(!speedParElem.files.length || !parElem.files.length || !allProdElem.files.length){
-        return alert("⚠️ Please upload all compulsory files marked in RED:\n1. Speed Parcel\n2. Parcel\n3. All Offices All Product");
+    if(!combinedParElem.files.length || !allProdElem.files.length){
+        return alert("⚠️ Please upload all compulsory files marked in RED:\n1. Combined Parcel Excel\n2. All Offices All Product");
     }
 
     try {
-        const [speedPar, par, ddd, fReg, fSpeed, allProd] = await Promise.all([
-            parseD0ExcelFile("d0File_speed_parcel"),
-            parseD0ExcelFile("d0File_parcel"),
-            parseD0ExcelFile("d0File_ddd_parcel"),
-            parseD0ExcelFile("d0File_foreign_reg_parcel"),
-            parseD0ExcelFile("d0File_foreign_speed_parcel"),
+        const [combinedPar, allProd] = await Promise.all([
+            parseD0ExcelFile("d0File_combined_parcel"),
             parseD0ExcelFile("d0File_all_product")
         ]);
 
-        const parcelFiles = [speedPar, par, ddd, fReg, fSpeed].filter(Boolean);
-        d0CombinedParcelMap = {};
-
-        parcelFiles.forEach(fileMap => {
-            Object.values(fileMap).forEach(row => {
-                const id = row.officeId;
-                if(!d0CombinedParcelMap[id]){
-                    d0CombinedParcelMap[id] = {
-                        officeId: id,
-                        name: row.name,
-                        type: row.type,
-                        received: 0,
-                        invoiced: 0,
-                        d0Deliver: 0,
-                        d0Redirect: 0,
-                        d0Return: 0
-                    };
-                }
-                d0CombinedParcelMap[id].received += row.received;
-                d0CombinedParcelMap[id].invoiced += row.invoiced;
-                d0CombinedParcelMap[id].d0Deliver += row.d0Deliver;
-                d0CombinedParcelMap[id].d0Redirect += row.d0Redirect;
-                d0CombinedParcelMap[id].d0Return += row.d0Return;
-            });
-        });
+        // parseD0ExcelFile already sums multiple rows for the same office-id
+        // within one file (e.g. one row per parcel product), so the combined
+        // parcel file — with Parcel, Speed Parcel, Track Parcel, Foreign
+        // Registered Parcel, Foreign Speed Parcel, DDD Parcel rows for the
+        // same office — gets aggregated automatically here.
+        d0CombinedParcelMap = combinedPar || {};
 
         d0AllProductMap = allProd || {};
         d0MailOperationsMap = {};
