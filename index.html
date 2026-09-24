@@ -62,6 +62,7 @@
         <button onclick='switchModule("pmegp")' id="btnNavPmegp" class="bg-white hover:bg-slate-100 text-slate-700 text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border border-slate-200"><span>🏢</span> PMEGP Monitoring</button>
         <button onclick='switchModule("d0")' id="btnNavD0" class="bg-white hover:bg-slate-100 text-slate-700 text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border border-slate-200"><span>🚚</span> D+0 Monitoring</button>
         <button onclick='switchModule("sb")' id="btnNavSb" class="bg-white hover:bg-slate-100 text-slate-700 text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border border-slate-200"><span>🏦</span> SB A/c Open-Close</button>
+        <button onclick='switchModule("posb")' id="btnNavPosb" class="bg-white hover:bg-slate-100 text-slate-700 text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 cursor-pointer border border-slate-200"><span>📮</span> POSB Calculator</button>
     </div>
 </nav>
 
@@ -669,11 +670,13 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div><h3 class="font-extrabold text-lg flex items-center gap-2">🗂️ Division / Sub-Division View</h3><p class="text-xs text-purple-200">Account Open / Close / Net + Offices Open&gt;10 &amp; Net Addition&gt;10 analysis</p></div>
-                <div>
+                <div class="flex items-center gap-2">
                     <select id="sbViewTypeSelect" onchange="toggleSbViewType()" class="bg-purple-950 text-white text-xs font-bold px-3 py-2 rounded-lg border border-purple-700 outline-none cursor-pointer">
                         <option value="sub">Sub Division View</option>
                         <option value="div">Division View</option>
                     </select>
+                    <button onclick="sbExportViewPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow cursor-pointer">📄 PDF</button>
+                    <button onclick="sbExportViewJPEG()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow cursor-pointer">📸 JPEG</button>
                 </div>
             </div>
             <div id="sbSubDivisionViewContainer" class="overflow-x-auto p-3">
@@ -697,6 +700,10 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div><h3 class="font-extrabold text-lg flex items-center gap-2">🏤 Office Wise View</h3><p class="text-xs text-purple-200">Filter by Division / Sub Division / Class — leave blank for full region</p></div>
+                <div class="flex items-center gap-2">
+                    <button onclick='exportTableSinglePagePDF("sbOfficeTableContainer","SB Office Wise Report")' class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow cursor-pointer">📄 PDF</button>
+                    <button onclick='exportTableJPEG("sbOfficeTableContainer","SB_Office_Wise")' class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow cursor-pointer">📸 JPEG</button>
+                </div>
             </div>
             <div class="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 border-b border-slate-100">
                 <div>
@@ -712,7 +719,7 @@
                     <select id="sbOfficeFilterClass" onchange="renderSbOfficeTable()" class="w-full border border-slate-300 rounded-xl p-2 text-xs bg-slate-50 font-semibold outline-none focus:border-purple-800"><option value="All">All Classes</option></select>
                 </div>
             </div>
-            <div class="overflow-x-auto p-3">
+            <div id="sbOfficeTableContainer" class="overflow-x-auto p-3">
                 <table class="nil-table" id="tableSbOffice">
                     <thead><tr><th style="width:5%">#</th><th style="width:12%">Office ID</th><th style="width:10%">BO ID/SOL ID</th><th style="width:20%;text-align:left">Office Name</th><th style="width:7%">Class</th><th style="width:14%">Sub-Division</th><th style="width:12%">Division</th><th style="width:10%">Account Open</th><th style="width:10%">Account Close</th><th style="width:10%">Net Addition</th></tr></thead>
                     <tbody><tr><td colspan="10" class="py-8 text-center text-slate-400 font-medium">Please upload Account Open / Close Excel files and press Calculate.</td></tr></tbody>
@@ -735,6 +742,147 @@
                 <table class="nil-table" id="tableSbModalOffices">
                     <thead><tr><th style="width:5%">#</th><th style="width:12%">Office ID</th><th style="width:10%">BO ID/SOL ID</th><th style="width:22%;text-align:left">Office Name</th><th style="width:8%">Class</th><th style="width:15%">Sub-Division</th><th style="width:12%">Division</th><th style="width:8%">Open</th><th style="width:8%">Close</th><th style="width:8%">Net</th></tr></thead>
                     <tbody class="text-xs"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- POSB (Product Wise A/C) Module -->
+    <div id="modulePosb" class="space-y-6 hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                    <h3 class="font-extrabold text-lg flex items-center gap-2">📮 POSB Product Wise A/c Calculator</h3>
+                    <p class="text-xs text-purple-200">Upload SO-wise "Product Wise A/C Report" Excel files, then press Calculate — Office ID / Division / Sub-Division are matched automatically against the SB Master list, no need to pick a Division.</p>
+                </div>
+                <div class="flex items-center flex-wrap gap-2">
+                    <span id="posbMasterStatus" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Using SB Master</span>
+                    <button onclick="exportPosbCombinedExcel()" class="bg-purple-800 hover:bg-purple-900 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition cursor-pointer">📥 Combined Report (3 Sheets)</button>
+                    <button onclick="resetPosbData()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition cursor-pointer">♻️ Reset Uploads</button>
+                </div>
+            </div>
+
+            <div class="p-4 md:p-6">
+                <label id="posbBulkZone" class="block cursor-pointer text-center border-2 border-dashed border-purple-400 bg-white/70 hover:bg-white rounded-xl px-3 py-4 mb-3 transition"
+                       ondragover="handlePosbBulkDragOver(event)" ondragleave="handlePosbBulkDragLeave(event)" ondrop="handlePosbBulkDrop(event)">
+                    <div class="text-sm font-extrabold text-purple-950">📂 Drag &amp; drop all "Product Wise A/C Report" files here</div>
+                    <div class="text-[11px] text-slate-500 mt-0.5">or click to select up to 7 files at once (one file per Division) — then confirm each file's Division below</div>
+                    <input type="file" multiple accept=".xlsx,.xls,.csv" class="hidden" onchange="handlePosbBulkSelect(this)">
+                </label>
+                <div id="posbUploadsContainer" class="space-y-2"></div>
+            </div>
+
+            <div class="px-4 md:px-6 pb-4 flex flex-col sm:flex-row items-center gap-3">
+                <button id="posbBtnCalculate" onclick="calculatePosbReport()" class="w-full sm:w-auto bg-[#31103f] hover:bg-purple-950 text-white font-extrabold text-sm px-8 py-3 rounded-xl shadow-lg transition cursor-pointer border border-purple-500">🧮 Calculate Report</button>
+                <span id="posbCalcHint" class="text-xs font-semibold text-slate-500">Upload files, select Division for each, then press Calculate.</span>
+            </div>
+
+            <div class="px-4 md:px-6 pb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center">
+                    <p class="text-[11px] font-bold text-purple-900 uppercase">Total Offices</p>
+                    <p id="posbKpiOffices" class="text-xl font-extrabold text-purple-950">0</p>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
+                    <p class="text-[11px] font-bold text-emerald-900 uppercase">SB Net Addition</p>
+                    <p id="posbKpiSbNet" class="text-xl font-extrabold text-emerald-800">0</p>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+                    <p class="text-[11px] font-bold text-amber-900 uppercase">Cert Net</p>
+                    <p id="posbKpiCertNet" class="text-xl font-extrabold text-amber-800">0</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
+                    <p class="text-[11px] font-bold text-blue-900 uppercase">RD Net Addition</p>
+                    <p id="posbKpiRdNet" class="text-xl font-extrabold text-blue-900">0</p>
+                </div>
+            </div>
+
+            <!-- Reconciliation strip: proves nothing was silently dropped -->
+            <div id="posbReconBar" class="hidden mx-4 md:mx-6 mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs">
+                <div class="flex flex-wrap items-center gap-x-5 gap-y-1 font-semibold text-slate-700">
+                    <span>📄 Rows read: <b id="posbReconRows">0</b></span>
+                    <span>✅ Matched to master: <b id="posbReconMatched" class="text-emerald-800">0</b></span>
+                    <span id="posbReconUnmatchedWrap">⚠️ Unmatched: <b id="posbReconUnmatched" class="text-rose-700">0</b></span>
+                    <span>Σ A/c Opened in file: <b id="posbReconOpenFile">0</b></span>
+                    <span>Σ A/c Opened on portal: <b id="posbReconOpenPortal">0</b></span>
+                    <span id="posbReconMismatchTag" class="hidden bg-rose-600 text-white px-2 py-0.5 rounded-full font-bold">⚠️ Mismatch — see Unmatched Offices below</span>
+                    <span id="posbReconOkTag" class="hidden bg-emerald-600 text-white px-2 py-0.5 rounded-full font-bold">✅ File total = Portal total</span>
+                </div>
+            </div>
+
+            <!-- Unmatched Offices — every row from the uploaded file whose name could not be
+                 mapped to a master SO/HO office. These names ARE included in the Grand Total
+                 (under "NOT IN QC LIST") but not in their real Division's total — fix by
+                 checking the exact spelling here and telling me the correct master office name. -->
+            <div id="posbUnmatchedPanel" class="hidden mx-4 md:mx-6 mb-4 rounded-xl border-2 border-rose-300 bg-rose-50 overflow-hidden">
+                <div class="px-4 py-2 bg-rose-100 border-b border-rose-200">
+                    <p class="text-xs font-extrabold text-rose-900">⚠️ Unmatched Offices — these file rows could not be matched to any master SO/HO office by name, so they are NOT counted in their real Division's total (only in the Grand Total, under "NOT IN QC LIST"). Check the spelling below.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="nil-table" id="tablePosbUnmatched">
+                        <thead><tr><th>#</th><th>File</th><th style="text-align:left">Raw Name in File</th><th>SB Open</th><th>SB Close</th><th>Cert Issued</th><th>Cert Discharged</th><th>RD Open</th><th>RD Close</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Division / Sub-Division View (toggle) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div><h3 class="font-extrabold text-lg flex items-center gap-2">🗂️ Division / Sub-Division View</h3><p class="text-xs text-purple-200">SB / Certificates / RD — Opened, Closed &amp; Net, Division / Sub-Division wise</p></div>
+                <div class="flex items-center gap-2">
+                    <select id="posbViewTypeSelect" onchange="togglePosbViewType()" class="bg-purple-950 text-white text-xs font-bold px-3 py-2 rounded-lg border border-purple-700 outline-none cursor-pointer">
+                        <option value="sub">Sub Division View</option>
+                        <option value="div">Division View</option>
+                    </select>
+                    <button onclick="posbExportViewPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow cursor-pointer">📄 PDF</button>
+                    <button onclick="posbExportViewJPEG()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow cursor-pointer">📸 JPEG</button>
+                </div>
+            </div>
+            <div id="posbSubDivisionViewContainer" class="overflow-x-auto p-3">
+                <table class="nil-table" id="tablePosbSubDivision">
+                    <thead><tr><th>S.No.</th><th>Division</th><th>Sub Division</th><th>Offices</th><th>SB Open</th><th>SB Close</th><th>SB Net</th><th>Cert Issued</th><th>Cert Discharged</th><th>Cert Net</th><th>RD Open</th><th>RD Close</th><th>RD Net</th></tr></thead>
+                    <tbody><tr><td colspan="13" class="py-8 text-center text-slate-400 font-medium">Please upload Product Wise A/C Report files and press Calculate.</td></tr></tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+            <div id="posbDivisionViewContainer" class="overflow-x-auto p-3 hidden">
+                <table class="nil-table" id="tablePosbDivision">
+                    <thead><tr><th>S.No.</th><th>Division</th><th>Offices</th><th>SB Open</th><th>SB Close</th><th>SB Net</th><th>Cert Issued</th><th>Cert Discharged</th><th>Cert Net</th><th>RD Open</th><th>RD Close</th><th>RD Net</th></tr></thead>
+                    <tbody><tr><td colspan="12" class="py-8 text-center text-slate-400 font-medium">Please upload Product Wise A/C Report files and press Calculate.</td></tr></tbody>
+                    <tfoot></tfoot>
+                </table>
+            </div>
+            <p class="text-[11px] text-slate-400 px-4 pb-3">Cert Net = Cert Issued − Cert Discharged. Note: if the third block in your report is a different product (not RD), rename the "RD" labels — the calculator sums opened/closed exactly as given.</p>
+        </div>
+
+        <!-- Office Wise View -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div><h3 class="font-extrabold text-lg flex items-center gap-2">🏤 Office Wise View</h3><p class="text-xs text-purple-200">Filter by Division / Sub Division / Class — leave blank for full region</p></div>
+                <div class="flex items-center gap-2">
+                    <button onclick='exportTableSinglePagePDF("posbOfficeTableContainer","POSB Office Wise Report")' class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow cursor-pointer">📄 PDF</button>
+                    <button onclick='exportTableJPEG("posbOfficeTableContainer","POSB_Office_Wise")' class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow cursor-pointer">📸 JPEG</button>
+                </div>
+            </div>
+            <div class="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 border-b border-slate-100">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-purple-950 mb-1">Division</label>
+                    <select id="posbOfficeFilterDiv" onchange="onPosbDivisionFilterChange()" class="w-full border border-slate-300 rounded-xl p-2 text-xs bg-slate-50 font-semibold outline-none focus:border-purple-800"><option value="All">All Divisions</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-purple-950 mb-1">Sub Division</label>
+                    <select id="posbOfficeFilterSd" onchange="renderPosbOfficeTable()" class="w-full border border-slate-300 rounded-xl p-2 text-xs bg-slate-50 font-semibold outline-none focus:border-purple-800"><option value="All">All Sub Divisions</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-purple-950 mb-1">Class</label>
+                    <select id="posbOfficeFilterClass" onchange="renderPosbOfficeTable()" class="w-full border border-slate-300 rounded-xl p-2 text-xs bg-slate-50 font-semibold outline-none focus:border-purple-800"><option value="All">All Classes</option></select>
+                </div>
+            </div>
+            <div id="posbOfficeTableContainer" class="overflow-x-auto p-3">
+                <table class="nil-table" id="tablePosbOffice">
+                    <thead><tr><th style="width:4%">#</th><th style="width:8%">Office ID</th><th style="width:8%">BO ID/SOL ID</th><th style="width:14%;text-align:left">Office Name</th><th style="width:5%">Class</th><th style="width:9%">Sub-Division</th><th style="width:8%">Division</th><th style="width:6%">SB Open</th><th style="width:6%">SB Close</th><th style="width:6%">SB Net</th><th style="width:6%">Cert Issued</th><th style="width:7%">Cert Discharged</th><th style="width:6%">Cert Net</th><th style="width:6%">RD Open</th><th style="width:6%">RD Close</th><th style="width:6%">RD Net</th></tr></thead>
+                    <tbody><tr><td colspan="16" class="py-8 text-center text-slate-400 font-medium">Please upload Product Wise A/C Report files and press Calculate.</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -927,7 +1075,7 @@ function normalizeDivName(divStr){
 }
 
 function switchModule(t){
-    ["booking","pli","digital","pmegp","d0","sb"].forEach(e=>{
+    ["booking","pli","digital","pmegp","d0","sb","posb"].forEach(e=>{
         const o=e===t;
         document.getElementById("module"+e.charAt(0).toUpperCase()+e.slice(1)).classList.toggle("hidden",!o);
         document.getElementById("btnNav"+e.charAt(0).toUpperCase()+e.slice(1)).className=o?"bg-purple-900 text-white text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 border-b-2 border-purple-600":"bg-white hover:bg-slate-100 text-slate-700 text-xs md:text-sm font-bold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 border border-slate-200"
@@ -2751,6 +2899,49 @@ const exportTableToExcel=(t,e)=>{XLSX.writeFile(XLSX.utils.table_to_book(documen
       exportAllToExcel=()=>exportTableToExcel("tableDivisionSummary","Complete_Summary_Report.xlsx");
 
 function exportTableJPEG(t,e){const o=document.getElementById(t);o&&html2canvas(o,{scale:2}).then(t=>{const o=document.createElement("a");o.download=e+".jpg",o.href=t.toDataURL("image/jpeg",.95),o.click()}),logGeneratedReport(e+" (JPEG)",()=>exportTableJPEG(t,e))}
+// Whichever of Sub-Division / Division view is currently on screen gets captured as one JPEG photo.
+function sbExportViewJPEG(){
+    const isSub=(document.getElementById("sbViewTypeSelect")||{}).value!=="div";
+    exportTableJPEG(isSub?"sbSubDivisionViewContainer":"sbDivisionViewContainer", isSub?"SB_SubDivision_Wise_Report":"SB_Division_Wise_Report");
+}
+function posbExportViewJPEG(){
+    const isSub=(document.getElementById("posbViewTypeSelect")||{}).value!=="div";
+    exportTableJPEG(isSub?"posbSubDivisionViewContainer":"posbDivisionViewContainer", isSub?"POSB_SubDivision_Wise_Report":"POSB_Division_Wise_Report");
+}
+// Captures the WHOLE table (any width/height) as one image and drops it onto a single
+// PDF page sized to fit that image exactly — no autoTable pagination, so a wide/tall
+// SB or POSB table never spills onto a 2nd page; it always prints as one clean sheet.
+function exportTableSinglePagePDF(containerId, title){
+    const el=document.getElementById(containerId);
+    if(!el){ alert("Nothing to export yet — please Calculate first."); return; }
+    html2canvas(el,{scale:2, backgroundColor:"#ffffff"}).then(canvas=>{
+        const {jsPDF}=window.jspdf;
+        const pxToMm=px=>px*25.4/(96*2); // canvas was rendered at 2x scale
+        const headerH=16, marginX=6, marginTop=headerH+3, marginBottom=6;
+        const maxContentWmm=1200; // generous ceiling so very wide tables still stay legible
+        let contentWmm=Math.min(maxContentWmm, pxToMm(canvas.width));
+        let contentHmm=contentWmm*(canvas.height/canvas.width);
+        const pageW=contentWmm+marginX*2, pageH=contentHmm+marginTop+marginBottom;
+        const doc=new jsPDF({orientation:pageW>=pageH?"l":"p", unit:"mm", format:[pageW,pageH]});
+        doc.setFillColor(44,12,56); doc.rect(0,0,pageW,headerH,"F");
+        doc.setTextColor(255,255,255); doc.setFont("helvetica","bold"); doc.setFontSize(12);
+        doc.text("DEPARTMENT OF POSTS — REGIONAL OFFICE INDORE", marginX, headerH*0.42);
+        doc.setFont("helvetica","normal"); doc.setFontSize(9);
+        doc.text(title.toUpperCase(), marginX, headerH*0.8);
+        doc.text("Report Date: "+getReportPrevDate(), pageW-marginX, headerH*0.6, {align:"right"});
+        doc.addImage(canvas.toDataURL("image/jpeg",0.95),"JPEG", marginX, marginTop, contentWmm, contentHmm);
+        doc.save(title.replace(/\s+/g,"_")+"_Report.pdf");
+        logGeneratedReport(title+" (PDF)", ()=>exportTableSinglePagePDF(containerId,title));
+    });
+}
+function sbExportViewPDF(){
+    const isSub=(document.getElementById("sbViewTypeSelect")||{}).value!=="div";
+    exportTableSinglePagePDF(isSub?"sbSubDivisionViewContainer":"sbDivisionViewContainer", isSub?"SB Sub-Division Wise Report":"SB Division Wise Report");
+}
+function posbExportViewPDF(){
+    const isSub=(document.getElementById("posbViewTypeSelect")||{}).value!=="div";
+    exportTableSinglePagePDF(isSub?"posbSubDivisionViewContainer":"posbDivisionViewContainer", isSub?"POSB Sub-Division Wise Report":"POSB Division Wise Report");
+}
 function exportSingleTableToPDF(t,e){const{jsPDF:o}=window.jspdf,n=new o("l","mm","a4");n.setFillColor(44,12,56),n.rect(0,0,297,18,"F"),n.setTextColor(255,255,255),n.setFontSize(12),n.setFont("helvetica","bold"),n.text("DEPARTMENT OF POSTS — REGIONAL OFFICE INDORE",12,11),n.setFontSize(9),n.setFont("helvetica","normal"),n.text(e.toUpperCase(),12,16),n.text("Report Date: "+getReportPrevDate(),247,12),n.autoTable({html:"#"+t,startY:22,margin:{top:22,right:10,bottom:14,left:10},theme:"grid",styles:{fontSize:8,cellPadding:2.5,valign:"middle",lineColor:[180,180,180],lineWidth:.2},headStyles:{fillColor:[247,202,172],textColor:[0,0,0],fontStyle:"bold",halign:"center"},footStyles:{fillColor:[247,202,172],textColor:[0,0,0],fontStyle:"bold"}}),n.save(e.replace(/\s+/g,"_")+"_Report.pdf"),logGeneratedReport(e+" (PDF)",()=>exportSingleTableToPDF(t,e))}
 const exportAllToPDF=()=>exportSingleTableToPDF("tableDivisionSummary","Summary Report");
 function getReportPrevDate(){let t=new Date;return t.setDate(t.getDate()-1),0===t.getDay()&&t.setDate(t.getDate()-1),String(t.getDate()).padStart(2,"0")+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+t.getFullYear()}
@@ -2998,6 +3189,8 @@ async function loadSbMasterData(){
     initSbDropdowns();
     updateSbSlotStatuses();
     updateSbCalcHint();
+    posbDivNameIndex=null;
+    if(document.getElementById("posbUploadsContainer")) renderPosbUploadSlots();
 }
 
 function initSbDropdowns(){
@@ -3275,6 +3468,462 @@ function exportSbCombinedExcel(){
 
 renderSbUploadSlots();
 loadSbMasterData();
+
+// ================= POSB (Product Wise A/C Report) Module =================
+// Uses the SAME sbOfficesByOfficeId / sbIdToOffices master mapping loaded above for
+// Office ID, BO ID/SOL ID, Sub-Division & Division — no separate master sheet needed.
+const POSB_SLOT_COUNT=7;
+let posbSlotData=new Array(POSB_SLOT_COUNT).fill(null), posbCombinedList=[], posbUnmatchedList=[],
+    posbCalculated=false, posbStale=false, posbDivNameIndex=null, posbQueue=Promise.resolve();
+const posbTick=()=>new Promise(r=>setTimeout(r,10));
+
+function posbNormName(s){
+    return String(s==null?"":s).toUpperCase()
+        .replace(/\(.*?\)/g,"")
+        .replace(/\bSUB\s*POST\s*OFFICE\b/g,"")
+        .replace(/\bHEAD\s*POST\s*OFFICE\b/g,"")
+        .replace(/\bBRANCH\s*OFFICE\b/g,"")
+        .replace(/\bS\.?\s*O\.?\b/g,"")
+        .replace(/\bH\.?\s*O\.?\b/g,"")
+        .replace(/\bB\.?\s*O\.?\b/g,"")
+        .replace(/[^A-Z0-9]/g,"");
+}
+// Class values in the master sheet are sometimes typed as "H.O"/"S.O"/"B.O" (with
+// dots/spaces) instead of "HO"/"SO"/"BO" — normalize before comparing so a stray dot
+// never silently drops an office (this was why some H.O rows were going missing).
+function posbClassNorm(c){ return String(c||"").toUpperCase().replace(/[^A-Z]/g,""); }
+function buildPosbDivNameIndex(){
+    posbDivNameIndex={};
+    Object.values(sbOfficesByOfficeId).forEach(o=>{
+        const d=o.division||"";
+        posbDivNameIndex[d]=posbDivNameIndex[d]||{};
+        const key=posbNormName(o.name);
+        if(key) posbDivNameIndex[d][key]=o;
+    });
+}
+
+// ---- Known old-name / renamed-office corrections for POSB matching ----
+// Left side: posbNormName() of the name as it appears in the uploaded "Product Wise
+// A/C Report" (old / colloquial name). Right side tells the matcher which current
+// master office that data actually belongs to. Add new rows here whenever another
+// renamed office shows up as UNMATCHED.
+//   exact: try this normalized name first (fast path)
+//   contains: if "exact" isn't found, pick the one master office (in the same
+//             division) whose normalized name contains ALL of these fragments
+const POSB_NAME_ALIASES={
+    "BIAORA":               {exact:"BIAORAMDG",            contains:["BIAORA","MDG"]},              // Biaora S.O -> Biaora MDG
+    "MHOW":                 {exact:"MHOWMDG",               contains:["MHOW","MDG"]},                 // Mhow S.O -> Mhow MDG
+    "RATLAMRLYCOLONY":      {exact:"RATLAMNEWCOLLECTORATE", contains:["RATLAM","COLLECTORATE"]},      // Ratlam Rly Colony S.O -> Ratlam New Collectorate (merged)
+    "SHRIRAMTEKRIMANDSAUR": {exact:"MANDSAURCOLLECTORATE",  contains:["MANDSAUR","COLLECTORATE"]},    // Shri Ramtekri Mandsaur S.O -> Mandsaur Collectorate S.O
+    "RADIOCOLONYINDORE":    {exact:"PALDA",                 contains:["PALDA"]},                      // Radio Colony Indore S.O -> Indore Palda S.O
+    "INDOREKHAJRANA":       {exact:"INDOREKANADIAROAD",     contains:["KANADIA"]},                    // Indore Khajrana S.O -> Indore Kanadia Road S.O (merged)
+    "KHAJRANA":             {exact:"INDOREKANADIAROAD",     contains:["KANADIA"]},                    // (in case "Indore" prefix is missing in the file)
+    "BAGHANANEEMUCH":       {exact:"NEEMUCHBAGHANA",        contains:["BAGHANA","NEEMUCH"]},          // Baghana Neemuch S.O <-> Neemuch Baghana S.O — same office, name order differs
+    "NEEMUCHBAGHANA":       {exact:"BAGHANANEEMUCH",        contains:["BAGHANA","NEEMUCH"]}
+};
+// Explicit Office-ID overrides — used when the name alone is too ambiguous/different
+// to rely on text matching at all.
+const POSB_ID_OVERRIDES={
+    "AUDYOGIKKSHETRAJAORA": "23660865"   // Audyogik Kshetra Jaora -> Office ID 23660865
+};
+// Rows whose name matches these fragments are not real S.O data for this report —
+// drop them silently (not matched, not shown as UNMATCHED either).
+const POSB_EXCLUDE_CONTAINS=["NODELDELIVERYCENTER","NODALDELIVERYCENTER"];
+
+function posbIsExcludedName(key){
+    return POSB_EXCLUDE_CONTAINS.some(frag=>key.includes(frag));
+}
+// Resolves a raw uploaded row name to a master office, using (in order):
+// 1) explicit Office-ID override, 2) exact name match in the file's own division,
+// 3) the known-alias table (exact guess, then "contains" fuzzy match) — first within
+// the file's own division, then (so a wrong/blank division pick doesn't cause a miss)
+// across every division in the master list.
+function posbResolveOffice(key, division){
+    const idOverride=POSB_ID_OVERRIDES[key];
+    if(idOverride && sbOfficesByOfficeId[idOverride]) return sbOfficesByOfficeId[idOverride];
+
+    // 1) exact normalized-name match — check the given division first (if any),
+    //    then every division in the master list (no division needs to be picked).
+    if(division && posbDivNameIndex && posbDivNameIndex[division] && posbDivNameIndex[division][key]) return posbDivNameIndex[division][key];
+    if(posbDivNameIndex){
+        for(const d in posbDivNameIndex){
+            if(posbDivNameIndex[d][key]) return posbDivNameIndex[d][key];
+        }
+    }
+
+    // 2) known-alias table (renamed / reordered office names) — exact guess first,
+    //    then fuzzy "contains" — searched across every division. The report-side key
+    //    doesn't always carry the same city prefix as the alias table (e.g. a file
+    //    may just say "Radio Colony S.O" instead of "Radio Colony Indore S.O"), so if
+    //    there's no exact alias-table entry for this key, look for an alias entry
+    //    whose key is a substring match either way before giving up.
+    let alias=POSB_NAME_ALIASES[key];
+    if(!alias){
+        const aliasKey=Object.keys(POSB_NAME_ALIASES).find(ak=>ak.length>=4 && key.length>=4 && (key.includes(ak)||ak.includes(key)));
+        if(aliasKey) alias=POSB_NAME_ALIASES[aliasKey];
+    }
+    if(alias && posbDivNameIndex){
+        for(const d in posbDivNameIndex){
+            const idx=posbDivNameIndex[d];
+            if(idx[alias.exact]) return idx[alias.exact];
+        }
+        for(const d in posbDivNameIndex){
+            const idx=posbDivNameIndex[d];
+            const hitKey=Object.keys(idx).find(k=>alias.contains.every(frag=>k.includes(frag)));
+            if(hitKey) return idx[hitKey];
+        }
+    }
+    return null;
+}
+function posbDivisionOptions(){
+    return [...new Set(Object.values(sbOfficesByOfficeId).map(o=>o.division))].filter(Boolean).sort();
+}
+function guessPosbDivision(fileName){
+    const opts=posbDivisionOptions();
+    const norm=s=>String(s||"").toUpperCase().replace(/[^A-Z]/g,"");
+    const fn=norm(fileName);
+    return opts.find(d=>fn.includes(norm(d)))||"";
+}
+
+// Finds the header row (the one containing a "NAME" column) — the sheet may have a
+// title row ("Product Wise A/C Report") above it. Numeric columns after NAME are read
+// positionally: [SB Open, SB Close, SB Total, Cert Issued, Cert Discharged, Cert Total, 3rd-product Open, Close, Total].
+function findPosbHeader(rows){
+    for(let r=0;r<Math.min(6,rows.length);r++){
+        const norm=(rows[r]||[]).map(h=>String(h||"").trim().toUpperCase());
+        const ni=norm.indexOf("NAME");
+        if(ni>=0){
+            const numCols=[]; for(let c=ni+1;c<norm.length;c++) numCols.push(c);
+            return {headerRowIdx:r, nameIdx:ni, numCols};
+        }
+    }
+    return null;
+}
+
+function parsePosbWorkbook(buf, fileName, division){
+    const wb=XLSX.read(buf,{type:"array"});
+    let rows=null;
+    for(const name of wb.SheetNames){
+        const r=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:""});
+        if(r && r.length>1){ rows=r; break; }
+    }
+    if(!rows) return {error:"Empty file", fileName};
+    const hdr=findPosbHeader(rows);
+    if(!hdr) return {error:'"NAME" column not found in this file', fileName};
+    const {headerRowIdx, nameIdx, numCols}=hdr;
+    const idx={sbOpen:numCols[0], sbClose:numCols[1], certIssued:numCols[3], certDischarged:numCols[4], rdOpen:numCols[6], rdClose:numCols[7]};
+    const matched=[], unmatched=[];
+    const num=v=>{ const n=parseFloat(String(v).replace(/,/g,"")); return isNaN(n)?0:n; };
+    let totalRows=0;
+    for(let r=headerRowIdx+1;r<rows.length;r++){
+        const row=rows[r]; if(!row||!row.length) continue;
+        const nameRaw=String(row[nameIdx]||"").trim();
+        if(!nameRaw) continue;
+        if(/^(GRAND\s*)?TOTAL\s*:?$/i.test(nameRaw)) continue;
+        totalRows++;
+        const sbOpen=num(row[idx.sbOpen]), sbClose=num(row[idx.sbClose]),
+              certIssued=num(row[idx.certIssued]), certDischarged=num(row[idx.certDischarged]),
+              rdOpen=num(row[idx.rdOpen]), rdClose=num(row[idx.rdClose]);
+        const key=posbNormName(nameRaw);
+        if(posbIsExcludedName(key)) continue;
+        const off=posbResolveOffice(key, division);
+        const rec={rawName:nameRaw, sbOpen, sbClose, certIssued, certDischarged, rdOpen, rdClose};
+        if(off) matched.push({office:off, ...rec}); else unmatched.push(rec);
+    }
+    return {fileName, division, matched, unmatched, totalRows};
+}
+
+function renderPosbUploadSlots(){
+    const c=document.getElementById("posbUploadsContainer");
+    if(!c) return;
+    c.innerHTML=Array.from({length:POSB_SLOT_COUNT},(_,i)=>`
+        <div id="posbDropZone_${i}" class="flex items-center gap-2 bg-white border border-purple-200 border-dashed rounded-lg px-3 py-2 transition">
+            <div class="flex-1 min-w-0"><div id="posbName${i}" class="text-xs font-bold text-slate-600 truncate">📁 File ${i+1}</div></div>
+            <label class="cursor-pointer bg-purple-700 hover:bg-purple-800 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow shrink-0">📤 Upload<input type="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="handlePosbFileUpload(${i}, this)"></label>
+            <span id="posbStatus${i}" class="text-[11px] text-slate-500 font-medium min-w-[130px] text-right leading-tight">Pending</span>
+            <button id="posbClear${i}" onclick="clearPosbSlot(${i})" title="Remove this file" class="hidden text-slate-400 hover:text-rose-700 font-bold text-sm leading-none px-1 cursor-pointer">✕</button>
+        </div>`).join("");
+    updatePosbSlotStatuses();
+}
+function handlePosbFileUpload(i, inputEl){ const file=inputEl.files[0]; inputEl.value=""; if(file) addPosbFiles([file], i); }
+function handlePosbBulkSelect(inputEl){ const files=Array.from(inputEl.files||[]); inputEl.value=""; if(files.length) addPosbFiles(files, null); }
+function handlePosbBulkDragOver(e){ e.preventDefault(); e.stopPropagation(); const z=document.getElementById("posbBulkZone"); if(z) z.classList.add("ring-2","ring-offset-1","ring-purple-500","bg-slate-50"); }
+function handlePosbBulkDragLeave(e){ e.preventDefault(); e.stopPropagation(); const z=document.getElementById("posbBulkZone"); if(z) z.classList.remove("ring-2","ring-offset-1","ring-purple-500","bg-slate-50"); }
+function handlePosbBulkDrop(e){ e.preventDefault(); e.stopPropagation(); handlePosbBulkDragLeave(e); const files=e.dataTransfer&&e.dataTransfer.files; if(files&&files.length) addPosbFiles(Array.from(files), null); }
+
+function addPosbFiles(fileList, startSlot){
+    const files=Array.from(fileList).filter(f=>/\.(xlsx|xls|csv)$/i.test(f.name));
+    if(!files.length) return alert("Please select Excel / CSV files (.xlsx, .xls, .csv).");
+    posbQueue=posbQueue.then(()=>doAddPosbFiles(files, startSlot)).catch(err=>console.error(err));
+}
+async function doAddPosbFiles(files, startSlot){
+    let targets=[];
+    if(startSlot!==null && startSlot!==undefined && files.length===1) targets=[startSlot];
+    else for(let i=0;i<POSB_SLOT_COUNT && targets.length<files.length;i++) if(!posbSlotData[i]) targets.push(i);
+    const skipped=files.length-targets.length;
+    const use=files.slice(0,targets.length);
+    const setMsg=(slot,txt)=>{ const el=document.getElementById(`posbStatus${slot}`); if(el){ el.className="text-[11px] font-medium min-w-[130px] text-right leading-tight text-slate-500"; el.textContent=txt; } };
+    use.forEach((f,k)=>{ setMsg(targets[k],"⏳ Queued"); const nm=document.getElementById(`posbName${targets[k]}`); if(nm) nm.textContent="📄 "+f.name; });
+    const buffers=await Promise.all(use.map(f=>f.arrayBuffer().catch(()=>null)));
+    if(!posbDivNameIndex) buildPosbDivNameIndex();
+    for(let k=0;k<use.length;k++){
+        const slot=targets[k];
+        setMsg(slot,"🔄 Reading..."); await posbTick();
+        posbSlotData[slot]={fileName:use[k].name, buffer:buffers[k]};
+    }
+    updatePosbSlotStatuses();
+    markPosbStale();
+    if(skipped>0) alert(`Only ${POSB_SLOT_COUNT} files are allowed — ${skipped} extra file(s) were skipped. Remove a file with ✕ to free a slot.`);
+}
+function clearPosbSlot(i){
+    posbSlotData[i]=null;
+    updatePosbSlotStatuses(); markPosbStale();
+}
+function updatePosbSlotStatuses(){
+    posbSlotData.forEach((slot,i)=>{
+        const el=document.getElementById(`posbStatus${i}`), nm=document.getElementById(`posbName${i}`), clr=document.getElementById(`posbClear${i}`);
+        if(!el) return;
+        const base="text-[11px] font-medium min-w-[130px] text-right leading-tight ";
+        if(!slot){ el.className=base+"text-slate-500"; el.textContent="Pending"; if(nm){nm.textContent=`📁 File ${i+1}`; nm.title="";} if(clr) clr.classList.add("hidden"); return; }
+        if(nm){ nm.textContent="📄 "+slot.fileName; nm.title=slot.fileName; }
+        if(clr) clr.classList.remove("hidden");
+        el.className=base+"text-emerald-800 font-bold"; el.textContent="✅ Ready";
+    });
+}
+function markPosbStale(){ if(posbCalculated) posbStale=true; updatePosbCalcHint(); }
+function updatePosbCalcHint(){
+    const el=document.getElementById("posbCalcHint"), btn=document.getElementById("posbBtnCalculate");
+    if(!el) return;
+    const n=posbSlotData.filter(Boolean).length;
+    let txt=`📥 ${n}/${POSB_SLOT_COUNT} files uploaded`;
+    if(posbStale){ txt+=" — ⚠️ Uploads changed, press Calculate again"; el.className="text-xs font-bold text-amber-700"; }
+    else if(posbCalculated){ txt+=" — ✅ Report is up to date"; el.className="text-xs font-bold text-emerald-700"; }
+    else el.className="text-xs font-semibold text-slate-500";
+    el.textContent=txt;
+    if(btn) btn.innerHTML=posbCalculated?"🧮 Recalculate Report":"🧮 Calculate Report";
+}
+
+async function calculatePosbReport(){
+    if(!Object.keys(sbOfficesByOfficeId).length) return alert("Master list is not loaded yet. Please wait for 'SB Master Synced' and try again.");
+    const filled=posbSlotData.map((s,i)=>({s,i})).filter(x=>x.s);
+    if(!filled.length) return alert("Please upload Product Wise A/C Report files first.");
+    const btn=document.getElementById("posbBtnCalculate");
+    if(btn){ btn.disabled=true; btn.textContent="🔄 Calculating..."; }
+    await posbTick();
+    try{
+        if(!posbDivNameIndex) buildPosbDivNameIndex();
+        const byOffice={}; const unmatchedArr=[];
+        let totalFileRows=0, totalFileOpen=0;
+        filled.forEach(({s})=>{
+            // Match within the file's own (filename-guessed) Division first — this avoids
+            // two same-named offices in different Divisions stealing each other's data —
+            // then fall back to the full master list so a wrong/blank guess still works.
+            const hintDiv=guessPosbDivision(s.fileName);
+            const parsed=parsePosbWorkbook(s.buffer, s.fileName, hintDiv);
+            if(parsed.error){ alert(`${s.fileName}: ${parsed.error}`); return; }
+            totalFileRows+=parsed.totalRows;
+            parsed.matched.forEach(m=>{
+                totalFileOpen+=m.sbOpen;
+                const oid=m.office.officeId;
+                if(!byOffice[oid]) byOffice[oid]={office:m.office, sbOpen:0, sbClose:0, certIssued:0, certDischarged:0, rdOpen:0, rdClose:0};
+                const b=byOffice[oid];
+                b.sbOpen+=m.sbOpen; b.sbClose+=m.sbClose; b.certIssued+=m.certIssued; b.certDischarged+=m.certDischarged; b.rdOpen+=m.rdOpen; b.rdClose+=m.rdClose;
+            });
+            parsed.unmatched.forEach(u=>{ totalFileOpen+=u.sbOpen; unmatchedArr.push({...u, fileName:s.fileName}); });
+        });
+        const unmatchedList=unmatchedArr;
+        // Only SO and HO offices belong in this report (matches the full Excel total,
+        // which includes H.O rows like "Dewas H.O" / "Dhar H.O"). Every SO/HO in the
+        // master list gets a row — if a file had no data for it, it is taken as 0 (not
+        // dropped). BO offices are never expected here, so they are not added.
+        posbCombinedList=Object.values(sbOfficesByOfficeId).filter(o=>{ const c=posbClassNorm(o.class); return c==="SO"||c==="HO"; }).map(o=>{
+            const r=byOffice[o.officeId];
+            const sbOpen=r?r.sbOpen:0, sbClose=r?r.sbClose:0,
+                  certIssued=r?r.certIssued:0, certDischarged=r?r.certDischarged:0,
+                  rdOpen=r?r.rdOpen:0, rdClose=r?r.rdClose:0;
+            return {
+                officeId:o.officeId, boId:(o.ids&&o.ids[0])||"", name:o.name, class:o.class, sd:o.sd, division:o.division,
+                sbOpen, sbClose, sbNet:sbOpen-sbClose,
+                certIssued, certDischarged, certNet:certIssued-certDischarged,
+                rdOpen, rdClose, rdNet:rdOpen-rdClose
+            };
+        });
+        // Safety net: a report row can match a real master office whose Class field
+        // isn't (or isn't spelt) SO/HO — that data must still reach the total instead
+        // of silently vanishing, so any matched office missed by the SO/HO filter above
+        // is still added here (labelled with its actual class, so it's visible, not hidden).
+        const includedIds=new Set(posbCombinedList.map(r=>r.officeId));
+        Object.values(byOffice).forEach(r=>{
+            if(includedIds.has(r.office.officeId)) return;
+            posbCombinedList.push({
+                officeId:r.office.officeId, boId:(r.office.ids&&r.office.ids[0])||"", name:r.office.name+" (class: "+(r.office.class||"?")+")", class:r.office.class||"?", sd:r.office.sd, division:r.office.division,
+                sbOpen:r.sbOpen, sbClose:r.sbClose, sbNet:r.sbOpen-r.sbClose,
+                certIssued:r.certIssued, certDischarged:r.certDischarged, certNet:r.certIssued-r.certDischarged,
+                rdOpen:r.rdOpen, rdClose:r.rdClose, rdNet:r.rdOpen-r.rdClose
+            });
+        });
+        unmatchedList.forEach((u,i)=>{
+            posbCombinedList.push({officeId:"UNMATCHED-"+i, boId:"", name:u.rawName+" (UNMATCHED)", class:"BO", sd:"UNKNOWN SD", division:"NOT IN QC LIST",
+                sbOpen:u.sbOpen, sbClose:u.sbClose, sbNet:u.sbOpen-u.sbClose,
+                certIssued:u.certIssued, certDischarged:u.certDischarged, certNet:u.certIssued-u.certDischarged,
+                rdOpen:u.rdOpen, rdClose:u.rdClose, rdNet:u.rdOpen-u.rdClose});
+        });
+        posbUnmatchedList=unmatchedList;
+        posbCalculated=true; posbStale=false;
+        initPosbDropdowns();
+        renderPosbSubDivisionTable(); renderPosbDivisionTable(); renderPosbOfficeTable();
+        updatePosbKpis();
+        renderPosbReconciliation(totalFileRows, totalFileOpen, Object.keys(byOffice).length, unmatchedList);
+    }catch(err){ console.error(err); alert("Calculation failed: "+err.message); }
+    if(btn) btn.disabled=false;
+    updatePosbCalcHint();
+}
+
+function renderPosbReconciliation(totalFileRows, totalFileOpen, matchedOfficeCount, unmatchedList){
+    const bar=document.getElementById("posbReconBar");
+    if(bar) bar.classList.remove("hidden");
+    const portalOpen=posbCombinedList.reduce((s,r)=>s+r.sbOpen,0);
+    const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=(typeof v==="number"?v.toLocaleString("en-IN"):v); };
+    set("posbReconRows",totalFileRows);
+    set("posbReconMatched",matchedOfficeCount);
+    set("posbReconUnmatched",unmatchedList.length);
+    set("posbReconOpenFile",totalFileOpen);
+    set("posbReconOpenPortal",portalOpen);
+    const mismatchTag=document.getElementById("posbReconMismatchTag"), okTag=document.getElementById("posbReconOkTag");
+    const matches=totalFileOpen===portalOpen;
+    if(mismatchTag) mismatchTag.classList.toggle("hidden", matches);
+    if(okTag) okTag.classList.toggle("hidden", !matches);
+
+    const panel=document.getElementById("posbUnmatchedPanel"), tbody=document.querySelector("#tablePosbUnmatched tbody");
+    if(panel && tbody){
+        if(!unmatchedList.length){ panel.classList.add("hidden"); tbody.innerHTML=""; }
+        else{
+            panel.classList.remove("hidden");
+            tbody.innerHTML=unmatchedList.map((u,i)=>`<tr class="hover:bg-rose-100/50"><td>${i+1}</td><td class="text-[11px]">${u.fileName}</td><td style="text-align:left" class="font-semibold text-rose-900">${u.rawName}</td><td>${u.sbOpen.toLocaleString("en-IN")}</td><td>${u.sbClose.toLocaleString("en-IN")}</td><td>${u.certIssued.toLocaleString("en-IN")}</td><td>${u.certDischarged.toLocaleString("en-IN")}</td><td>${u.rdOpen.toLocaleString("en-IN")}</td><td>${u.rdClose.toLocaleString("en-IN")}</td></tr>`).join("");
+        }
+    }
+    if(unmatchedList.length) alert(`${unmatchedList.length} office name(s) could not be matched to the master list (name spelling mismatch). See the "Unmatched Offices" panel above the Division view — their data is still in the Grand Total, but NOT in their real Division's total until the spelling is fixed.`);
+}
+
+function updatePosbKpis(){
+    let off=posbCombinedList.length, sbNet=0, certNet=0, rdNet=0;
+    posbCombinedList.forEach(r=>{ sbNet+=r.sbNet; certNet+=r.certNet; rdNet+=r.rdNet; });
+    const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v.toLocaleString("en-IN"); };
+    set("posbKpiOffices",off); set("posbKpiSbNet",sbNet); set("posbKpiCertNet",certNet); set("posbKpiRdNet",rdNet);
+}
+function initPosbDropdowns(){
+    const divisions=[...new Set(posbCombinedList.map(r=>r.division))].filter(Boolean).sort();
+    const sel=document.getElementById("posbOfficeFilterDiv");
+    if(sel) sel.innerHTML='<option value="All">All Divisions</option>'+divisions.map(d=>`<option value="${d}">${d}</option>`).join("");
+    const clsSel=document.getElementById("posbOfficeFilterClass");
+    const classes=[...new Set(posbCombinedList.map(r=>r.class))].filter(Boolean).sort();
+    if(clsSel) clsSel.innerHTML='<option value="All">All Classes</option>'+classes.map(c=>`<option value="${c}">${c}</option>`).join("");
+    onPosbDivisionFilterChange();
+}
+function onPosbDivisionFilterChange(){
+    const divEl=document.getElementById("posbOfficeFilterDiv"), sdSel=document.getElementById("posbOfficeFilterSd");
+    if(!divEl||!sdSel) return;
+    const div=divEl.value;
+    const sds=[...new Set(posbCombinedList.filter(t=>div==="All"||t.division===div).map(t=>t.sd))].filter(Boolean).sort();
+    sdSel.innerHTML='<option value="All">All Sub Divisions</option>'+sds.map(s=>`<option value="${s}">${s}</option>`).join("");
+    renderPosbOfficeTable();
+}
+function togglePosbViewType(){
+    const v=document.getElementById("posbViewTypeSelect").value;
+    document.getElementById("posbSubDivisionViewContainer").classList.toggle("hidden", v!=="sub");
+    document.getElementById("posbDivisionViewContainer").classList.toggle("hidden", v!=="div");
+}
+function resetPosbData(){
+    posbSlotData=new Array(POSB_SLOT_COUNT).fill(null);
+    posbCombinedList=[]; posbUnmatchedList=[]; posbCalculated=false; posbStale=false;
+    renderPosbUploadSlots();
+    renderPosbSubDivisionTable(); renderPosbDivisionTable(); renderPosbOfficeTable();
+    updatePosbKpis(); updatePosbCalcHint();
+    const bar=document.getElementById("posbReconBar"); if(bar) bar.classList.add("hidden");
+    const panel=document.getElementById("posbUnmatchedPanel"); if(panel) panel.classList.add("hidden");
+}
+
+function renderPosbSubDivisionTable(){
+    const tbody=document.querySelector("#tablePosbSubDivision tbody"), tfoot=document.querySelector("#tablePosbSubDivision tfoot");
+    if(!tbody) return;
+    if(!posbCombinedList.length){ tbody.innerHTML='<tr><td colspan="13" class="py-8 text-center text-slate-400 font-medium">Please upload Product Wise A/C Report files and press Calculate.</td></tr>'; if(tfoot) tfoot.innerHTML=""; return; }
+    const bySd={};
+    posbCombinedList.forEach(r=>{
+        const key=r.division+"||"+r.sd;
+        if(!bySd[key]) bySd[key]={division:r.division, sd:r.sd, offices:0, sbOpen:0, sbClose:0, certIssued:0, certDischarged:0, rdOpen:0, rdClose:0};
+        const t=bySd[key]; t.offices++; t.sbOpen+=r.sbOpen; t.sbClose+=r.sbClose; t.certIssued+=r.certIssued; t.certDischarged+=r.certDischarged; t.rdOpen+=r.rdOpen; t.rdClose+=r.rdClose;
+    });
+    const byDiv={};
+    Object.values(bySd).forEach(t=>{ byDiv[t.division]=byDiv[t.division]||[]; byDiv[t.division].push(t); });
+    let sn=1, g={offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0};
+    tbody.innerHTML="";
+    Object.entries(byDiv).forEach(([div,rowsArr])=>{
+        let d={offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0}; const cls=divClassMap[div]||"div-bg-not-in-qc";
+        rowsArr.sort((a,b)=>a.sd.localeCompare(b.sd)).forEach(row=>{
+            Object.keys(d).forEach(k=>d[k]+=row[k]);
+            const sbNet=row.sbOpen-row.sbClose, certNet=row.certIssued-row.certDischarged, rdNet=row.rdOpen-row.rdClose;
+            const tr=document.createElement("tr");
+            tr.innerHTML=`<td>${sn++}</td><td class="${cls}">${div}</td><td style="text-align:left;font-weight:600;">${row.sd}</td><td>${row.offices}</td><td class="font-bold text-emerald-800">${row.sbOpen.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${row.sbClose.toLocaleString("en-IN")}</td><td class="font-bold ${sbNet>=0?"text-blue-900":"text-rose-700"}">${sbNet.toLocaleString("en-IN")}</td><td class="font-bold text-emerald-800">${row.certIssued.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${row.certDischarged.toLocaleString("en-IN")}</td><td class="font-bold ${certNet>=0?"text-blue-900":"text-rose-700"}">${certNet.toLocaleString("en-IN")}</td><td class="font-bold text-emerald-800">${row.rdOpen.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${row.rdClose.toLocaleString("en-IN")}</td><td class="font-bold ${rdNet>=0?"text-blue-900":"text-rose-700"}">${rdNet.toLocaleString("en-IN")}</td>`;
+            tbody.appendChild(tr);
+        });
+        Object.keys(g).forEach(k=>g[k]+=d[k]);
+        const sbNet=d.sbOpen-d.sbClose, certNet=d.certIssued-d.certDischarged, rdNet=d.rdOpen-d.rdClose;
+        const trT=document.createElement("tr"); trT.className="row-div-total";
+        trT.innerHTML=`<td colspan="3">${div} Total</td><td>${d.offices}</td><td>${d.sbOpen.toLocaleString("en-IN")}</td><td>${d.sbClose.toLocaleString("en-IN")}</td><td>${sbNet.toLocaleString("en-IN")}</td><td>${d.certIssued.toLocaleString("en-IN")}</td><td>${d.certDischarged.toLocaleString("en-IN")}</td><td>${certNet.toLocaleString("en-IN")}</td><td>${d.rdOpen.toLocaleString("en-IN")}</td><td>${d.rdClose.toLocaleString("en-IN")}</td><td>${rdNet.toLocaleString("en-IN")}</td>`;
+        tbody.appendChild(trT);
+    });
+    const gSbNet=g.sbOpen-g.sbClose, gCertNet=g.certIssued-g.certDischarged, gRdNet=g.rdOpen-g.rdClose;
+    if(tfoot) tfoot.innerHTML=`<tr class="row-grand-total"><td colspan="3">Grand Total</td><td>${g.offices}</td><td>${g.sbOpen.toLocaleString("en-IN")}</td><td>${g.sbClose.toLocaleString("en-IN")}</td><td>${gSbNet.toLocaleString("en-IN")}</td><td>${g.certIssued.toLocaleString("en-IN")}</td><td>${g.certDischarged.toLocaleString("en-IN")}</td><td>${gCertNet.toLocaleString("en-IN")}</td><td>${g.rdOpen.toLocaleString("en-IN")}</td><td>${g.rdClose.toLocaleString("en-IN")}</td><td>${gRdNet.toLocaleString("en-IN")}</td></tr>`;
+}
+
+function renderPosbDivisionTable(){
+    const tbody=document.querySelector("#tablePosbDivision tbody"), tfoot=document.querySelector("#tablePosbDivision tfoot");
+    if(!tbody) return;
+    if(!posbCombinedList.length){ tbody.innerHTML='<tr><td colspan="12" class="py-8 text-center text-slate-400 font-medium">Please upload Product Wise A/C Report files and press Calculate.</td></tr>'; if(tfoot) tfoot.innerHTML=""; return; }
+    const byDiv={};
+    posbCombinedList.forEach(r=>{
+        byDiv[r.division]=byDiv[r.division]||{offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0};
+        const d=byDiv[r.division]; d.offices++; d.sbOpen+=r.sbOpen; d.sbClose+=r.sbClose; d.certIssued+=r.certIssued; d.certDischarged+=r.certDischarged; d.rdOpen+=r.rdOpen; d.rdClose+=r.rdClose;
+    });
+    let sn=1, g={offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0};
+    tbody.innerHTML=Object.entries(byDiv).map(([div,d])=>{
+        Object.keys(g).forEach(k=>g[k]+=d[k]);
+        const sbNet=d.sbOpen-d.sbClose, certNet=d.certIssued-d.certDischarged, rdNet=d.rdOpen-d.rdClose; const cls=divClassMap[div]||"div-bg-not-in-qc";
+        return `<tr><td>${sn++}</td><td class="${cls}">${div}</td><td>${d.offices}</td><td class="font-bold text-emerald-800">${d.sbOpen.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${d.sbClose.toLocaleString("en-IN")}</td><td class="font-bold ${sbNet>=0?"text-blue-900":"text-rose-700"}">${sbNet.toLocaleString("en-IN")}</td><td class="font-bold text-emerald-800">${d.certIssued.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${d.certDischarged.toLocaleString("en-IN")}</td><td class="font-bold ${certNet>=0?"text-blue-900":"text-rose-700"}">${certNet.toLocaleString("en-IN")}</td><td class="font-bold text-emerald-800">${d.rdOpen.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${d.rdClose.toLocaleString("en-IN")}</td><td class="font-bold ${rdNet>=0?"text-blue-900":"text-rose-700"}">${rdNet.toLocaleString("en-IN")}</td></tr>`;
+    }).join("");
+    const gSbNet=g.sbOpen-g.sbClose, gCertNet=g.certIssued-g.certDischarged, gRdNet=g.rdOpen-g.rdClose;
+    if(tfoot) tfoot.innerHTML=`<tr class="row-grand-total"><td colspan="2">Grand Total</td><td>${g.offices}</td><td>${g.sbOpen.toLocaleString("en-IN")}</td><td>${g.sbClose.toLocaleString("en-IN")}</td><td>${gSbNet.toLocaleString("en-IN")}</td><td>${g.certIssued.toLocaleString("en-IN")}</td><td>${g.certDischarged.toLocaleString("en-IN")}</td><td>${gCertNet.toLocaleString("en-IN")}</td><td>${g.rdOpen.toLocaleString("en-IN")}</td><td>${g.rdClose.toLocaleString("en-IN")}</td><td>${gRdNet.toLocaleString("en-IN")}</td></tr>`;
+}
+
+function renderPosbOfficeTable(){
+    const tbody=document.querySelector("#tablePosbOffice tbody");
+    if(!tbody) return;
+    const divEl=document.getElementById("posbOfficeFilterDiv"), sdEl=document.getElementById("posbOfficeFilterSd"), clsEl=document.getElementById("posbOfficeFilterClass");
+    const div=divEl?divEl.value:"All", sd=sdEl?sdEl.value:"All", cls=clsEl?clsEl.value:"All";
+    let list=posbCombinedList.filter(r=>(div==="All"||r.division===div)&&(sd==="All"||r.sd===sd)&&(cls==="All"||r.class===cls));
+    if(!list.length){ tbody.innerHTML=`<tr><td colspan="16" class="py-8 text-center text-slate-400 font-medium">${posbCombinedList.length?"No matching offices found.":"Please upload Product Wise A/C Report files and press Calculate."}</td></tr>`; return; }
+    list=list.slice().sort((a,b)=>a.division.localeCompare(b.division)||a.sd.localeCompare(b.sd)||a.name.localeCompare(b.name));
+    tbody.innerHTML=list.map((r,i)=>`<tr class="hover:bg-slate-50"><td>${i+1}</td><td class="font-mono text-purple-950 font-bold">${r.officeId}</td><td class="font-mono">${r.boId}</td><td style="text-align:left" class="font-semibold">${r.name}</td><td><span class="bg-purple-100 text-purple-950 px-2 py-0.5 rounded font-bold">${r.class}</span></td><td>${r.sd}</td><td>${r.division}</td><td class="font-bold text-emerald-800">${r.sbOpen.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${r.sbClose.toLocaleString("en-IN")}</td><td class="font-bold ${r.sbNet>=0?"text-blue-900":"text-rose-700"}">${r.sbNet.toLocaleString("en-IN")}</td><td class="font-bold text-emerald-800">${r.certIssued.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${r.certDischarged.toLocaleString("en-IN")}</td><td class="font-bold ${r.certNet>=0?"text-blue-900":"text-rose-700"}">${r.certNet.toLocaleString("en-IN")}</td><td class="font-bold text-emerald-800">${r.rdOpen.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${r.rdClose.toLocaleString("en-IN")}</td><td class="font-bold ${r.rdNet>=0?"text-blue-900":"text-rose-700"}">${r.rdNet.toLocaleString("en-IN")}</td></tr>`).join("");
+}
+
+function exportPosbCombinedExcel(){
+    if(!posbCombinedList.length) return alert("Please upload Product Wise A/C Report files first.");
+    const wb=XLSX.utils.book_new();
+    const byDiv={};
+    posbCombinedList.forEach(r=>{ byDiv[r.division]=byDiv[r.division]||{offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0}; const d=byDiv[r.division]; d.offices++; d.sbOpen+=r.sbOpen; d.sbClose+=r.sbClose; d.certIssued+=r.certIssued; d.certDischarged+=r.certDischarged; d.rdOpen+=r.rdOpen; d.rdClose+=r.rdClose; });
+    const divRows=Object.entries(byDiv).map(([div,d])=>({Division:div,"Total Offices":d.offices,"SB Open":d.sbOpen,"SB Close":d.sbClose,"SB Net":d.sbOpen-d.sbClose,"Cert Issued":d.certIssued,"Cert Discharged":d.certDischarged,"Cert Net":d.certIssued-d.certDischarged,"RD Open":d.rdOpen,"RD Close":d.rdClose,"RD Net":d.rdOpen-d.rdClose}));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(divRows), "Division_Wise");
+    const bySd={};
+    posbCombinedList.forEach(r=>{ const key=r.division+"||"+r.sd; bySd[key]=bySd[key]||{division:r.division,sd:r.sd,offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0}; const t=bySd[key]; t.offices++; t.sbOpen+=r.sbOpen; t.sbClose+=r.sbClose; t.certIssued+=r.certIssued; t.certDischarged+=r.certDischarged; t.rdOpen+=r.rdOpen; t.rdClose+=r.rdClose; });
+    const sdRows=Object.values(bySd).map(t=>({Division:t.division,"Sub Division":t.sd,"Total Offices":t.offices,"SB Open":t.sbOpen,"SB Close":t.sbClose,"SB Net":t.sbOpen-t.sbClose,"Cert Issued":t.certIssued,"Cert Discharged":t.certDischarged,"Cert Net":t.certIssued-t.certDischarged,"RD Open":t.rdOpen,"RD Close":t.rdClose,"RD Net":t.rdOpen-t.rdClose}));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sdRows), "SubDivision_Wise");
+    const offRows=posbCombinedList.map((r,i)=>({"S.No":i+1,"Office ID":r.officeId,"BO ID/SOL ID":r.boId,"Office Name":r.name,Class:r.class,"Sub Division":r.sd,Division:r.division,"SB Open":r.sbOpen,"SB Close":r.sbClose,"SB Net":r.sbNet,"Cert Issued":r.certIssued,"Cert Discharged":r.certDischarged,"Cert Net":r.certNet,"RD Open":r.rdOpen,"RD Close":r.rdClose,"RD Net":r.rdNet}));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(offRows), "Office_Wise");
+    XLSX.writeFile(wb, "POSB_Product_Wise_Report_3_Sheets.xlsx");
+    logGeneratedReport("POSB Product Wise A/C Report (3 Sheets)",()=>exportPosbCombinedExcel());
+}
+
+renderPosbUploadSlots();
 </script>
 </body>
 </html>
