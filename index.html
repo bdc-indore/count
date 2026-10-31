@@ -203,7 +203,7 @@
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <button onclick="exportPmegpExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel (All Views)</button>
-                    <button onclick='exportSingleTableToPDF("tablePmegpDivision","PMEGP Division Report")' class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
+                    <button onclick='exportPmegpPDF()' class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button>
                     <button onclick='exportTableJPEG("pmegpTableContainer","PMEGP_Inspection_Report")' class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button>
                 </div>
             </div>
@@ -225,6 +225,7 @@
                         <div class="inline-flex rounded-lg border border-purple-300 p-0.5 bg-purple-50">
                             <button onclick='switchPmegpView("division")' id="btnPmegpViewDiv" class="px-3 py-1.5 text-xs font-bold rounded-md bg-[#31103f] text-white shadow">Division Wise List</button>
                             <button onclick='switchPmegpView("inspector")' id="btnPmegpViewInsp" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60">Inspected By List</button>
+                            <button onclick='switchPmegpView("month")' id="btnPmegpViewMonth" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60">Month Wise Inspections</button>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 flex-wrap">
@@ -316,6 +317,19 @@
                             </tr>
                         </thead>
                         <tbody><tr><td colspan="7" class="py-8 text-center text-slate-400 font-medium">Please upload PMEGP inspected excel file.</td></tr></tbody>
+                        <tfoot></tfoot>
+                    </table>
+                </div>
+
+                <!-- Month Wise View -->
+                <div id="pmegpMonthView" class="overflow-x-auto p-1 hidden">
+                    <div class="text-center mb-3">
+                        <h2 class="text-lg font-extrabold text-[#31103f]">PMEGP Division-Wise Month-Wise Units Inspected Report</h2>
+                        <p class="text-xs text-slate-500">Month = Inspected Date of uploaded file. Click any count to view unit details.</p>
+                    </div>
+                    <table class="nil-table" id="tablePmegpMonth">
+                        <thead></thead>
+                        <tbody><tr><td class="py-8 text-center text-slate-400 font-medium">Please upload PMEGP inspected excel file.</td></tr></tbody>
                         <tfoot></tfoot>
                     </table>
                 </div>
@@ -2249,12 +2263,108 @@ function processPmegpData(){
     renderPmegpViews();
 }
 
+let pmegpCurrentView="division";
 function switchPmegpView(t){
-    const e="division"===t;
-    document.getElementById("pmegpDivisionView").classList.toggle("hidden",!e),
-    document.getElementById("pmegpInspectorView").classList.toggle("hidden",e),
-    document.getElementById("btnPmegpViewDiv").className=e?"px-3 py-1.5 text-xs font-bold rounded-md bg-[#31103f] text-white shadow":"px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60",
-    document.getElementById("btnPmegpViewInsp").className=e?"px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60":"px-3 py-1.5 text-xs font-bold rounded-md bg-[#31103f] text-white shadow"
+    pmegpCurrentView=t;
+    const on="px-3 py-1.5 text-xs font-bold rounded-md bg-[#31103f] text-white shadow",off="px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60";
+    [["division","pmegpDivisionView","btnPmegpViewDiv"],["inspector","pmegpInspectorView","btnPmegpViewInsp"],["month","pmegpMonthView","btnPmegpViewMonth"]].forEach(([k,v,b])=>{
+        document.getElementById(v).classList.toggle("hidden",k!==t);
+        document.getElementById(b).className=k===t?on:off;
+    });
+}
+
+function exportPmegpPDF(){
+    const m={division:["tablePmegpDivision","PMEGP Division Report"],inspector:["tablePmegpInspector","PMEGP Inspector Report"],month:["tablePmegpMonth","PMEGP Month Wise Inspection Report"]}[pmegpCurrentView];
+    exportSingleTableToPDF(m[0],m[1]);
+}
+
+const PMEGP_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function pmegpParseDate(v){
+    if(v===null||v===undefined||v==="")return null;
+    let d=null;
+    const ok=(y,m,dd)=>{if(y<100)y+=2000;const x=new Date(y,m-1,dd);return(y>=2000&&y<=2100&&x.getMonth()===m-1&&x.getDate()===dd)?x:null};
+    if(v instanceof Date){return isNaN(v)?null:new Date(v.getFullYear(),v.getMonth(),v.getDate())}
+    if(typeof v==="number"){if(v>20000&&v<80000){const x=new Date(Math.round((v-25569)*864e5));return new Date(x.getUTCFullYear(),x.getUTCMonth(),x.getUTCDate())}return null}
+    const t=String(v).trim();if(!t||t==="-")return null;
+    let m;
+    if(m=t.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))return ok(+m[1],+m[2],+m[3]);
+    if(m=t.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))return ok(+m[3],+m[2],+m[1]);
+    if(m=t.match(/^(\d{1,2})[-\/ ]([A-Za-z]{3})[a-z]*[-\/ ,]*(\d{2,4})/)){const mi=PMEGP_MON.findIndex(x=>x.toLowerCase()===m[2].toLowerCase());if(mi>-1)return ok(+m[3],mi+1,+m[1])}
+    if(m=t.match(/^[A-Za-z]{3}\s+([A-Za-z]{3})\s+(\d{1,2})\s+(\d{4})/)){const mi=PMEGP_MON.findIndex(x=>x.toLowerCase()===m[1].toLowerCase());if(mi>-1)return ok(+m[3],mi+1,+m[2])}
+    if(/^\d{5}$/.test(t))return pmegpParseDate(Number(t));
+    const x=new Date(t);return isNaN(x)?null:new Date(x.getFullYear(),x.getMonth(),x.getDate());
+}
+function pmegpFmtDate(d){return String(d.getDate()).padStart(2,"0")+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+d.getFullYear()}
+function pmegpMonthLabel(ym){const[y,m]=ym.split("-");return PMEGP_MON[+m-1]+"-"+y}
+
+function getPmegpMonthData(){
+    const selReg=document.getElementById("pmegpFilterRegion").value,selDiv=document.getElementById("pmegpFilterDivision").value;
+    const divs={},months=new Set();let noDate=false;
+    pmegpUploadedRaw.forEach(r=>{
+        const master=pmegpMasterMap[r.unitId.toUpperCase()]||pmegpMasterNormalizedMap[cleanUnitId(r.unitId)];
+        let dn=master?master.division:normalizeDivName(r.fileDiv),rg=master?master.region:(dn==="NOT IN QC LIST"?"HQ":"INDORE");
+        if(!dn||dn==="NOT IN QC LIST"){dn="NOT IN QC LIST";rg="HQ"}
+        if(("All"!==selReg&&rg!==selReg)||("All"!==selDiv&&dn!==selDiv))return;
+        const k=r.monthKey||"NA";
+        if(k==="NA")noDate=true;else months.add(k);
+        divs[dn]||(divs[dn]={division:dn,region:rg,counts:{},total:0,units:[]});
+        divs[dn].counts[k]=(divs[dn].counts[k]||0)+1;divs[dn].total++;
+        divs[dn].units.push({appId:r.unitId,division:dn,region:rg,phase:master?master.phase:"1st",inspBy:r.inspBy,date:r.dateDisp||r.date||"-",status:r.status,monthKey:k});
+    });
+    // continuous month range
+    let cols=[];
+    if(months.size){
+        const arr=[...months].sort();let[y,m]=arr[0].split("-").map(Number);const[ey,em]=arr[arr.length-1].split("-").map(Number);
+        while(y<ey||(y===ey&&m<=em)){cols.push(y+"-"+String(m).padStart(2,"0"));m++;if(m>12){m=1;y++}}
+    }
+    if(noDate)cols.push("NA");
+    const rows=Object.values(divs).sort((a,b)=>a.division.localeCompare(b.division));
+    return{cols,rows};
+}
+
+function renderPmegpMonthView(){
+    const th=document.querySelector("#tablePmegpMonth thead"),tb=document.querySelector("#tablePmegpMonth tbody"),tf=document.querySelector("#tablePmegpMonth tfoot");
+    if(!th)return;
+    th.innerHTML="";tb.innerHTML="";tf.innerHTML="";
+    const{cols,rows}=getPmegpMonthData();
+    if(!rows.length){tb.innerHTML='<tr><td class="py-8 text-center text-slate-400 font-medium">'+(pmegpUploadedRaw.length?"No matching PMEGP records found.":"Please upload PMEGP inspected excel file.")+'</td></tr>';return}
+    const lab=k=>k==="NA"?"Date Not Available":pmegpMonthLabel(k);
+    th.innerHTML='<tr><th style="width:4%">S.No.</th><th style="text-align:left">Name of Division</th><th>Region</th>'+cols.map(k=>`<th style="background-color:#e2efda">${lab(k)}</th>`).join("")+'<th style="background-color:#fff2cc">Total Inspected</th></tr>';
+    const colTot={};let grand=0;
+    rows.forEach((r,i)=>{
+        grand+=r.total;
+        const ds=divClassMap[r.division]||"";
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td>${i+1}</td><td class="${ds} text-left font-bold px-3 clickable-cell" onclick="openPmegpMonthUnitsModal(this.dataset.div,'ALL')" data-div="${r.division}">${r.division}</td><td class="font-bold text-slate-600">${r.region}</td>`+
+            cols.map(k=>{const c=r.counts[k]||0;colTot[k]=(colTot[k]||0)+c;return c?`<td class="clickable-cell font-bold text-emerald-800 bg-emerald-50/50" onclick="openPmegpMonthUnitsModal(this.parentNode.children[1].dataset.div,'${k}')">${c}</td>`:`<td class="text-slate-400">0</td>`}).join("")+
+            `<td class="clickable-cell font-extrabold text-purple-950 bg-amber-100" onclick="openPmegpMonthUnitsModal(this.parentNode.children[1].dataset.div,'ALL')">${r.total}</td>`;
+        tb.appendChild(tr);
+    });
+    tf.innerHTML='<tr class="row-grand-total"><td colspan="3" class="clickable-cell" onclick="openPmegpMonthUnitsModal(\'ALL\',\'ALL\')">Grand Total</td>'+cols.map(k=>`<td class="clickable-cell underline" onclick="openPmegpMonthUnitsModal('ALL','${k}')">${colTot[k]||0}</td>`).join("")+`<td class="clickable-cell underline" onclick="openPmegpMonthUnitsModal('ALL','ALL')">${grand}</td></tr>`;
+}
+
+function openPmegpMonthUnitsModal(division,k){
+    const{rows}=getPmegpMonthData();
+    let list=[];
+    rows.forEach(r=>{if("ALL"===division||r.division===division)r.units.forEach(u=>{if("ALL"===k||u.monthKey===k)list.push(u)})});
+    if(!list.length)return alert("No units found.");
+    const lbl=("ALL"===k?"All Months":k==="NA"?"Date Not Available":pmegpMonthLabel(k));
+    pmegpModalExportData=list.map((t,e)=>({"S.No":e+1,"Unit ID":t.appId,Division:t.division,Region:t.region,Phase:t.phase,"Inspected By":t.inspBy,"Inspected Date":t.date,Status:t.status}));
+    document.getElementById("pmegpModalTitle").textContent=`Month Wise Inspections: ${division==="ALL"?"All Divisions":division} (${lbl})`;
+    document.getElementById("pmegpModalSubtitle").textContent=`Total ${list.length} units inspected.`;
+    document.querySelector("#tablePmegpModalUnits tbody").innerHTML=list.map((t,e)=>`
+        <tr class="hover:bg-slate-50 border-b border-slate-100">
+            <td>${e+1}</td>
+            <td class="font-mono font-bold text-purple-950">${t.appId}</td>
+            <td>${t.division}</td>
+            <td>${t.region}</td>
+            <td><span class="bg-purple-100 text-purple-950 px-2 py-0.5 rounded font-bold">${t.phase}</span></td>
+            <td class="text-left font-semibold text-blue-900">${t.inspBy}</td>
+            <td>${t.date}</td>
+            <td><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">${t.status}</span></td>
+        </tr>`).join("");
+    openModal("pmegpDrilldownModal");
+    logGeneratedReport(`PMEGP Month Wise Details (${division}, ${lbl})`,()=>exportPmegpModalToExcel());
 }
 
 function renderPmegpViews(){
@@ -2418,6 +2528,7 @@ function renderPmegpViews(){
     } else {
         tbodyInsp.innerHTML='<tr><td colspan="7" class="py-8 text-center text-slate-400 font-medium">No matching inspector records found.</td></tr>';
     }
+    renderPmegpMonthView();
 }
 
 function openPmegpDivisionCompleteModal(division){
@@ -2641,6 +2752,14 @@ function exportPmegpExcel(){
     }));
     XLSX.utils.book_append_sheet(t,XLSX.utils.json_to_sheet(allMasterUnits),"Alloted_Master_Units");
 
+    const md=getPmegpMonthData();
+    if(md.rows.length){
+        const lab=k=>k==="NA"?"Date Not Available":pmegpMonthLabel(k);
+        const mrows=md.rows.map((r,i)=>{const o={"S.No":i+1,"Division Name":r.division,"Region":r.region};md.cols.forEach(k=>o[lab(k)]=r.counts[k]||0);o["Total Inspected"]=r.total;return o});
+        const g={"S.No":"","Division Name":"Grand Total","Region":""};md.cols.forEach(k=>g[lab(k)]=md.rows.reduce((a,r)=>a+(r.counts[k]||0),0));g["Total Inspected"]=md.rows.reduce((a,r)=>a+r.total,0);mrows.push(g);
+        XLSX.utils.book_append_sheet(t,XLSX.utils.json_to_sheet(mrows),"Month_Wise_Inspections");
+    }
+
     XLSX.writeFile(t,"PMEGP_Monitoring_Complete_Report.xlsx");
     logGeneratedReport("PMEGP Complete Report Excel",()=>exportPmegpExcel());
 }
@@ -2675,11 +2794,12 @@ document.getElementById("pmegpFileInput").addEventListener("change",function(t){
                 const o=String(e[l]||"").trim();
                 if(!o||o.toUpperCase().includes("TOTAL")||o.toUpperCase().includes("SUMMARY"))continue;
                 const inspName=String(e[a]||"Unassigned").trim(),
-                      inspDate=String(e[d]||"").trim(),
+                      rawDateVal=e[d],pd=pmegpParseDate(rawDateVal),
+                      inspDate=pd?pmegpFmtDate(pd):String(rawDateVal||"").trim(),
                       inspStatus=String(e[r]||"Inspected").trim(),
                       rawDivName=divIdx>-1?String(e[divIdx]||"").trim():"";
 
-                pmegpUploadedRaw.push({unitId:o,inspBy:inspName,date:inspDate,status:inspStatus,fileDiv:rawDivName});
+                pmegpUploadedRaw.push({unitId:o,inspBy:inspName,date:inspDate,dateDisp:inspDate,monthKey:pd?pd.getFullYear()+"-"+String(pd.getMonth()+1).padStart(2,"0"):"NA",status:inspStatus,fileDiv:rawDivName});
             }
             o.innerHTML=`✅ Uploaded! (${pmegpUploadedRaw.length} Inspections)`;
             processPmegpData();
