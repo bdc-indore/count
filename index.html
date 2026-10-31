@@ -2742,6 +2742,10 @@ try{pmgManualMap=JSON.parse(localStorage.getItem("pmgManualMap")||"{}")||{}}catc
 function pmgSaveMap(){try{localStorage.setItem("pmgManualMap",JSON.stringify(pmgManualMap))}catch(e){}}
 function pmgKey(n){return pmgNameTokens(n).sort().join(" ")}
 function pmgDayLabel(n){const y=Math.floor(n/10000),m=Math.floor(n/100)%100,d=n%100;return String(d).padStart(2,"0")+"."+String(m).padStart(2,"0")+"."+y}
+function pmgEnumOpts(dv){
+    return '<option value="">-- Enumerator select karo --</option>'+PMG_DATA.map((r,i)=>r[0].toUpperCase()===String(dv).toUpperCase()?`<option value="${i}">${r[2]} (${r[1]})</option>`:"").join("");
+}
+function pmgDivChange(i,dv){const el=document.getElementById("pmgEnum"+i);if(el)el.innerHTML=pmgEnumOpts(dv)}
 function pmgSetManual(key,idx){if(idx===""){delete pmgManualMap[key]}else{pmgManualMap[key]=PMG_DATA[+idx][2]}pmgSaveMap();renderPmgReport()}
 function computePmgData(){
     // latest inspection date (4th phase) drives the "On dated" column; default 30.10.2026
@@ -2819,15 +2823,10 @@ function renderPmgReport(){
     const um=Object.entries(pmgCache.unmatched);
     const box=document.getElementById("pmgUnmatched");
     if(!pmegpUploadedRaw.length){box.innerHTML="Inspection file upload karne par Achieved aur date columns automatically bhar jayenge.";return}
-    const optsFor=dv=>{
-        const dvs=allDivs.filter(d=>d.toUpperCase()===String(dv).toUpperCase());
-        const use=dvs.length?dvs:allDivs;
-        return '<option value="">-- Enumerator select karo --</option>'+use.map(d=>`<optgroup label="${d}">`+PMG_DATA.map((r,i)=>r[0]===d?`<option value="${i}">${r[2]} (${r[1]})</option>`:"").join("")+'</optgroup>').join("");
-    };
     let html="";
     if(um.length){
         um.sort((x,y)=>x[1].division.localeCompare(y[1].division)||x[1].name.localeCompare(y[1].name));
-        html+=`<div class="border border-rose-300 bg-rose-50 rounded-xl p-3 overflow-x-auto"><p class="font-bold text-rose-800 mb-2">⚠️ Error: ${um.reduce((a,x)=>a+x[1].count,0)} units (4th phase) ke Inspected By naam report me nahi mile. Dekho kisne, kis division/district me inspection kiya, aur select karo ki kis enumerator me judna hai (sirf usi division ke enumerators dikhenge):</p><table class="w-full text-xs"><thead><tr class="text-left text-slate-600"><th class="py-1 pr-3">S.No.</th><th class="pr-3">Inspected By</th><th class="pr-3">Division</th><th class="pr-3">District</th><th class="pr-3">Units</th><th>Kis enumerator me jodna hai</th></tr></thead><tbody>`+um.map(([k,v],i)=>`<tr class="border-t border-rose-200"><td class="py-1.5 pr-3">${i+1}</td><td class="pr-3 font-bold text-slate-800">${v.name}</td><td class="pr-3 font-semibold">${v.division}</td><td class="pr-3">${Object.entries(v.dists).map(([d,c])=>d+" ("+c+")").join(", ")}</td><td class="pr-3 font-bold text-rose-700">${v.count}</td><td><select class="border border-purple-300 rounded-lg p-1 bg-white font-semibold" onchange="pmgSetManual('${k.replace(/'/g,"\\'")}',this.value)">${optsFor(v.division)}</select></td></tr>`).join("")+`</tbody></table></div>`;
+        html+=`<div class="border border-rose-300 bg-rose-50 rounded-xl p-3 overflow-x-auto"><p class="font-bold text-rose-800 mb-2">⚠️ Error: ${um.reduce((a,x)=>a+x[1].count,0)} units (4th phase) ke Inspected By naam report me nahi mile. Dekho kisne, kis division/district me inspection kiya, aur select karo ki kis enumerator me judna hai (sirf usi division ke enumerators dikhenge):</p><table class="w-full text-xs"><thead><tr class="text-left text-slate-600"><th class="py-1 pr-3">S.No.</th><th class="pr-3">Inspected By</th><th class="pr-3">Division</th><th class="pr-3">District</th><th class="pr-3">Units</th><th class="pr-3">Division chuno</th><th>Phir enumerator chuno</th></tr></thead><tbody>`+um.map(([k,v],i)=>`<tr class="border-t border-rose-200"><td class="py-1.5 pr-3">${i+1}</td><td class="pr-3 font-bold text-slate-800">${v.name}</td><td class="pr-3 font-semibold">${v.division}</td><td class="pr-3">${Object.entries(v.dists).map(([d,c])=>d+" ("+c+")").join(", ")}</td><td class="pr-3 font-bold text-rose-700">${v.count}</td><td class="pr-3"><select class="border border-purple-300 rounded-lg p-1 bg-white font-semibold" onchange="pmgDivChange(${i},this.value)">${allDivs.map(d=>`<option value="${d}"${d.toUpperCase()===String(v.division).toUpperCase()?" selected":""}>${d}</option>`).join("")}</select></td><td><select id="pmgEnum${i}" data-key="${k.replace(/"/g,"&quot;")}" class="border border-purple-300 rounded-lg p-1 bg-white font-semibold" onchange="pmgSetManual(this.dataset.key,this.value)">${pmgEnumOpts(v.division)}</select></td></tr>`).join("")+`</tbody></table></div>`;
     } else html+='<p class="font-bold text-emerald-700">✅ Saare 4th phase inspections enumerators se match ho gaye.</p>';
     const mapped=Object.entries(pmgManualMap);
     if(mapped.length)html+=`<div class="mt-2 text-slate-600"><b>Manually joda gaya:</b> `+mapped.map(([k,n])=>`${k.replace("|"," / ")} → <b>${n}</b> <a href="#" class="text-rose-700 underline" onclick="pmgSetManual('${k.replace(/'/g,"\\'")}','');return false">hatao</a>`).join(" &nbsp;|&nbsp; ")+`</div>`;
