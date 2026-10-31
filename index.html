@@ -2130,6 +2130,7 @@ async function loadPmegpMasterData(){
               d=Math.max(s.indexOf("DIVISION"),6),
               r=Math.max(s.indexOf("REGION"),7);
               
+        const distIdxM=s.indexOf("DISTRICT")>-1?s.indexOf("DISTRICT"):s.indexOf("DIST")>-1?s.indexOf("DIST"):s.indexOf("DISTRICT NAME");
         pmegpMasterMap={};
         pmegpMasterNormalizedMap={};
 
@@ -2143,7 +2144,7 @@ async function loadPmegpMasterData(){
             const divClean=normalizeDivName(rawDiv);
             const regClean=divClean==="NOT IN QC LIST" ? "HQ" : (String(e[r]||"INDORE").trim().toUpperCase()||"INDORE");
             
-            const unitObj={appId:o,phase:phase,division:divClean,region:regClean};
+            const unitObj={appId:o,phase:phase,division:divClean,region:regClean,district:distIdxM>-1?String(e[distIdxM]||"").trim():""};
             pmegpMasterMap[o.toUpperCase()]=unitObj;
             pmegpMasterNormalizedMap[cleanUnitId(o)]=unitObj;
         }
@@ -2754,10 +2755,12 @@ function computePmgData(){
         if(!master||master.phase!=="4th")return;
         const tk=pmgNameTokens(r.inspBy);
         let best=null,bs=0;
-        const mk=pmgKey(r.inspBy);
-        const man=Object.keys(pmgManualMap).length?pmgManualMap[mk]:null;
+        const mk=pmgKey(r.inspBy),dvU=String(master.division||"").toUpperCase(),mkd=mk+"|"+dvU;
+        let cand=enums.filter(e=>e.div.toUpperCase()===dvU);
+        if(!cand.length)cand=enums;
+        const man=Object.keys(pmgManualMap).length?(pmgManualMap[mkd]||pmgManualMap[mk]):null;
         if(man){const me=enums.find(e=>e.name===man);if(me){best=me;bs=1000}}
-        if(!best)enums.forEach(e=>{
+        if(!best)cand.forEach(e=>{
             if(!e.tok.length||!tk.length)return;
             const inter=tk.filter(t=>e.tok.includes(t)).length;
             let sc=0;
@@ -2766,7 +2769,10 @@ function computePmgData(){
             if(sc>bs){bs=sc;best=e}
         });
         const u={appId:r.unitId,division:master.division,region:master.region,phase:"4th",inspBy:r.inspBy,date:r.dateDisp||r.date||"-",status:r.status};
-        if(!best||bs<=0){const k=mk||"unassigned";unmatched[k]=unmatched[k]||{name:r.inspBy||"Unassigned",count:0};unmatched[k].count++;return}
+        if(!best||bs<=0){
+            const k=(mk||"unassigned")+"|"+dvU,dist=(r.district||master.district||"").trim()||"-";
+            unmatched[k]=unmatched[k]||{name:r.inspBy||"Unassigned",division:master.division,dists:{},count:0};
+            unmatched[k].count++;unmatched[k].dists[dist]=(unmatched[k].dists[dist]||0)+1;return}
         best.ach.push(u);
         Object.keys(PMG_RANGES).forEach(k=>{const g=PMG_RANGES[k];if(g&&r.dayNum>=g[0]&&r.dayNum<=g[1])best[k].push(u)});
     });
@@ -2813,13 +2819,18 @@ function renderPmgReport(){
     const um=Object.entries(pmgCache.unmatched);
     const box=document.getElementById("pmgUnmatched");
     if(!pmegpUploadedRaw.length){box.innerHTML="Inspection file upload karne par Achieved aur date columns automatically bhar jayenge.";return}
-    const opts='<option value="">-- Enumerator select karo --</option>'+allDivs.map(d=>`<optgroup label="${d}">`+PMG_DATA.map((r,i)=>r[0]===d?`<option value="${i}">${r[2]} (${r[1]})</option>`:"").join("")+'</optgroup>').join("");
+    const optsFor=dv=>{
+        const dvs=allDivs.filter(d=>d.toUpperCase()===String(dv).toUpperCase());
+        const use=dvs.length?dvs:allDivs;
+        return '<option value="">-- Enumerator select karo --</option>'+use.map(d=>`<optgroup label="${d}">`+PMG_DATA.map((r,i)=>r[0]===d?`<option value="${i}">${r[2]} (${r[1]})</option>`:"").join("")+'</optgroup>').join("");
+    };
     let html="";
     if(um.length){
-        html+=`<div class="border border-rose-300 bg-rose-50 rounded-xl p-3"><p class="font-bold text-rose-800 mb-2">⚠️ Error: ${um.reduce((a,x)=>a+x[1].count,0)} units (4th phase) ke Inspected By naam report me nahi mile. Neeche se select karo ki inka inspection kis enumerator me judna hai:</p><table class="w-full text-xs">`+um.map(([k,v])=>`<tr class="border-t border-rose-200"><td class="py-1.5 pr-3 font-bold text-slate-800">${v.name} <span class="text-rose-700">(${v.count} units)</span></td><td><select class="border border-purple-300 rounded-lg p-1 bg-white font-semibold" onchange="pmgSetManual('${k.replace(/'/g,"\\'")}',this.value)">${opts}</select></td></tr>`).join("")+`</table></div>`;
+        um.sort((x,y)=>x[1].division.localeCompare(y[1].division)||x[1].name.localeCompare(y[1].name));
+        html+=`<div class="border border-rose-300 bg-rose-50 rounded-xl p-3 overflow-x-auto"><p class="font-bold text-rose-800 mb-2">⚠️ Error: ${um.reduce((a,x)=>a+x[1].count,0)} units (4th phase) ke Inspected By naam report me nahi mile. Dekho kisne, kis division/district me inspection kiya, aur select karo ki kis enumerator me judna hai (sirf usi division ke enumerators dikhenge):</p><table class="w-full text-xs"><thead><tr class="text-left text-slate-600"><th class="py-1 pr-3">S.No.</th><th class="pr-3">Inspected By</th><th class="pr-3">Division</th><th class="pr-3">District</th><th class="pr-3">Units</th><th>Kis enumerator me jodna hai</th></tr></thead><tbody>`+um.map(([k,v],i)=>`<tr class="border-t border-rose-200"><td class="py-1.5 pr-3">${i+1}</td><td class="pr-3 font-bold text-slate-800">${v.name}</td><td class="pr-3 font-semibold">${v.division}</td><td class="pr-3">${Object.entries(v.dists).map(([d,c])=>d+" ("+c+")").join(", ")}</td><td class="pr-3 font-bold text-rose-700">${v.count}</td><td><select class="border border-purple-300 rounded-lg p-1 bg-white font-semibold" onchange="pmgSetManual('${k.replace(/'/g,"\\'")}',this.value)">${optsFor(v.division)}</select></td></tr>`).join("")+`</tbody></table></div>`;
     } else html+='<p class="font-bold text-emerald-700">✅ Saare 4th phase inspections enumerators se match ho gaye.</p>';
     const mapped=Object.entries(pmgManualMap);
-    if(mapped.length)html+=`<div class="mt-2 text-slate-600"><b>Manually joda gaya:</b> `+mapped.map(([k,n])=>`${k} → <b>${n}</b> <a href="#" class="text-rose-700 underline" onclick="pmgSetManual('${k.replace(/'/g,"\\'")}','');return false">hatao</a>`).join(" &nbsp;|&nbsp; ")+`</div>`;
+    if(mapped.length)html+=`<div class="mt-2 text-slate-600"><b>Manually joda gaya:</b> `+mapped.map(([k,n])=>`${k.replace("|"," / ")} → <b>${n}</b> <a href="#" class="text-rose-700 underline" onclick="pmgSetManual('${k.replace(/'/g,"\\'")}','');return false">hatao</a>`).join(" &nbsp;|&nbsp; ")+`</div>`;
     box.innerHTML=html;
 }
 function openPmgUnitsModal(i,k){
@@ -2925,7 +2936,8 @@ document.getElementById("pmegpFileInput").addEventListener("change",function(t){
             -1===a&&(a=s.indexOf("INSPECTOR")),-1===a&&(a=s.indexOf("NAME OF INSPECTOR")),-1===a&&(a=5);
             const d=s.indexOf("INSPECTED DATE")>-1?s.indexOf("INSPECTED DATE"):s.indexOf("DATE")>-1?s.indexOf("DATE"):7,
                   r=s.indexOf("STATUS")>-1?s.indexOf("STATUS"):8,
-                  divIdx=s.indexOf("DIVISION")>-1?s.indexOf("DIVISION"):s.indexOf("DIV")>-1?s.indexOf("DIV"):-1;
+                  divIdx=s.indexOf("DIVISION")>-1?s.indexOf("DIVISION"):s.indexOf("DIV")>-1?s.indexOf("DIV"):-1,
+                  distIdx=s.indexOf("DISTRICT")>-1?s.indexOf("DISTRICT"):s.indexOf("DIST")>-1?s.indexOf("DIST"):-1;
 
             pmegpUploadedRaw=[];
             for(let t=i+1;t<n.length;t++){
@@ -2937,9 +2949,10 @@ document.getElementById("pmegpFileInput").addEventListener("change",function(t){
                       rawDateVal=e[d],pd=pmegpParseDate(rawDateVal),
                       inspDate=pd?pmegpFmtDate(pd):String(rawDateVal||"").trim(),
                       inspStatus=String(e[r]||"Inspected").trim(),
-                      rawDivName=divIdx>-1?String(e[divIdx]||"").trim():"";
+                      rawDivName=divIdx>-1?String(e[divIdx]||"").trim():"",
+                      rawDist=distIdx>-1?String(e[distIdx]||"").trim():"";
 
-                pmegpUploadedRaw.push({unitId:o,inspBy:inspName,date:inspDate,dateDisp:inspDate,dayNum:pd?pd.getFullYear()*10000+(pd.getMonth()+1)*100+pd.getDate():0,monthKey:pd?pd.getFullYear()+"-"+String(pd.getMonth()+1).padStart(2,"0"):"NA",status:inspStatus,fileDiv:rawDivName});
+                pmegpUploadedRaw.push({unitId:o,inspBy:inspName,date:inspDate,dateDisp:inspDate,dayNum:pd?pd.getFullYear()*10000+(pd.getMonth()+1)*100+pd.getDate():0,monthKey:pd?pd.getFullYear()+"-"+String(pd.getMonth()+1).padStart(2,"0"):"NA",status:inspStatus,fileDiv:rawDivName,district:rawDist});
             }
             o.innerHTML=`✅ Uploaded! (${pmegpUploadedRaw.length} Inspections)`;
             processPmegpData();
