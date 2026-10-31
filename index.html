@@ -2746,7 +2746,7 @@ function pmgSetManual(key,idx){if(idx===""){delete pmgManualMap[key]}else{pmgMan
 function computePmgData(){
     // latest inspection date (4th phase) drives the "On dated" column; default 30.10.2026
     let latest=20261030;
-    pmegpUploadedRaw.forEach(r=>{const m=pmegpMasterMap[r.unitId.toUpperCase()]||pmegpMasterNormalizedMap[cleanUnitId(r.unitId)];if(m&&m.phase==="4th"&&r.dayNum>latest)latest=r.dayNum});
+    pmegpUploadedRaw.forEach(r=>{const m=pmegpMasterMap[r.unitId.toUpperCase()]||pmegpMasterNormalizedMap[cleanUnitId(r.unitId)];if(m&&m.phase==="4th"&&PMG_DATA.some(x=>x[0].toUpperCase()===String(m.division||"").toUpperCase())&&r.dayNum>latest)latest=r.dayNum});
     PMG_RANGES.d2=[latest,latest,"On dated "+pmgDayLabel(latest)];
     const enums=PMG_DATA.map((r,i)=>({i,div:r[0],dist:r[1],name:r[2],target:r[3],tt:r[4],bp:r[5],br:r[6],tok:pmgNameTokens(r[2]),ach:[],v:[],d2:[],n:[]}));
     const unmatched={};
@@ -2757,7 +2757,7 @@ function computePmgData(){
         let best=null,bs=0;
         const mk=pmgKey(r.inspBy),dvU=String(master.division||"").toUpperCase(),mkd=mk+"|"+dvU;
         let cand=enums.filter(e=>e.div.toUpperCase()===dvU);
-        if(!cand.length)cand=enums;
+        if(!cand.length)return; // sirf photo wale 7 divisions ke inspections
         const man=Object.keys(pmgManualMap).length?(pmgManualMap[mkd]||pmgManualMap[mk]):null;
         if(man){const me=enums.find(e=>e.name===man);if(me){best=me;bs=1000}}
         if(!best)cand.forEach(e=>{
