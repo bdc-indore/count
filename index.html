@@ -2806,13 +2806,13 @@ function renderPmgReport(){
     const now=new Date();
     document.getElementById("pmgTitle").textContent="PMEGP Enumerator Wise detailed report on dated "+pmegpFmtDate(now).replace(/-/g,".");
     const H=(t,bg)=>`<th style="background-color:${bg}">${t}</th>`;
-    th.innerHTML=`<tr><th>Name of Division</th><th>Name of Districts</th><th>Name of Enumerators</th><th>Target</th>${H("Achived","#e2efda")}${H("Pending","#fff2cc")}${H("Target till 05.11.2026","#fff2cc")}${H(PMG_RANGES.dA[2],"#fce4d6")}${H(PMG_RANGES.dB[2],"#fce4d6")}${H(PMG_RANGES.dC[2],"#fce4d6")}${H(PMG_RANGES.n[2].replace("Inspected ","Achieved<br>"),"#d9edf7")}${H(PMG_RANGES.v[2],"#fff2cc")}<th>Form Pending at bank level</th><th>No. of Forms received from Bank</th><th>Rmark</th></tr>`;
+    th.innerHTML=`<tr><th>Name of Division</th><th>Name of Districts</th><th>Name of Enumerators</th><th>Target</th>${H("Achived","#e2efda")}${H("Pending","#fff2cc")}${H(PMG_RANGES.dA[2],"#fce4d6")}${H(PMG_RANGES.dB[2],"#fce4d6")}${H(PMG_RANGES.dC[2],"#fce4d6")}${H("Target till 05.11.2026","#fff2cc")}${H(PMG_RANGES.n[2].replace("Inspected ","Achieved<br>"),"#d9edf7")}${H(PMG_RANGES.v[2],"#fff2cc")}<th>Form Pending at bank level</th><th>No. of Forms received from Bank</th><th>Rmark</th></tr>`;
     tb.innerHTML="";tf.innerHTML="";
     const sum=l=>({target:0,ach:0,pend:0,tt:0,n:0,v:0,dA:0,dB:0,dC:0,bp:0,br:0});
     const add=(a,e)=>{a.target+=e.target;a.ach+=e.ach.length;a.pend+=e.target-e.ach.length;a.tt+=e.tt;a.n+=e.n.length;a.v+=e.v.length;a.dA+=e.dA.length;a.dB+=e.dB.length;a.dC+=e.dC.length;a.bp+=e.bp;a.br+=e.br};
     const tot=sum(),divs=[...new Set(enums.map(e=>e.div))];
     const cnt=(e,k)=>{const c=e[k].length;return c?`<td class="clickable-cell font-bold text-emerald-800" onclick="openPmgUnitsModal(${e.i},'${k}')">${c}</td>`:`<td>0</td>`};
-    const totRow=(label,a,cls,sty)=>`<tr class="${cls}" style="${sty}"><td colspan="3" class="font-bold">${label}</td><td>${a.target}</td><td>${a.ach}</td><td>${a.pend}</td><td>${a.tt}</td><td>${a.dA}</td><td>${a.dB}</td><td>${a.dC}</td><td>${a.n}</td><td>${a.v}</td><td>${a.bp}</td><td>${a.br}</td><td></td></tr>`;
+    const totRow=(label,a,cls,sty)=>`<tr class="${cls}" style="${sty}"><td colspan="3" class="font-bold">${label}</td><td>${a.target}</td><td>${a.ach}</td><td>${a.pend}</td><td>${a.dA}</td><td>${a.dB}</td><td>${a.dC}</td><td>${a.tt}</td><td>${a.n}</td><td>${a.v}</td><td>${a.bp}</td><td>${a.br}</td><td></td></tr>`;
     divs.forEach(d=>{
         const list=enums.filter(e=>e.div===d),a=sum();
         list.forEach((e,idx)=>{
@@ -2821,7 +2821,7 @@ function renderPmgReport(){
             const pc=pend<0?"background:#fbbf8f":pend===0?"background:#fca5a5":"background:#fde68a";
             const ac=e.ach.length?`<td class="clickable-cell font-bold" style="background:#c6e0b4" onclick="openPmgUnitsModal(${e.i},'ach')">${e.ach.length}</td>`:`<td class="font-bold" style="background:#f4b6b6">0</td>`;
             const tr=document.createElement("tr");
-            tr.innerHTML=(idx===0?`<td rowspan="${list.length+1}" class="text-left font-bold px-2" style="vertical-align:middle">${d}</td>`:"")+`<td>${e.dist}</td><td class="text-left px-2" style="background:#e2efda">${e.name}</td><td>${e.target}</td>${ac}<td class="font-bold" style="${pc}">${pend}</td><td>${e.tt}</td>${cnt(e,"dA")}${cnt(e,"dB")}${cnt(e,"dC")}${cnt(e,"n")}${cnt(e,"v")}<td>${e.bp}</td><td>${e.br}</td><td></td>`;
+            tr.innerHTML=(idx===0?`<td rowspan="${list.length+1}" class="text-left font-bold px-2" style="vertical-align:middle">${d}</td>`:"")+`<td>${e.dist}</td><td class="text-left px-2" style="background:#e2efda">${e.name}</td><td>${e.target}</td>${ac}<td class="font-bold" style="${pc}">${pend}</td>${cnt(e,"dA")}${cnt(e,"dB")}${cnt(e,"dC")}<td>${e.tt}</td>${cnt(e,"n")}${cnt(e,"v")}<td>${e.bp}</td><td>${e.br}</td><td></td>`;
             tb.appendChild(tr);
         });
         const tr=document.createElement("tr");
@@ -2857,7 +2857,7 @@ function openPmgUnitsModal(i,k){
 function getPmgExcelRows(){
     const d=pmgCache||computePmgData();const rows=[];
     const G=PMG_RANGES;
-    d.enums.forEach(e=>rows.push({"Name of Division":e.div,"Name of Districts":e.dist,"Name of Enumerators":e.name,"Target":e.target,"Achived":e.ach.length,"Pending":e.target-e.ach.length,"Target till 05.11.2026":e.tt,[G.dA[2]]:e.dA.length,[G.dB[2]]:e.dB.length,[G.dC[2]]:e.dC.length,[G.n[2]]:e.n.length,[G.v[2]]:e.v.length,"Form Pending at bank level":e.bp,"No. of Forms received from Bank":e.br}));
+    d.enums.forEach(e=>rows.push({"Name of Division":e.div,"Name of Districts":e.dist,"Name of Enumerators":e.name,"Target":e.target,"Achived":e.ach.length,"Pending":e.target-e.ach.length,[G.dA[2]]:e.dA.length,[G.dB[2]]:e.dB.length,[G.dC[2]]:e.dC.length,"Target till 05.11.2026":e.tt,[G.n[2]]:e.n.length,[G.v[2]]:e.v.length,"Form Pending at bank level":e.bp,"No. of Forms received from Bank":e.br}));
     return rows;
 }
 renderPmgReport();
