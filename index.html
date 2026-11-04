@@ -69,11 +69,12 @@
 <main class="max-w-7xl mx-auto px-3 md:px-8 py-6 space-y-6 w-full flex-grow">
     <!-- Booking Module -->
     <div id="moduleBooking" class="space-y-6">
-        <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+        <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
             <div><label class="block text-xs font-bold uppercase tracking-wider text-purple-950 mb-2">📁 Booking Raw File</label><input type="file" id="rawFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-100 file:text-purple-950 hover:file:bg-purple-200 cursor-pointer border border-slate-300 rounded-xl p-1 bg-slate-50"></div>
             <div><label class="block text-xs font-bold uppercase tracking-wider text-purple-950 mb-2">Select Division</label><select id="filterDivision" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 font-medium outline-none focus:border-purple-800"><option value="All">All Divisions</option></select></div>
             <div><label class="block text-xs font-bold uppercase tracking-wider text-purple-950 mb-2">Select Office Class</label><select id="filterClass" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 font-medium outline-none focus:border-purple-800"><option value="All">All Classes</option></select></div>
             <div><label class="block text-xs font-bold uppercase tracking-wider text-purple-950 mb-2">Select Category</label><select id="filterCategory" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-slate-50 font-medium outline-none focus:border-purple-800"><option value="All">All Categories</option></select></div>
+            <div><label class="block text-xs font-bold uppercase tracking-wider text-purple-950 mb-2">Sehore</label><select id="bkSehore" onchange="updateDashboard()" class="border border-rose-300 rounded-lg p-2.5 text-sm w-full bg-white font-bold text-rose-900 outline-none"><option value="with">With Sehore</option><option value="without">Without Sehore</option></select></div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
             <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-purple-900"><p class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Articles Booked</p><p id="kpiArticles" class="text-3xl font-extrabold mt-2 text-purple-950">0</p></div>
@@ -131,7 +132,7 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="report-header px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div><h3 class="font-extrabold text-lg flex items-center gap-2">🛡️ PLI / RPLI Nil Transaction Report (Indore Region - Branch Offices Only)</h3><p class="text-xs text-purple-200">Strictly matching spreadsheet BO IDs with PLI Excel.</p></div>
-                <div class="flex items-center gap-2 flex-wrap"><button onclick="exportPliExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel (3 Sheets)</button><button onclick="exportPliPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button><button onclick='exportTableJPEG("pliTableContainer","PLI_Nil_Txn_Report")' class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button></div>
+                <div class="flex items-center gap-2 flex-wrap"><select id="pliSehore" onchange="onPliSehoreChange()" class="bg-rose-900 text-white text-xs font-bold px-3 py-2 rounded-lg border border-rose-400 outline-none cursor-pointer"><option value="with">With Sehore</option><option value="without">Without Sehore</option></select><button onclick="exportPliExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📥 Excel (3 Sheets)</button><button onclick="exportPliPDF()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button><button onclick='exportTableJPEG("pliTableContainer","PLI_Nil_Txn_Report")' class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button></div>
             </div>
             <div class="p-6 space-y-5" id="pliTableContainer">
                 <div class="bg-purple-50/60 p-4 rounded-xl border border-purple-200 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -154,10 +155,11 @@
                 <div class="flex items-center gap-2 flex-wrap"><button onclick='exportDigitalFiveSheetExcel("All")' class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shadow cursor-pointer border border-emerald-500 flex items-center gap-1">📑 Complete Region (5 Sheets)</button><button onclick='exportSingleTableToPDF("tableDigitalSummary","Digital Booking Txn Status")' class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg shadow cursor-pointer">📄 PDF Report</button><button onclick='exportTableJPEG("digitalTableContainer","Digital_Booking_Txn_Status")' class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg shadow cursor-pointer">📸 JPEG</button></div>
             </div>
             <div class="p-6 space-y-5" id="digitalTableContainer">
-                <div class="bg-purple-50/60 p-4 rounded-xl border border-purple-200 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
+                <div class="bg-purple-50/60 p-4 rounded-xl border border-purple-200 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
                     <div class="sm:col-span-2"><label class="block text-xs font-bold uppercase text-purple-950 mb-1">📤 Upload Booking Paymentwise Report (Excel / CSV)</label><input type="file" id="digitalFileInput" accept=".xlsx, .xls, .csv" class="block w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-purple-900 file:text-white hover:file:bg-purple-950 cursor-pointer border border-purple-300 rounded-lg bg-white p-1"></div>
                     <div><label class="block text-xs font-bold uppercase text-purple-950 mb-1">Select Mode</label><select id="digitalModeSelect" onchange="processDigitalReport()" class="w-full border border-purple-300 rounded-lg p-2 text-xs bg-white font-bold text-purple-950 outline-none"><option value="excluding_bo">Excluding BO</option><option value="including_bo">Including BO (HO+BO+SO)</option></select></div>
                     <div><label class="block text-xs font-bold uppercase text-purple-950 mb-1">Filter Division</label><select id="digitalFilterDivision" onchange="processDigitalReport()" class="w-full border border-purple-300 rounded-lg p-2 text-xs bg-white font-bold text-purple-950 outline-none"><option value="All">All Divisions</option></select></div>
+                    <div><label class="block text-xs font-bold uppercase text-purple-950 mb-1">Sehore</label><select id="digSehore" onchange="onDigitalSehoreChange()" class="border border-rose-300 rounded-lg p-2 text-xs w-full bg-white font-bold text-rose-900 outline-none"><option value="with">With Sehore</option><option value="without">Without Sehore</option></select></div>
                 </div>
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-2">
                     <div id="digitalUploadStatus" class="text-xs font-bold text-purple-950">⏳ Waiting for Booking Paymentwise Report upload...</div>
@@ -240,6 +242,13 @@
                             <label class="text-xs font-bold text-slate-700">Filter Division:</label>
                             <select id="pmegpFilterDivision" onchange="renderPmegpViews()" class="border border-purple-300 rounded-lg p-1.5 text-xs bg-white font-bold text-purple-950 outline-none">
                                 <option value="All">All Divisions</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <label class="text-xs font-bold text-slate-700">Sehore:</label>
+                            <select id="pmegpSehoreMode" onchange="onPmegpSehoreChange()" class="border border-rose-300 rounded-lg p-1.5 text-xs bg-white font-bold text-rose-900 outline-none">
+                                <option value="with">With Sehore</option>
+                                <option value="without">Without Sehore</option>
                             </select>
                         </div>
                     </div>
@@ -414,6 +423,10 @@
                                 <option value="subdivision">Sub-Division Wise</option>
                                 <option value="division">Division Wise</option>
                             </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-purple-950 mr-1.5">Sehore:</label>
+                            <select id="d0Sehore" onchange="renderD0Table();renderOfficeD0Table();renderTopBottom20Table();" class="border border-rose-300 rounded-lg p-1.5 text-xs bg-white font-bold text-rose-900 outline-none"><option value="with">With Sehore</option><option value="without">Without Sehore</option></select>
                         </div>
                         <div>
                             <label class="text-xs font-bold text-purple-950 mr-1.5">Filter Division:</label>
@@ -640,6 +653,7 @@
                     <p class="text-xs text-purple-200">Select / drag &amp; drop all 7 Open + 7 Close Excels at once (any order) — Division auto-detected from BO ID / SOL ID — then press Calculate</p>
                 </div>
                 <div class="flex items-center flex-wrap gap-2">
+                    <select id="sbSehore" onchange="onSbSehoreChange()" class="bg-rose-900 text-white text-xs font-bold px-3 py-2 rounded-lg border border-rose-400 outline-none cursor-pointer"><option value="with">With Sehore</option><option value="without">Without Sehore</option></select>
                     <span id="sbMasterStatus" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Loading SB Master...</span>
                     <button onclick="exportSbCombinedExcel()" class="bg-purple-800 hover:bg-purple-900 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition cursor-pointer">📥 Combined Report (5 Sheets)</button>
                     <button onclick="resetSbData()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition cursor-pointer">♻️ Reset Uploads</button>
@@ -785,6 +799,7 @@
                     <p class="text-xs text-purple-200">Upload SO-wise "Product Wise A/C Report" Excel files, then press Calculate — Portal khud detect karta he ki file kis Division ki he, aur offices sirf usi Division ke SB Master me dhundta he. Jo offices count nahi hote wo neeche alag dikhte hain.</p>
                 </div>
                 <div class="flex items-center flex-wrap gap-2">
+                    <select id="posbSehore" onchange="onPosbSehoreChange()" class="bg-rose-900 text-white text-xs font-bold px-3 py-2 rounded-lg border border-rose-400 outline-none cursor-pointer"><option value="with">With Sehore</option><option value="without">Without Sehore</option></select>
                     <span id="posbMasterStatus" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Using SB Master</span>
                     <button onclick="exportPosbCombinedExcel()" class="bg-purple-800 hover:bg-purple-900 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition cursor-pointer">📥 Combined Report (5 Sheets)</button>
                     <button onclick="resetPosbData()" class="bg-rose-800 hover:bg-rose-900 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow transition cursor-pointer">♻️ Reset Uploads</button>
@@ -1354,9 +1369,14 @@ async function processD0Synthesis(){
     }
 }
 
+function d0Filter(map){
+    const out={};
+    Object.keys(map||{}).forEach(id=>{const r=map[id];if(!sehOff("d0Sehore",getEffectiveOfficeMaster(r.officeId,r.name,r.type).division))out[id]=r});
+    return out;
+}
 function getD0ReportActiveDataset(){
     const domain = document.getElementById("d0FilterDomain").value;
-    return domain === "parcel" ? d0CombinedParcelMap : d0MailOperationsMap;
+    return d0Filter(domain === "parcel" ? d0CombinedParcelMap : d0MailOperationsMap);
 }
 
 function getEffectiveOfficeMaster(officeId, fallbackName, fallbackType){
@@ -2034,22 +2054,23 @@ function exportD0AllSheetsExcel(){
     }
 
     const wb = XLSX.utils.book_new();
+    const _P=d0Filter(d0CombinedParcelMap), _M=d0Filter(d0MailOperationsMap), _A=d0Filter(d0AllProductMap);
 
-    XLSX.utils.book_append_sheet(wb, buildD0SheetData(d0CombinedParcelMap, "excluding_bo"), "Parcel_Excl_BO");
-    XLSX.utils.book_append_sheet(wb, buildD0SheetData(d0CombinedParcelMap, "including_bo"), "Parcel_Incl_BO");
-    XLSX.utils.book_append_sheet(wb, buildD0SheetData(d0CombinedParcelMap, "only_bo"), "Parcel_Only_BO");
+    XLSX.utils.book_append_sheet(wb, buildD0SheetData(_P, "excluding_bo"), "Parcel_Excl_BO");
+    XLSX.utils.book_append_sheet(wb, buildD0SheetData(_P, "including_bo"), "Parcel_Incl_BO");
+    XLSX.utils.book_append_sheet(wb, buildD0SheetData(_P, "only_bo"), "Parcel_Only_BO");
 
-    XLSX.utils.book_append_sheet(wb, buildD0SheetData(d0MailOperationsMap, "excluding_bo"), "MailOps_Excl_BO");
-    XLSX.utils.book_append_sheet(wb, buildD0SheetData(d0MailOperationsMap, "including_bo"), "MailOps_Incl_BO");
-    XLSX.utils.book_append_sheet(wb, buildD0SheetData(d0MailOperationsMap, "only_bo"), "MailOps_Only_BO");
+    XLSX.utils.book_append_sheet(wb, buildD0SheetData(_M, "excluding_bo"), "MailOps_Excl_BO");
+    XLSX.utils.book_append_sheet(wb, buildD0SheetData(_M, "including_bo"), "MailOps_Incl_BO");
+    XLSX.utils.book_append_sheet(wb, buildD0SheetData(_M, "only_bo"), "MailOps_Only_BO");
 
     // 7th Detailed Sheet: Office ID, Office Name, Division, Sub Division, Parcel Metrics, Mail Operations Metrics (Percentages based on RECEIVED)
-    const allOfficeIds = [...new Set([...Object.keys(d0AllProductMap), ...Object.keys(d0CombinedParcelMap), ...Object.keys(d0MailOperationsMap)])];
+    const allOfficeIds = [...new Set([...Object.keys(_A), ...Object.keys(_P), ...Object.keys(_M)])];
 
     const officeRows = allOfficeIds.map((offId, idx)=>{
-        const pRow = d0CombinedParcelMap[offId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0, name:"", type:""};
-        const mRow = d0MailOperationsMap[offId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0, name:"", type:""};
-        const allRow = d0AllProductMap[offId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0, name:"", type:""};
+        const pRow = _P[offId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0, name:"", type:""};
+        const mRow = _M[offId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0, name:"", type:""};
+        const allRow = _A[offId] || {received:0, invoiced:0, d0Deliver:0, d0Redirect:0, d0Return:0, name:"", type:""};
 
         const officeName = allRow.name || pRow.name || mRow.name || "";
         const officeType = allRow.type || pRow.type || mRow.type || "";
@@ -2161,6 +2182,10 @@ async function loadPmegpMasterData(){
     }
 }
 
+function sehOff(id,div){const e=document.getElementById(id);return !!e&&e.value==="without"&&String(div||"").trim().toUpperCase()==="SEHORE"}
+function pmegpWithoutSehore(){const e=document.getElementById("pmegpSehoreMode");return !!e&&e.value==="without"}
+function pmegpSkipDiv(d){return pmegpWithoutSehore()&&String(d||"").trim().toUpperCase()==="SEHORE"}
+function onPmegpSehoreChange(){updatePmegpDivisionDropdown(document.getElementById("pmegpFilterRegion").value);renderPmegpViews()}
 function updatePmegpDivisionDropdown(selectedRegion){
     const pDiv=document.getElementById("pmegpFilterDivision");
     const previousSelectedDiv = pDiv.value;
@@ -2172,6 +2197,7 @@ function updatePmegpDivisionDropdown(selectedRegion){
         availableDivs = [...new Set(Object.values(pmegpMasterMap).filter(t=>t.region===selectedRegion).map(t=>t.division))].filter(Boolean).sort();
     }
 
+    availableDivs=availableDivs.filter(d=>!pmegpSkipDiv(d));
     pDiv.innerHTML='<option value="All">All Divisions</option>';
     availableDivs.forEach(d=>{
         const opt=document.createElement("option");
@@ -2402,6 +2428,7 @@ function getPmegpMonthData(){
         const master=pmegpMasterMap[r.unitId.toUpperCase()]||pmegpMasterNormalizedMap[cleanUnitId(r.unitId)];
         let dn=master?master.division:normalizeDivName(r.fileDiv),rg=master?master.region:(dn==="NOT IN QC LIST"?"HQ":"INDORE");
         if(!dn||dn==="NOT IN QC LIST"){dn="NOT IN QC LIST";rg="HQ"}
+        if(pmegpSkipDiv(dn))return;
         if(("All"!==selReg&&rg!==selReg)||("All"!==selDiv&&dn!==selDiv))return;
         const k=r.monthKey||"NA";
         if(k==="NA")noDate=true;else months.add(k);
@@ -2476,7 +2503,7 @@ function renderPmegpViews(){
     const filteredDivs=pmegpProcessedDivisions.filter(item=>{
         const regMatch = ("All"===selReg || item.region===selReg);
         const divMatch = ("All"===selDiv || item.division===selDiv);
-        return regMatch && divMatch;
+        return regMatch && divMatch && !pmegpSkipDiv(item.division);
     });
 
     if(filteredDivs.length){
@@ -2591,7 +2618,7 @@ function renderPmegpViews(){
     const filteredInspectors=pmegpProcessedInspectors.filter(item=>{
         const regMatch = ("All"===selReg || item.region===selReg);
         const divMatch = ("All"===selDiv || item.division===selDiv);
-        return regMatch && divMatch;
+        return regMatch && divMatch && !pmegpSkipDiv(item.division);
     });
 
     if(filteredInspectors.length){
@@ -2641,6 +2668,7 @@ function openPmegpDivisionCompleteModal(division){
 
     Object.values(pmegpMasterMap).forEach(unit=>{
         if("ALL"!==division && unit.division!==division) return;
+        if(pmegpSkipDiv(unit.division)) return;
         const insp = inspectedMap[unit.appId.toUpperCase()] || inspectedMap[cleanUnitId(unit.appId)];
         allUnitsList.push({
             appId: unit.appId,
@@ -2702,6 +2730,7 @@ function openPmegpPendingUnitsModal(division, phaseKey){
 
     Object.values(pmegpMasterMap).forEach(unit=>{
         if("ALL"!==division && unit.division!==division) return;
+        if(pmegpSkipDiv(unit.division)) return;
         if(phaseKey==="123" && !(unit.phase==="1st"||unit.phase==="2nd"||unit.phase==="3rd")) return;
         if(phaseKey!=="123" && phaseKey!=="ALL" && unit.phase!==phaseKey) return;
         
@@ -2754,6 +2783,7 @@ function openPmegpInspectorPhaseUnitsModal(division, inspectorName, phaseFilter)
             divName="NOT IN QC LIST";
             regName="HQ";
         }
+        if(pmegpSkipDiv(divName)) return;
 
         if(("ALL"===division || divName===division) && ("ALL"===inspectorName || rawItem.inspBy===inspectorName)){
             if(phaseFilter==="123" && !(phase==="1st"||phase==="2nd"||phase==="3rd")) return;
@@ -2883,7 +2913,7 @@ function renderPmgReport(){
     pmgCache=computePmgData();
     const selDiv=document.getElementById("pmegpFilterDivision")?document.getElementById("pmegpFilterDivision").value:"All";
     const allDivs=[...new Set(PMG_DATA.map(r=>r[0]))];
-    let enums=pmgCache.enums;
+    let enums=pmgCache.enums.filter(e=>!pmegpSkipDiv(e.div));
     if(selDiv!=="All"&&allDivs.some(d=>d.toUpperCase()===selDiv.toUpperCase()))enums=enums.filter(e=>e.div.toUpperCase()===selDiv.toUpperCase());
     const now=new Date();
     document.getElementById("pmgTitle").textContent="PMEGP Enumerator Wise detailed report on dated "+pmegpFmtDate(now).replace(/-/g,".");
@@ -2939,7 +2969,7 @@ function openPmgUnitsModal(i,k){
 function getPmgExcelRows(){
     const d=pmgCache||computePmgData();const rows=[];
     const G=PMG_RANGES;
-    d.enums.forEach(e=>rows.push({"Name of Division":e.div,"Name of Districts":e.dist,"Name of Enumerators":e.name,"Target":e.target,"Achived":e.ach.length,"Pending":e.target-e.ach.length,[G.dA[2]]:e.dA.length,[G.dB[2]]:e.dB.length,[G.dC[2]]:e.dC.length,"Target till 05.11.2026":e.tt,[G.n[2]]:e.n.length,[G.v[2]]:e.v.length,"Form Pending at bank level":e.bp,"No. of Forms received from Bank":e.br}));
+    d.enums.filter(e=>!pmegpSkipDiv(e.div)).forEach(e=>rows.push({"Name of Division":e.div,"Name of Districts":e.dist,"Name of Enumerators":e.name,"Target":e.target,"Achived":e.ach.length,"Pending":e.target-e.ach.length,[G.dA[2]]:e.dA.length,[G.dB[2]]:e.dB.length,[G.dC[2]]:e.dC.length,"Target till 05.11.2026":e.tt,[G.n[2]]:e.n.length,[G.v[2]]:e.v.length,"Form Pending at bank level":e.bp,"No. of Forms received from Bank":e.br}));
     return rows;
 }
 renderPmgReport();
@@ -2948,7 +2978,7 @@ function exportPmegpExcel(){
     if(!pmegpProcessedDivisions.length)return alert("Please upload PMEGP inspection file first.");
     const t=XLSX.utils.book_new();
     
-    const divRows=pmegpProcessedDivisions.map((item,idx)=>({
+    const divRows=pmegpProcessedDivisions.filter(i=>!pmegpSkipDiv(i.division)).map((item,idx)=>({
         "S.No": idx+1,
         "Division Name": item.division,
         "Region": item.region,
@@ -2974,7 +3004,7 @@ function exportPmegpExcel(){
     }));
     XLSX.utils.book_append_sheet(t,XLSX.utils.json_to_sheet(divRows),"Division_Wise_Pending_Report");
 
-    const inspRows=pmegpProcessedInspectors.map((item,idx)=>({
+    const inspRows=pmegpProcessedInspectors.filter(i=>!pmegpSkipDiv(i.division)).map((item,idx)=>({
         "S.No": idx+1,
         "Division Name": item.division,
         "Region": item.region,
@@ -2985,7 +3015,7 @@ function exportPmegpExcel(){
     }));
     XLSX.utils.book_append_sheet(t,XLSX.utils.json_to_sheet(inspRows),"Inspector_Wise_Report");
 
-    const allMasterUnits=Object.values(pmegpMasterMap).map((item,idx)=>({
+    const allMasterUnits=Object.values(pmegpMasterMap).filter(i=>!pmegpSkipDiv(i.division)).map((item,idx)=>({
         "S.No": idx+1,
         "Unit ID (APP_ID)": item.appId,
         "Division": item.division,
@@ -3059,10 +3089,10 @@ document.getElementById("pmegpFileInput").addEventListener("change",function(t){
 function updateDashboard(){
     const t=document.getElementById("filterDivision").value,e=document.getElementById("filterClass").value,o=document.getElementById("filterCategory").value,n=document.getElementById("summaryViewType").value,
           i=rawData.map(t=>{let officeId=t.officeId;const master=getEffectiveOfficeMaster(officeId, "Unknown", "SO");if(master.name.toUpperCase().includes("KHUDEL")&&"BO"===master.class)return null;const sName=String(t.service).trim().toLowerCase();let cat=serviceMapping[sName]||(sName.includes("parcel")?"PARCEL":"MO");return{officeId:officeId,service:t.service,articles:Number(t.articles)||0,postage:Number(t.postage)||0,officeName:master.name,officeClass:master.class,subDivision:master.sd,division:master.division,category:cat}}).filter(Boolean),
-          s=i.filter(n=>("All"===t||n.division===t)&&(("All"===e||n.officeClass===e)&&("All"===o||n.category===o)));
+          s=i.filter(n=>!sehOff("bkSehore",n.division)&&("All"===t||n.division===t)&&(("All"===e||n.officeClass===e)&&("All"===o||n.category===o)));
     currentFilteredRows=s;
     const l={};
-    Object.entries(masterOfficesMap).forEach(([o,n])=>{n.name.toUpperCase().includes("KHUDEL")&&"BO"===n.class||"All"!==t&&n.division!==t||"All"!==e&&n.class!==e||(l[o]=n)});
+    Object.entries(masterOfficesMap).forEach(([o,n])=>{sehOff("bkSehore",n.division)||n.name.toUpperCase().includes("KHUDEL")&&"BO"===n.class||"All"!==t&&n.division!==t||"All"!==e&&n.class!==e||(l[o]=n)});
     const a={};
     Object.keys(l).forEach(t=>{a[t]={...l[t],officeId:t,articles:0,postage:0,categories:{PARCEL:{articles:0,postage:0},MO:{articles:0,postage:0},IRGB:{articles:0,postage:0}}}}),
     i.forEach(t=>{!a[t.officeId]||"All"!==o&&t.category!==o||(a[t.officeId].articles+=t.articles,a[t.officeId].postage+=t.postage,a[t.officeId].categories[t.category]&&(a[t.officeId].categories[t.category].articles+=t.articles,a[t.officeId].categories[t.category].postage+=t.postage))}),
@@ -3095,7 +3125,7 @@ function renderSummaryTable(t,e){
 }
 
 function getNilRuleConfig(t,e){const o=String(t||"All").toUpperCase(),n=String(e||"All").toUpperCase();return"SO"===o||"HO"===o||"NODAL DELIVERY CENTER"===o?"PARCEL"===n?{lowMin:1,lowMax:50,goodMin:51,labelLow:"Low (1-50)*",labelGood:"Good (>50)",labelPct:"% >50 Booking"}:{lowMin:1,lowMax:100,goodMin:101,labelLow:"Low (1-100)*",labelGood:"Good (>100)",labelPct:"% >100 Booking"}:{lowMin:1,lowMax:10,goodMin:11,labelLow:"Low (1-10)*",labelGood:"Good (>10)",labelPct:"% >10 Booking"}}
-function getOfficeActivityData(t,e){const o=getNilRuleConfig(t,e),n={};Object.entries(masterOfficesMap).forEach(([e,o])=>{o.name.toUpperCase().includes("KHUDEL")&&"BO"===o.class||"All"!==t&&o.class!==t||(n[e]={officeId:e,name:o.name,class:o.class,sd:o.sd,division:o.division,cnt:0})}),rawData.forEach(t=>{if(n[t.officeId]){const o=String(t.service).trim().toLowerCase(),i=serviceMapping[o]||(o.includes("parcel")?"PARCEL":"MO");"All"!==e&&i!==e||(n[t.officeId].cnt+=Number(t.articles)||0)}});const i={};return Object.values(n).forEach(t=>{const e=t.division||"OTHER DIVISION",n=t.sd||"OTHER SD",s=e+"||"+n;i[s]||(i[s]={division:e,sd:n,totalOffices:0,totalArticles:0,nilOffices:[],lowBooking:[],goodBooking:[]});const l=t.cnt,a=t.name.toUpperCase().includes("IDC");0!==l||a?l>=o.lowMin&&l<=o.lowMax||0===l&&a?i[s].lowBooking.push(t):l>=o.goodMin&&i[s].goodBooking.push(t):i[s].nilOffices.push(t),i[s].totalOffices++,i[s].totalArticles+=l}),{sdMap:i,config:o,officeSummary:n}}
+function getOfficeActivityData(t,e){const o=getNilRuleConfig(t,e),n={};Object.entries(masterOfficesMap).forEach(([e,o])=>{sehOff("bkSehore",o.division)||o.name.toUpperCase().includes("KHUDEL")&&"BO"===o.class||"All"!==t&&o.class!==t||(n[e]={officeId:e,name:o.name,class:o.class,sd:o.sd,division:o.division,cnt:0})}),rawData.forEach(t=>{if(n[t.officeId]){const o=String(t.service).trim().toLowerCase(),i=serviceMapping[o]||(o.includes("parcel")?"PARCEL":"MO");"All"!==e&&i!==e||(n[t.officeId].cnt+=Number(t.articles)||0)}});const i={};return Object.values(n).forEach(t=>{const e=t.division||"OTHER DIVISION",n=t.sd||"OTHER SD",s=e+"||"+n;i[s]||(i[s]={division:e,sd:n,totalOffices:0,totalArticles:0,nilOffices:[],lowBooking:[],goodBooking:[]});const l=t.cnt,a=t.name.toUpperCase().includes("IDC");0!==l||a?l>=o.lowMin&&l<=o.lowMax||0===l&&a?i[s].lowBooking.push(t):l>=o.goodMin&&i[s].goodBooking.push(t):i[s].nilOffices.push(t),i[s].totalOffices++,i[s].totalArticles+=l}),{sdMap:i,config:o,officeSummary:n}}
 function renderNilBookingTable(){
     const t=document.querySelector("#tableNilBookingSummary tbody"),e=document.querySelector("#tableNilBookingSummary tfoot");
     t.innerHTML="",e.innerHTML="";
@@ -3140,7 +3170,9 @@ function openOfficeCategoryListModal(t,e,o){const n=document.getElementById("nil
 function exportMultiSheetNilExcel(){if(!rawData||0===rawData.length)return void alert("Please upload Booking Raw File first.");const t=XLSX.utils.book_new(),e=(t,e)=>{const{sdMap:o,config:n}=getOfficeActivityData(t,e),i=[];let s=1,l=0,a=0,d=0,r=0,c=0;const p={};return Object.values(o).forEach(t=>{p[t.division]||(p[t.division]=[]),p[t.division].push(t)}),Object.entries(p).forEach(([t,e])=>{let o=0,p=0,f=0,g=0,u=0;e.forEach(e=>{o+=e.totalOffices,p+=e.totalArticles,f+=e.nilOffices.length,g+=e.lowBooking.length,u+=e.goodBooking.length,i.push({"S.No":s++,Division:t,"Sub Division":e.sd,"Total Offices":e.totalOffices,"Total Articles":e.totalArticles,"Avg Booking/Office":e.totalOffices>0?Number((e.totalArticles/e.totalOffices).toFixed(2)):0,"Nil (0) Offices":e.nilOffices.length,[`Low Booking (${n.lowMin}-${n.lowMax})`]:e.lowBooking.length,[`Good Booking (>${n.goodMin-1})`]:e.goodBooking.length,"% Nil":e.totalOffices?`${Math.round(e.nilOffices.length/e.totalOffices*100)}%`:"0%","% Good":e.totalOffices?`${Math.round(e.goodBooking.length/e.totalOffices*100)}%`:"0%"})}),l+=o,a+=p,d+=f,r+=g,c+=u,i.push({"S.No":"",Division:`${t} Total`,"Sub Division":"","Total Offices":o,"Total Articles":p,"Avg Booking/Office":o>0?Number((p/o).toFixed(2)):0,"Nil (0) Offices":f,[`Low Booking (${n.lowMin}-${n.lowMax})`]:g,[`Good Booking (>${n.goodMin-1})`]:u,"% Nil":o?`${Math.round(f/o*100)}%`:"0%","% Good":o?`${Math.round(u/o*100)}%`:"0%"})}),i.push({"S.No":"",Division:"Grand Total","Sub Division":"","Total Offices":l,"Total Articles":a,"Avg Booking/Office":l>0?Number((a/l).toFixed(2)):0,"Nil (0) Offices":d,[`Low Booking (${n.lowMin}-${n.lowMax})`]:r,[`Good Booking (>${n.goodMin-1})`]:c,"% Nil":l?`${Math.round(d/l*100)}%`:"0%","% Good":l?`${Math.round(c/l*100)}%`:"0%"}),XLSX.utils.json_to_sheet(i)};XLSX.utils.book_append_sheet(t,e("BO","All"),"BO_Booking_Status"),XLSX.utils.book_append_sheet(t,e("SO","PARCEL"),"SO_Parcel_Category"),XLSX.utils.book_append_sheet(t,e("SO","MO"),"SO_Mail_Operations"),XLSX.writeFile(t,"Nil_and_Office_Activity_Report_3_Sheets.xlsx"),logGeneratedReport("Nil Booking Report (3 Sheets Excel)",()=>exportMultiSheetNilExcel())}
 
 // PLI Routine
-function processPliData(t){
+let pliBoCache=null;
+function onPliSehoreChange(){if(pliBoCache)processPliData(pliBoCache)}
+function processPliData(t){t=Object.fromEntries(Object.entries(t).filter(([k,v])=>!sehOff("pliSehore",v.division)));
     const e={};pliRawData.forEach(t=>{e[t.officeId]=(e[t.officeId]||0)+t.transCount}),currentNilPliOfficesList=[],currentAllPliOfficesList=[],Object.entries(t).forEach(([t,o])=>{const n=e.hasOwnProperty(t),i=e[t]||0,s={officeId:t,officeName:o.name,subDivision:o.sd,division:o.division,class:o.class,txn:i};currentAllPliOfficesList.push(s),n&&0===i&&currentNilPliOfficesList.push(s)});const o={};Object.entries(t).forEach(([t,e])=>{const n=e.division||"UNKNOWN DIVISION",i=e.sd||"UNKNOWN SD",s=n+"||"+i;o[s]||(o[s]={division:n,sd:i,offices:[],nilOfficesList:[],lowOfficesList:[],goodOfficesList:[],totalTxn:0}),o[s].offices.push({id:t,master:e})}),Object.values(o).forEach(t=>{let o=[],n=[],i=[],s=0;t.offices.forEach(l=>{const a=l.id,d=l.master,r=e.hasOwnProperty(a),c=e[a]||0;s+=c,r&&0===c?o.push({officeId:a,officeName:d.name,class:d.class,division:t.division,sd:t.sd,txn:0}):c>=1&&c<=10?n.push({officeId:a,officeName:d.name,class:d.class,division:t.division,sd:t.sd,txn:c}):c>10&&i.push({officeId:a,officeName:d.name,class:d.class,division:t.division,sd:t.sd,txn:c})}),t.totalOffices=t.offices.length,t.totalTxn=s,t.nilOfficesList=o,t.lowOfficesList=n,t.goodOfficesList=i}),currentPliProcessedList=Object.values(o);let n=1,i=0,s=0,l=0,a=0,d=0;const r={};currentPliProcessedList.forEach(t=>{r[t.division]||(r[t.division]=[]),r[t.division].push(t)});const c=document.querySelector("#tablePliSummary tbody");c.innerHTML="",Object.entries(r).forEach(([t,e])=>{let o=0,r=0,p=0,f=0,g=0,u=divClassMap[t]||"div-bg-indore-city";e.forEach(e=>{o+=e.totalOffices,r+=e.totalTxn,p+=e.nilOfficesList.length,f+=e.lowOfficesList.length,g+=e.goodOfficesList.length;const i=e.totalOffices>0?(e.totalTxn/e.totalOffices).toFixed(2):"0.00",s=e.totalOffices>0?Math.round(e.nilOfficesList.length/e.totalOffices*100)+"%":"0%",l=e.totalOffices>0?Math.round(e.goodOfficesList.length/e.totalOffices*100)+"%":"0%",a=document.createElement("tr");a.innerHTML=`<td>${n++}</td><td class="${u}">${t}</td><td style="text-align: left; font-weight: 600;">${e.sd}</td><td>${e.totalOffices}</td><td class="font-bold text-purple-950">${e.totalTxn.toLocaleString("en-IN")}</td><td class="font-bold text-blue-900 bg-blue-50/50">${i}</td><td class="clickable-cell font-bold text-rose-700 bg-rose-50/50" onclick="openPliOfficeListModal('${t}', '${e.sd}', 'NIL')">${e.nilOfficesList.length}</td><td class="clickable-cell font-bold text-amber-700 bg-amber-50/50" onclick="openPliOfficeListModal('${t}', '${e.sd}', 'LOW')">${e.lowOfficesList.length}</td><td class="clickable-cell font-bold text-emerald-700 bg-emerald-50/50" onclick="openPliOfficeListModal('${t}', '${e.sd}', 'GOOD')">${e.goodOfficesList.length}</td><td class="font-bold text-rose-800 bg-rose-100/60">${s}</td><td class="font-bold text-emerald-800 bg-emerald-100/60">${l}</td>`,c.appendChild(a)}),i+=o,s+=r,l+=p,a+=f,d+=g;const m=o>0?(r/o).toFixed(2):"0.00",h=o>0?Math.round(p/o*100)+"%":"0%",x=o>0?Math.round(g/o*100)+"%":"0%",b=document.createElement("tr");b.className="row-div-total",b.innerHTML=`<td colspan="3">${t} Total</td><td>${o}</td><td>${r.toLocaleString("en-IN")}</td><td>${m}</td><td class="clickable-cell underline" onclick="openPliOfficeListModal('${t}', 'ALL', 'NIL')">${p}</td><td class="clickable-cell underline" onclick="openPliOfficeListModal('${t}', 'ALL', 'LOW')">${f}</td><td class="clickable-cell underline" onclick="openPliOfficeListModal('${t}', 'ALL', 'GOOD')">${g}</td><td>${h}</td><td>${x}</td>`,c.appendChild(b)});const p=i>0?(s/i).toFixed(2):"0.00",f=i>0?Math.round(l/i*100)+"%":"0%",g=i>0?Math.round(d/i*100)+"%":"0%";document.querySelector("#tablePliSummary tfoot").innerHTML=`<tr class="row-grand-total"><td colspan="3">Grand Total (Indore Region - BO)</td><td>${i}</td><td>${s.toLocaleString("en-IN")}</td><td>${p}</td><td class="clickable-cell underline" onclick="openPliOfficeListModal('ALL', 'ALL', 'NIL')">${l}</td><td class="clickable-cell underline" onclick="openPliOfficeListModal('ALL', 'ALL', 'LOW')">${a}</td><td class="clickable-cell underline" onclick="openPliOfficeListModal('ALL', 'ALL', 'GOOD')">${d}</td><td>${f}</td><td>${g}</td></tr>`
 }
 
@@ -3148,11 +3180,14 @@ function openPliOfficeListModal(t,e,o){const n=[];currentPliProcessedList.forEac
 function exportPliModalToExcel(){XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(),XLSX.utils.json_to_sheet(pliModalExportData),"PLI_Offices"),"PLI_Office_Details_List.xlsx")}
 function exportPliExcel(){if(!currentPliProcessedList||!currentPliProcessedList.length)return alert("No PLI report data available. Please upload raw file first.");const t=XLSX.utils.book_new(),e=XLSX.utils.table_to_sheet(document.getElementById("tablePliSummary"));XLSX.utils.book_append_sheet(t,e,"PLI_Summary_Report");const o=currentNilPliOfficesList.length>0?currentNilPliOfficesList.map((t,e)=>({"S.No":e+1,"Office ID":t.officeId,"Branch Office Name (BO)":t.officeName,"Sub-Division Name (SD)":t.subDivision,"Division Name":t.division,"PLI Transactions":0})):[{Message:"No Nil PLI transaction offices found"}],n=XLSX.utils.json_to_sheet(o);XLSX.utils.book_append_sheet(t,n,"Nil_PLI_Offices_List");const i=currentAllPliOfficesList.length>0?currentAllPliOfficesList.map((t,e)=>({"S.No":e+1,"Office ID":t.officeId,"Branch Office Name (BO)":t.officeName,Class:t.class,"Sub-Division Name (SD)":t.subDivision,"Division Name":t.division,"PLI Transactions":t.txn,Status:0===t.txn?"NIL":t.txn<=10?"LOW (1-10)":"GOOD (>10)"})):[{Message:"No branch offices available"}],s=XLSX.utils.json_to_sheet(i);XLSX.utils.book_append_sheet(t,s,"All_BO_Txn_Details"),XLSX.writeFile(t,"PLI_Nil_Transaction_Report_3_Sheets.xlsx"),logGeneratedReport("PLI Nil Transaction Report (3 Sheets Excel)",()=>exportPliExcel())}
 
-document.getElementById("pliFileInput").addEventListener("change",function(t){const e=t.target.files[0];if(!e)return;const o=document.getElementById("pliUploadStatus");o.innerHTML="🔄 Reading File...";const n=new FileReader;n.onload=function(t){try{const e=XLSX.read(t.target.result,{type:"array",cellDates:!0,dense:!0}).Sheets[XLSX.read(t.target.result,{type:"array"}).SheetNames[0]],n=XLSX.utils.sheet_to_json(e,{header:1,defval:""}),i={};Object.entries(masterOfficesMap).forEach(([t,e])=>{String(e.name||"").toUpperCase().includes("KHUDEL")&&"BO"===String(e.class).toUpperCase()||"BO"===String(e.class).toUpperCase()&&(i[t]=e)}),pliRawData=[];for(let t=1;t<n.length;t++){const e=n[t];if(!e||0===e.length)continue;let o=remapOfficeId(String(e[8]||e[0]||"").trim().replace(/\.0$/,""));if(!o)continue;let i=0;for(let t=0;t<e.length;t++){let o=Number(e[t]);!isNaN(o)&&o>=0&&o<5e5&&8!==t&&(i=o)}pliRawData.push({officeId:o,transCount:i})}o.innerHTML=`✅ Uploaded! (${Object.keys(i).length} BOs matched)`,processPliData(i)}catch(t){console.error(t),o.innerHTML="❌ Error reading PLI file."}},n.readAsArrayBuffer(e)});
+document.getElementById("pliFileInput").addEventListener("change",function(t){const e=t.target.files[0];if(!e)return;const o=document.getElementById("pliUploadStatus");o.innerHTML="🔄 Reading File...";const n=new FileReader;n.onload=function(t){try{const e=XLSX.read(t.target.result,{type:"array",cellDates:!0,dense:!0}).Sheets[XLSX.read(t.target.result,{type:"array"}).SheetNames[0]],n=XLSX.utils.sheet_to_json(e,{header:1,defval:""}),i={};Object.entries(masterOfficesMap).forEach(([t,e])=>{String(e.name||"").toUpperCase().includes("KHUDEL")&&"BO"===String(e.class).toUpperCase()||"BO"===String(e.class).toUpperCase()&&(i[t]=e)}),pliRawData=[];for(let t=1;t<n.length;t++){const e=n[t];if(!e||0===e.length)continue;let o=remapOfficeId(String(e[8]||e[0]||"").trim().replace(/\.0$/,""));if(!o)continue;let i=0;for(let t=0;t<e.length;t++){let o=Number(e[t]);!isNaN(o)&&o>=0&&o<5e5&&8!==t&&(i=o)}pliRawData.push({officeId:o,transCount:i})}o.innerHTML=`✅ Uploaded! (${Object.keys(i).length} BOs matched)`,pliBoCache=i,processPliData(i)}catch(t){console.error(t),o.innerHTML="❌ Error reading PLI file."}},n.readAsArrayBuffer(e)});
 const exportPliPDF=()=>exportSingleTableToPDF("tablePliSummary","PLI Nil Transaction Report");
 
 // Digital Routine
 function getDigitalColorStyle(t){return t<60?"background-color: #f8cbad; color: #a61c1c;":t>=60&&t<75?"background-color: #ffeb9c; color: #835c00;":t>=75&&t<85?"background-color: #c6efce; color: #006100;":"background-color: #a9d18e; color: #003800;"}
+let digitalRawAll=[];
+function digitalApplySehore(){digitalRawData=digitalRawAll.filter(r=>!sehOff("digSehore",getEffectiveOfficeMaster(r.officeId,r.officeName,"SO").division))}
+function onDigitalSehoreChange(){if(!digitalRawAll.length)return;digitalApplySehore();processDigitalReport();renderOfficeDigitalTable()}
 function processDigitalReport(){
     if(!digitalRawData.length)return;
     const t="excluding_bo"===document.getElementById("digitalModeSelect").value,e=document.getElementById("digitalViewType").value,o=document.getElementById("digitalFilterDivision").value;
@@ -3268,7 +3303,7 @@ document.getElementById("digitalFileInput").addEventListener("change",function(t
                     digitalRawData.push(digitalMergeMap[remappedId]);
                 }
             }
-            o.innerHTML=`✅ Uploaded! (${digitalRawData.length} records parsed)`,processDigitalReport(),renderOfficeDigitalTable()
+            digitalRawAll=digitalRawData.slice(),digitalApplySehore(),o.innerHTML=`✅ Uploaded! (${digitalRawData.length} records parsed)`,processDigitalReport(),renderOfficeDigitalTable()
         }catch(t){o.innerHTML="❌ Error reading file."}
     },n.readAsArrayBuffer(e)
 });
@@ -3699,6 +3734,7 @@ function recomputeSbTotals(){
     renderSbOfficeTable();
 }
 
+function onSbSehoreChange(){if(sbCalculated)recomputeSbTotals()}
 function buildSbCombinedList(){
     const list=[];
     const O=sbOpenTotals, C=sbCloseTotals;
@@ -3711,12 +3747,12 @@ function buildSbCombinedList(){
         const o=O.unmatched[id]||0, c=C.unmatched[id]||0;
         list.push({officeId:"UNMATCHED-"+id, boId:id, name:"UNMATCHED OFFICE ("+id+")", class:"BO", sd:"UNKNOWN SD", division:"NOT IN QC LIST", open:o, close:c, net:o-c});
     });
-    sbCombinedList=list;
+    sbCombinedList=list.filter(r=>!sehOff("sbSehore",r.division));
     let totOpen=0, totClose=0;
-    list.forEach(r=>{ totOpen+=r.open; totClose+=r.close; });
+    sbCombinedList.forEach(r=>{ totOpen+=r.open; totClose+=r.close; });
     const kOff=document.getElementById("sbKpiOffices");
     if(kOff){
-        kOff.textContent=list.length.toLocaleString("en-IN");
+        kOff.textContent=sbCombinedList.length.toLocaleString("en-IN");
         document.getElementById("sbKpiOpen").textContent=totOpen.toLocaleString("en-IN");
         document.getElementById("sbKpiClose").textContent=totClose.toLocaleString("en-IN");
         document.getElementById("sbKpiNet").textContent=(totOpen-totClose).toLocaleString("en-IN");
@@ -4318,18 +4354,20 @@ function renderPosbReconciliation(totalFileRows, matchedOfficeCount){
     if(!allOk) alert(`⚠️ Sab offices master me nahi mile / sab count nahi hue.\n\n${posbUnmatchedList.length} office master list me nahi mile (fir bhi count hue — tables me "NOT IN MASTER LIST" me)\n${posbNotCounted.length} row count nahi hui (Nodal Delivery Center)\n\nExcel rows ka jod (A/c Opened): ${posbFmt(fileOpen)}\nPortal me count hua: ${posbFmt(portalOpen)}\nCount nahi hua: ${posbFmt(exOpen)}\n\nList neeche panel me dekho.`);
 }
 
+function posbViewList(){return posbCombinedList.filter(r=>!sehOff("posbSehore",r.division))}
+function onPosbSehoreChange(){if(!posbCalculated)return;initPosbDropdowns();renderPosbSubDivisionTable();renderPosbDivisionTable();renderPosbOfficeTable();updatePosbKpis()}
 function updatePosbKpis(){
-    let off=posbCombinedList.length, sbNet=0, certNet=0, rdNet=0;
-    posbCombinedList.forEach(r=>{ sbNet+=r.sbNet; certNet+=r.certNet; rdNet+=r.rdNet; });
+    let off=posbViewList().length, sbNet=0, certNet=0, rdNet=0;
+    posbViewList().forEach(r=>{ sbNet+=r.sbNet; certNet+=r.certNet; rdNet+=r.rdNet; });
     const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v.toLocaleString("en-IN"); };
     set("posbKpiOffices",off); set("posbKpiSbNet",sbNet); set("posbKpiCertNet",certNet); set("posbKpiRdNet",rdNet);
 }
 function initPosbDropdowns(){
-    const divisions=[...new Set(posbCombinedList.map(r=>r.division))].filter(Boolean).sort();
+    const divisions=[...new Set(posbViewList().map(r=>r.division))].filter(Boolean).sort();
     const sel=document.getElementById("posbOfficeFilterDiv");
     if(sel) sel.innerHTML='<option value="All">All Divisions</option>'+divisions.map(d=>`<option value="${d}">${d}</option>`).join("");
     const clsSel=document.getElementById("posbOfficeFilterClass");
-    const classes=[...new Set(posbCombinedList.map(r=>r.class))].filter(Boolean).sort();
+    const classes=[...new Set(posbViewList().map(r=>r.class))].filter(Boolean).sort();
     if(clsSel) clsSel.innerHTML='<option value="All">All Classes</option>'+classes.map(c=>`<option value="${c}">${c}</option>`).join("");
     onPosbDivisionFilterChange();
 }
@@ -4337,7 +4375,7 @@ function onPosbDivisionFilterChange(){
     const divEl=document.getElementById("posbOfficeFilterDiv"), sdSel=document.getElementById("posbOfficeFilterSd");
     if(!divEl||!sdSel) return;
     const div=divEl.value;
-    const sds=[...new Set(posbCombinedList.filter(t=>div==="All"||t.division===div).map(t=>t.sd))].filter(Boolean).sort();
+    const sds=[...new Set(posbViewList().filter(t=>div==="All"||t.division===div).map(t=>t.sd))].filter(Boolean).sort();
     sdSel.innerHTML='<option value="All">All Sub Divisions</option>'+sds.map(s=>`<option value="${s}">${s}</option>`).join("");
     renderPosbOfficeTable();
 }
@@ -4360,9 +4398,9 @@ function resetPosbData(){
 function renderPosbSubDivisionTable(){
     const tbody=document.querySelector("#tablePosbSubDivision tbody"), tfoot=document.querySelector("#tablePosbSubDivision tfoot");
     if(!tbody) return;
-    if(!posbCombinedList.length){ tbody.innerHTML='<tr><td colspan="13" class="py-8 text-center text-slate-400 font-medium">Please upload Product Wise A/C Report files and press Calculate.</td></tr>'; if(tfoot) tfoot.innerHTML=""; return; }
+    if(!posbViewList().length){ tbody.innerHTML='<tr><td colspan="13" class="py-8 text-center text-slate-400 font-medium">Please upload Product Wise A/C Report files and press Calculate.</td></tr>'; if(tfoot) tfoot.innerHTML=""; return; }
     const bySd={};
-    posbCombinedList.forEach(r=>{
+    posbViewList().forEach(r=>{
         const key=r.division+"||"+r.sd;
         if(!bySd[key]) bySd[key]={division:r.division, sd:r.sd, offices:0, sbOpen:0, sbClose:0, certIssued:0, certDischarged:0, rdOpen:0, rdClose:0};
         const t=bySd[key]; t.offices++; t.sbOpen+=r.sbOpen; t.sbClose+=r.sbClose; t.certIssued+=r.certIssued; t.certDischarged+=r.certDischarged; t.rdOpen+=r.rdOpen; t.rdClose+=r.rdClose;
@@ -4393,9 +4431,9 @@ function renderPosbSubDivisionTable(){
 function renderPosbDivisionTable(){
     const tbody=document.querySelector("#tablePosbDivision tbody"), tfoot=document.querySelector("#tablePosbDivision tfoot");
     if(!tbody) return;
-    if(!posbCombinedList.length){ tbody.innerHTML='<tr><td colspan="12" class="py-8 text-center text-slate-400 font-medium">Please upload Product Wise A/C Report files and press Calculate.</td></tr>'; if(tfoot) tfoot.innerHTML=""; return; }
+    if(!posbViewList().length){ tbody.innerHTML='<tr><td colspan="12" class="py-8 text-center text-slate-400 font-medium">Please upload Product Wise A/C Report files and press Calculate.</td></tr>'; if(tfoot) tfoot.innerHTML=""; return; }
     const byDiv={};
-    posbCombinedList.forEach(r=>{
+    posbViewList().forEach(r=>{
         byDiv[r.division]=byDiv[r.division]||{offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0};
         const d=byDiv[r.division]; d.offices++; d.sbOpen+=r.sbOpen; d.sbClose+=r.sbClose; d.certIssued+=r.certIssued; d.certDischarged+=r.certDischarged; d.rdOpen+=r.rdOpen; d.rdClose+=r.rdClose;
     });
@@ -4414,24 +4452,24 @@ function renderPosbOfficeTable(){
     if(!tbody) return;
     const divEl=document.getElementById("posbOfficeFilterDiv"), sdEl=document.getElementById("posbOfficeFilterSd"), clsEl=document.getElementById("posbOfficeFilterClass");
     const div=divEl?divEl.value:"All", sd=sdEl?sdEl.value:"All", cls=clsEl?clsEl.value:"All";
-    let list=posbCombinedList.filter(r=>(div==="All"||r.division===div)&&(sd==="All"||r.sd===sd)&&(cls==="All"||r.class===cls));
-    if(!list.length){ tbody.innerHTML=`<tr><td colspan="16" class="py-8 text-center text-slate-400 font-medium">${posbCombinedList.length?"No matching offices found.":"Please upload Product Wise A/C Report files and press Calculate."}</td></tr>`; return; }
+    let list=posbViewList().filter(r=>(div==="All"||r.division===div)&&(sd==="All"||r.sd===sd)&&(cls==="All"||r.class===cls));
+    if(!list.length){ tbody.innerHTML=`<tr><td colspan="16" class="py-8 text-center text-slate-400 font-medium">${posbViewList().length?"No matching offices found.":"Please upload Product Wise A/C Report files and press Calculate."}</td></tr>`; return; }
     list=list.slice().sort((a,b)=>a.division.localeCompare(b.division)||a.sd.localeCompare(b.sd)||a.name.localeCompare(b.name));
     tbody.innerHTML=list.map((r,i)=>`<tr class="hover:bg-slate-50"><td>${i+1}</td><td class="font-mono text-purple-950 font-bold">${r.officeId}</td><td class="font-mono">${r.boId}</td><td style="text-align:left" class="font-semibold">${r.name}</td><td><span class="bg-purple-100 text-purple-950 px-2 py-0.5 rounded font-bold">${r.class}</span></td><td>${r.sd}</td><td>${r.division}</td><td class="font-bold text-emerald-800">${r.sbOpen.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${r.sbClose.toLocaleString("en-IN")}</td><td class="font-bold ${r.sbNet>=0?"text-blue-900":"text-rose-700"}">${r.sbNet.toLocaleString("en-IN")}</td><td class="font-bold text-emerald-800">${r.certIssued.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${r.certDischarged.toLocaleString("en-IN")}</td><td class="font-bold ${r.certNet>=0?"text-blue-900":"text-rose-700"}">${r.certNet.toLocaleString("en-IN")}</td><td class="font-bold text-emerald-800">${r.rdOpen.toLocaleString("en-IN")}</td><td class="font-bold text-rose-800">${r.rdClose.toLocaleString("en-IN")}</td><td class="font-bold ${r.rdNet>=0?"text-blue-900":"text-rose-700"}">${r.rdNet.toLocaleString("en-IN")}</td></tr>`).join("");
 }
 
 function exportPosbCombinedExcel(){
-    if(!posbCombinedList.length) return alert("Please upload Product Wise A/C Report files first.");
+    if(!posbViewList().length) return alert("Please upload Product Wise A/C Report files first.");
     const wb=XLSX.utils.book_new();
     const byDiv={};
-    posbCombinedList.forEach(r=>{ byDiv[r.division]=byDiv[r.division]||{offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0}; const d=byDiv[r.division]; d.offices++; d.sbOpen+=r.sbOpen; d.sbClose+=r.sbClose; d.certIssued+=r.certIssued; d.certDischarged+=r.certDischarged; d.rdOpen+=r.rdOpen; d.rdClose+=r.rdClose; });
+    posbViewList().forEach(r=>{ byDiv[r.division]=byDiv[r.division]||{offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0}; const d=byDiv[r.division]; d.offices++; d.sbOpen+=r.sbOpen; d.sbClose+=r.sbClose; d.certIssued+=r.certIssued; d.certDischarged+=r.certDischarged; d.rdOpen+=r.rdOpen; d.rdClose+=r.rdClose; });
     const divRows=Object.entries(byDiv).map(([div,d])=>({Division:div,"Total Offices":d.offices,"SB Open":d.sbOpen,"SB Close":d.sbClose,"SB Net":d.sbOpen-d.sbClose,"Cert Issued":d.certIssued,"Cert Discharged":d.certDischarged,"Cert Net":d.certIssued-d.certDischarged,"RD Open":d.rdOpen,"RD Close":d.rdClose,"RD Net":d.rdOpen-d.rdClose}));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(divRows), "Division_Wise");
     const bySd={};
-    posbCombinedList.forEach(r=>{ const key=r.division+"||"+r.sd; bySd[key]=bySd[key]||{division:r.division,sd:r.sd,offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0}; const t=bySd[key]; t.offices++; t.sbOpen+=r.sbOpen; t.sbClose+=r.sbClose; t.certIssued+=r.certIssued; t.certDischarged+=r.certDischarged; t.rdOpen+=r.rdOpen; t.rdClose+=r.rdClose; });
+    posbViewList().forEach(r=>{ const key=r.division+"||"+r.sd; bySd[key]=bySd[key]||{division:r.division,sd:r.sd,offices:0,sbOpen:0,sbClose:0,certIssued:0,certDischarged:0,rdOpen:0,rdClose:0}; const t=bySd[key]; t.offices++; t.sbOpen+=r.sbOpen; t.sbClose+=r.sbClose; t.certIssued+=r.certIssued; t.certDischarged+=r.certDischarged; t.rdOpen+=r.rdOpen; t.rdClose+=r.rdClose; });
     const sdRows=Object.values(bySd).map(t=>({Division:t.division,"Sub Division":t.sd,"Total Offices":t.offices,"SB Open":t.sbOpen,"SB Close":t.sbClose,"SB Net":t.sbOpen-t.sbClose,"Cert Issued":t.certIssued,"Cert Discharged":t.certDischarged,"Cert Net":t.certIssued-t.certDischarged,"RD Open":t.rdOpen,"RD Close":t.rdClose,"RD Net":t.rdOpen-t.rdClose}));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sdRows), "SubDivision_Wise");
-    const offRows=posbCombinedList.map((r,i)=>({"S.No":i+1,"Office ID":r.officeId,"BO ID/SOL ID":r.boId,"Office Name":r.name,Class:r.class,"Sub Division":r.sd,Division:r.division,"SB Open":r.sbOpen,"SB Close":r.sbClose,"SB Net":r.sbNet,"Cert Issued":r.certIssued,"Cert Discharged":r.certDischarged,"Cert Net":r.certNet,"RD Open":r.rdOpen,"RD Close":r.rdClose,"RD Net":r.rdNet}));
+    const offRows=posbViewList().map((r,i)=>({"S.No":i+1,"Office ID":r.officeId,"BO ID/SOL ID":r.boId,"Office Name":r.name,Class:r.class,"Sub Division":r.sd,Division:r.division,"SB Open":r.sbOpen,"SB Close":r.sbClose,"SB Net":r.sbNet,"Cert Issued":r.certIssued,"Cert Discharged":r.certDischarged,"Cert Net":r.certNet,"RD Open":r.rdOpen,"RD Close":r.rdClose,"RD Net":r.rdNet}));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(offRows), "Office_Wise");
     const reconRows=posbFileReconRows().map(x=>({File:x.file,"Division (detected)":x.division,Column:x.label,"Excel rows ka jod":x.sumRows,"Master offices me count":x.counted,"Master me nahi mile (count hue)":x.nf,"Count nahi hua":x.ex,Status:x.status}));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(reconRows.length?reconRows:[{Info:"No data"}]), "File_Reconciliation");
