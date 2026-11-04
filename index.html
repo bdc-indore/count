@@ -2844,14 +2844,16 @@ const PMG_DATA=[
 ["Ujjain","Ujjain","Shri Nikesh Kumar",41,15,25,8],["Ujjain","Agar-Malwa","Shri Ravindra Sharma",64,8,13,10],["Ujjain","Ujjain","Shri Bharat Dubey",23,8,10,4],["Ujjain","Ujjain","Shri Anil Kumar Kayasth",34,16,5,0],["Ujjain","Ujjain","Shri Arjun Malviya",36,10,0,0],["Ujjain","Ujjain","Shri Durgashankar Garasiya",37,16,3,0],["Ujjain","Ujjain","Shri Harshit Parmar",20,10,0,0],["Ujjain","Ujjain","Shri Mukesh Kumbhkar",23,10,0,0],["Ujjain","Ujjain","Shri F U Qureshi",21,15,0,0]
 ];
 // Date windows (yyyymmdd) - change here if the report dates change
-const PMG_RANGES={v:[20261026,20261030,"Unit Verified In Oct 26 upto Dt. 30.10.2026"],dA:[20261028,20261028,"On dated 28.10.2026"],dB:[20261029,20261029,"On dated 29.10.2026"],dC:[20261030,20261030,"On dated 30.10.2026"],n:[20261030,20261105,"Inspected 30.10.2026 to 05.11.2026"]};
+const PMG_RANGES={v:[20261026,20261031,"Unit Verified In Oct 26 upto Dt. 31.10.2026"],nv:[20261101,20261130,"Unit Verified In Nov 26 upto Dt. 05.11.2026"],dA:[20261028,20261028,"On dated 28.10.2026"],dB:[20261029,20261029,"On dated 29.10.2026"],dC:[20261030,20261030,"On dated 30.10.2026"],n:[20261030,20261105,"Inspected 30.10.2026 to 05.11.2026"]};
 // yyyymmdd me din add/minus (month/year boundary sahi handle hota hai)
 function pmgShiftDay(n,delta){const d=new Date(Math.floor(n/10000),Math.floor(n/100)%100-1,n%100+delta);return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()}
 function pmgMonthLabel(k){if(!k||k==="NA")return "Date NA";const p=k.split("-"),M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return (M[+p[1]-1]||p[1])+"-"+String(p[0]).slice(2)}
 // uploaded file ki sabse latest date ke hisab se date columns set karta hai
 function pmgSetDateRanges(latest){
     const l1=pmgShiftDay(latest,-1),l2=pmgShiftDay(latest,-2);
-    PMG_RANGES.v=[20261026,latest,"Unit Verified In Oct 26 upto Dt. "+pmgDayLabel(latest)];
+    const octEnd=Math.min(latest,20261031);
+    PMG_RANGES.v=[20261026,octEnd,"Unit Verified In Oct 26 upto Dt. "+pmgDayLabel(octEnd)];
+    PMG_RANGES.nv=[20261101,Math.max(latest,20261101),"Unit Verified In Nov 26 upto Dt. "+pmgDayLabel(Math.max(latest,20261101))];
     PMG_RANGES.dA=[l2,l2,"On dated "+pmgDayLabel(l2)];
     PMG_RANGES.dB=[l1,l1,"On dated "+pmgDayLabel(l1)];
     PMG_RANGES.dC=[latest,latest,"On dated "+pmgDayLabel(latest)];
@@ -2870,17 +2872,20 @@ function pmgEnumOpts(dv){
 }
 function pmgDivChange(i,dv){const el=document.getElementById("pmgEnum"+i);if(el)el.innerHTML=pmgEnumOpts(dv)}
 function pmgSetManual(key,idx){if(idx===""){delete pmgManualMap[key]}else{pmgManualMap[key]=PMG_DATA[+idx][2]}pmgSaveMap();renderPmgReport()}
+const PMG_OTHER_AFTER=20261030;
 function computePmgData(){
     // uploaded file ki sabse latest inspection date -> "On dated" (last 3 din) aur "Unit Verified upto" columns
     let latest=0;
     pmegpUploadedRaw.forEach(r=>{if(r.dayNum>latest)latest=r.dayNum});
     if(!latest)latest=20261030;
     pmgSetDateRanges(latest);
-    const enums=PMG_DATA.map((r,i)=>({i,div:r[0],dist:r[1],name:r[2],target:r[3],tt:r[4],bp:r[5],br:r[6],tok:pmgNameTokens(r[2]),ach:[],v:[],dA:[],dB:[],dC:[],n:[]}));
+    const enums=PMG_DATA.map((r,i)=>({i,div:r[0],dist:r[1],name:r[2],target:r[3],tt:r[4],bp:r[5],br:r[6],tok:pmgNameTokens(r[2]),ach:[],v:[],nv:[],oth:[],dA:[],dB:[],dC:[],n:[]}));
     const unmatched={};
     pmegpUploadedRaw.forEach(r=>{
         const master=pmegpMasterMap[r.unitId.toUpperCase()]||pmegpMasterNormalizedMap[cleanUnitId(r.unitId)];
-        if(!master||master.phase!=="4th")return;
+        if(!master)return;
+        const is4=master.phase==="4th";
+        if(!is4&&!(r.dayNum>PMG_OTHER_AFTER))return; // 4th ke alawa sirf 30.10.2026 ke baad wale inspections remark ke liye
         const tk=pmgNameTokens(r.inspBy);
         let best=null,bs=0;
         const mk=pmgKey(r.inspBy),dvU=String(master.division||"").toUpperCase(),mkd=mk+"|"+dvU;
@@ -2896,7 +2901,8 @@ function computePmgData(){
             else if(inter===tk.length||inter===e.tok.length)sc=inter*10-Math.abs(tk.length-e.tok.length);
             if(sc>bs){bs=sc;best=e}
         });
-        const u={appId:r.unitId,division:master.division,region:master.region,phase:"4th",inspBy:r.inspBy,date:r.dateDisp||r.date||"-",status:r.status};
+        const u={appId:r.unitId,division:master.division,region:master.region,phase:master.phase,inspBy:r.inspBy,date:r.dateDisp||r.date||"-",status:r.status};
+        if(!is4){if(best&&bs>0)best.oth.push(u);return}
         if(!best||bs<=0){
             const k=(mk||"unassigned")+"|"+dvU,dist=(r.district||master.district||"").trim()||"-";
             unmatched[k]=unmatched[k]||{name:r.inspBy||"Unassigned",division:master.division,dists:{},months:{},count:0};
@@ -2918,13 +2924,13 @@ function renderPmgReport(){
     const now=new Date();
     document.getElementById("pmgTitle").textContent="PMEGP Enumerator Wise detailed report on dated "+pmegpFmtDate(now).replace(/-/g,".");
     const H=(t,bg)=>`<th style="background-color:${bg}">${t}</th>`;
-    th.innerHTML=`<tr><th>Name of Division</th><th>Name of Districts</th><th>Name of Enumerators</th><th>Target</th>${H("Achived","#e2efda")}${H("Pending","#fff2cc")}${H(PMG_RANGES.dA[2],"#fce4d6")}${H(PMG_RANGES.dB[2],"#fce4d6")}${H(PMG_RANGES.dC[2],"#fce4d6")}${H("Target till 05.11.2026","#fff2cc")}${H(PMG_RANGES.n[2].replace("Inspected ","Achieved<br>"),"#d9edf7")}${H(PMG_RANGES.v[2],"#fff2cc")}<th>Form Pending at bank level</th><th>No. of Forms received from Bank</th><th>Rmark</th></tr>`;
+    th.innerHTML=`<tr><th>Name of Division</th><th>Name of Districts</th><th>Name of Enumerators</th><th>Target</th>${H("Achived","#e2efda")}${H("Pending","#fff2cc")}${H(PMG_RANGES.dA[2],"#fce4d6")}${H(PMG_RANGES.dB[2],"#fce4d6")}${H(PMG_RANGES.dC[2],"#fce4d6")}${H("Target till 05.11.2026","#fff2cc")}${H(PMG_RANGES.n[2].replace("Inspected ","Achieved<br>"),"#d9edf7")}${H(PMG_RANGES.v[2],"#fff2cc")}${H(PMG_RANGES.nv[2],"#ffe699")}<th>Form Pending at bank level</th><th>No. of Forms received from Bank</th><th>Rmark</th></tr>`;
     tb.innerHTML="";tf.innerHTML="";
-    const sum=l=>({target:0,ach:0,pend:0,tt:0,n:0,v:0,dA:0,dB:0,dC:0,bp:0,br:0});
-    const add=(a,e)=>{a.target+=e.target;a.ach+=e.ach.length;a.pend+=e.target-e.ach.length;a.tt+=e.tt;a.n+=e.n.length;a.v+=e.v.length;a.dA+=e.dA.length;a.dB+=e.dB.length;a.dC+=e.dC.length;a.bp+=e.bp;a.br+=e.br};
+    const sum=l=>({target:0,ach:0,pend:0,tt:0,n:0,v:0,nv:0,oth:0,dA:0,dB:0,dC:0,bp:0,br:0});
+    const add=(a,e)=>{a.target+=e.target;a.ach+=e.ach.length;a.pend+=e.target-e.ach.length;a.tt+=e.tt;a.n+=e.n.length;a.v+=e.v.length;a.nv+=e.nv.length;a.oth+=e.oth.length;a.dA+=e.dA.length;a.dB+=e.dB.length;a.dC+=e.dC.length;a.bp+=e.bp;a.br+=e.br};
     const tot=sum(),divs=[...new Set(enums.map(e=>e.div))];
     const cnt=(e,k)=>{const c=e[k].length;return c?`<td class="clickable-cell font-bold text-emerald-800" onclick="openPmgUnitsModal(${e.i},'${k}')">${c}</td>`:`<td>0</td>`};
-    const totRow=(label,a,cls,sty)=>`<tr class="${cls}" style="${sty}"><td colspan="3" class="font-bold">${label}</td><td>${a.target}</td><td>${a.ach}</td><td>${a.pend}</td><td>${a.dA}</td><td>${a.dB}</td><td>${a.dC}</td><td>${a.tt}</td><td>${a.n}</td><td>${a.v}</td><td>${a.bp}</td><td>${a.br}</td><td></td></tr>`;
+    const totRow=(label,a,cls,sty)=>`<tr class="${cls}" style="${sty}"><td colspan="3" class="font-bold">${label}</td><td>${a.target}</td><td>${a.ach}</td><td>${a.pend}</td><td>${a.dA}</td><td>${a.dB}</td><td>${a.dC}</td><td>${a.tt}</td><td>${a.n}</td><td>${a.v}</td><td>${a.nv}</td><td>${a.bp}</td><td>${a.br}</td><td class="text-left px-2">${a.oth?`Total ${a.oth} inspections after 30.10.2026 other than 4th phase`:""}</td></tr>`;
     divs.forEach(d=>{
         const list=enums.filter(e=>e.div===d),a=sum();
         list.forEach((e,idx)=>{
@@ -2933,7 +2939,7 @@ function renderPmgReport(){
             const pc=pend<0?"background:#fbbf8f":pend===0?"background:#fca5a5":"background:#fde68a";
             const ac=e.ach.length?`<td class="clickable-cell font-bold" style="background:#c6e0b4" onclick="openPmgUnitsModal(${e.i},'ach')">${e.ach.length}</td>`:`<td class="font-bold" style="background:#f4b6b6">0</td>`;
             const tr=document.createElement("tr");
-            tr.innerHTML=(idx===0?`<td rowspan="${list.length+1}" class="text-left font-bold px-2" style="vertical-align:middle">${d}</td>`:"")+`<td>${e.dist}</td><td class="text-left px-2" style="background:#e2efda">${e.name}</td><td>${e.target}</td>${ac}<td class="font-bold" style="${pc}">${pend}</td>${cnt(e,"dA")}${cnt(e,"dB")}${cnt(e,"dC")}<td>${e.tt}</td>${cnt(e,"n")}${cnt(e,"v")}<td>${e.bp}</td><td>${e.br}</td><td></td>`;
+            tr.innerHTML=(idx===0?`<td rowspan="${list.length+1}" class="text-left font-bold px-2" style="vertical-align:middle">${d}</td>`:"")+`<td>${e.dist}</td><td class="text-left px-2" style="background:#e2efda">${e.name}</td><td>${e.target}</td>${ac}<td class="font-bold" style="${pc}">${pend}</td>${cnt(e,"dA")}${cnt(e,"dB")}${cnt(e,"dC")}<td>${e.tt}</td>${cnt(e,"n")}${cnt(e,"v")}${cnt(e,"nv")}<td>${e.bp}</td><td>${e.br}</td>${e.oth.length?`<td class="clickable-cell text-left px-2 font-bold text-rose-800" onclick="openPmgUnitsModal(${e.i},'oth')">After 30.10.2026: ${e.oth.length} inspections other than 4th phase</td>`:"<td></td>"}`;
             tb.appendChild(tr);
         });
         const tr=document.createElement("tr");
@@ -2959,7 +2965,7 @@ function renderPmgReport(){
 function openPmgUnitsModal(i,k){
     const e=pmgCache.enums[i],list=e[k];
     if(!list.length)return;
-    const lbl=k==="ach"?"Achieved":PMG_RANGES[k][2];
+    const lbl=k==="ach"?"Achieved":k==="oth"?"Inspections after 30.10.2026 other than 4th phase":PMG_RANGES[k][2];
     pmegpModalExportData=list.map((t,x)=>({"S.No":x+1,"Unit ID":t.appId,Division:t.division,Region:t.region,Phase:t.phase,"Inspected By":t.inspBy,"Inspected Date":t.date,Status:t.status}));
     document.getElementById("pmegpModalTitle").textContent=`${e.name} (${e.div}) - ${lbl}`;
     document.getElementById("pmegpModalSubtitle").textContent=`Total ${list.length} units.`;
@@ -2969,7 +2975,7 @@ function openPmgUnitsModal(i,k){
 function getPmgExcelRows(){
     const d=pmgCache||computePmgData();const rows=[];
     const G=PMG_RANGES;
-    d.enums.filter(e=>!pmegpSkipDiv(e.div)).forEach(e=>rows.push({"Name of Division":e.div,"Name of Districts":e.dist,"Name of Enumerators":e.name,"Target":e.target,"Achived":e.ach.length,"Pending":e.target-e.ach.length,[G.dA[2]]:e.dA.length,[G.dB[2]]:e.dB.length,[G.dC[2]]:e.dC.length,"Target till 05.11.2026":e.tt,[G.n[2]]:e.n.length,[G.v[2]]:e.v.length,"Form Pending at bank level":e.bp,"No. of Forms received from Bank":e.br}));
+    d.enums.filter(e=>!pmegpSkipDiv(e.div)).forEach(e=>rows.push({"Name of Division":e.div,"Name of Districts":e.dist,"Name of Enumerators":e.name,"Target":e.target,"Achived":e.ach.length,"Pending":e.target-e.ach.length,[G.dA[2]]:e.dA.length,[G.dB[2]]:e.dB.length,[G.dC[2]]:e.dC.length,"Target till 05.11.2026":e.tt,[G.n[2]]:e.n.length,[G.v[2]]:e.v.length,[G.nv[2]]:e.nv.length,"Form Pending at bank level":e.bp,"No. of Forms received from Bank":e.br,"Remark":e.oth.length?`After 30.10.2026: ${e.oth.length} inspections other than 4th phase`:""}));
     return rows;
 }
 renderPmgReport();
