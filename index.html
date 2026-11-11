@@ -24,6 +24,15 @@
         .div-bg-ujjain{background-color:#d9d9d9;font-weight:700;color:#333}
         .div-bg-id-division{background-color:#fff2cc;font-weight:700;color:#7f6000}
         .div-bg-not-in-qc{background-color:#fee2e2;font-weight:700;color:#991b1b}
+        .div-bg-indore{background-color:#f2dcdb;font-weight:700;color:maroon}
+        .div-bg-dhar{background-color:#fde9d9;font-weight:700;color:#974706}
+        .div-bg-dewas{background-color:#ebf1de;font-weight:700;color:#4f6228}
+        .div-bg-khargone{background-color:#daeef3;font-weight:700;color:#205867}
+        .map-toggle-btn{font-size:11px;font-weight:700;padding:5px 12px;border-radius:9px;cursor:pointer;transition:all .15s;border:1px solid transparent}
+        .map-toggle-btn.active{background:#fff;color:#4c1d95;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+        .map-toggle-btn:not(.active){background:transparent;color:#e9d5ff}
+        .map-toggle-btn:not(.active):hover{background:rgba(255,255,255,.15)}
+        .map-toggle-btn:disabled{opacity:.6;cursor:wait}
         .row-div-total{background-color:#fce4d6;font-weight:700;color:#000}
         .row-grand-total{background-color:#bdd7ee;font-weight:700;color:#000;font-size:12px}
         .clickable-cell{cursor:pointer;text-decoration:underline}
@@ -44,6 +53,11 @@
             </div>
         </div>
         <div class="flex items-center flex-wrap gap-3">
+            <div id="mappingToggleBox" class="flex items-center gap-1 bg-purple-950/70 border border-purple-600 rounded-xl p-1" title="Office / Division mapping select karein (Booking, PLI, Digital, D+0, SB &amp; POSB sab par lagega)">
+                <span class="text-[10px] font-bold text-purple-200 uppercase tracking-wide px-2">Indore Region</span>
+                <button id="btnMapOld" type="button" onclick="setMappingMode('old')" class="map-toggle-btn">Old Mapping</button>
+                <button id="btnMapNew" type="button" onclick="setMappingMode('new')" class="map-toggle-btn">New Mapping</button>
+            </div>
             <span id="masterStatus" class="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-full font-bold shadow flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Live Synced</span>
             <div class="flex items-center gap-2">
                 <button onclick="openAdminLoginModal()" class="bg-slate-800 hover:bg-slate-900 text-purple-300 text-xs font-bold px-3.5 py-2 rounded-xl shadow transition cursor-pointer border border-purple-600">🔒 Admin View</button>
@@ -1074,11 +1088,29 @@
 </footer>
 
 <script>
-const MASTER_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=0&single=true&output=csv",
+const MASTER_CSV_URL_OLD="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=0&single=true&output=csv",
       MAPPING_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1575541045&single=true&output=csv",
       IDP_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1439866773&single=true&output=csv",
       PMEGP_MASTER_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vStevNQAAnFwO7ynsa5TWutYsYyKp_tFF2dYymclrvRT2j4trLTGIaPczIeGJWdVahJAbwQOJyrObDI/pub?gid=387173434&single=true&output=csv",
       OFFICE_ID_REMAP_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vStevNQAAnFwO7ynsa5TWutYsYyKp_tFF2dYymclrvRT2j4trLTGIaPczIeGJWdVahJAbwQOJyrObDI/pub?gid=207311198&single=true&output=csv";
+
+// ===================== INDORE REGION: OLD / NEW MAPPING SWITCH =====================
+// Booking, PLI, Digital, D+0 (office master)  -> MASTER_CSV_URL_OLD / MASTER_CSV_URL_NEW
+// SB Open/Close & POSB (POSB master)          -> SB_MASTER_CSV_URL_OLD / SB_MASTER_CSV_URL_NEW
+// PMEGP apna alag master (PMEGP sheet) use karta hai — isme koi change nahi.
+const MASTER_CSV_URL_NEW="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=876308579&single=true&output=csv",
+      SB_MASTER_CSV_URL_NEW="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=2145700546&single=true&output=csv";
+let mappingMode="new", mappingBusy=false;
+try{const m=localStorage.getItem("indoreMappingMode"); if(m==="old"||m==="new") mappingMode=m;}catch(e){}
+const activeMasterUrl=()=>mappingMode==="new"?MASTER_CSV_URL_NEW:MASTER_CSV_URL_OLD;
+const activeSbMasterUrl=()=>mappingMode==="new"?SB_MASTER_CSV_URL_NEW:SB_MASTER_CSV_URL_OLD;
+const mappingLabel=()=>mappingMode==="new"?"New Mapping":"Old Mapping";
+// New mapping sheet: "RATLAM DIVISION" -> "RATLAM", "INDORE DIVISION" -> "INDORE" (Indore ko ab City/MFL me nahi todte)
+function normalizeDivMapped(s){
+    let d=String(s==null?"":s).trim().toUpperCase().replace(/\s+/g," ").replace(/\s+DIVISION$/,"").trim();
+    if(!d||d.includes("UNKNOWN")||d.includes("OTHER")) return "NOT IN QC LIST";
+    return d;
+}
 
 let masterOfficesMap={},serviceMapping={},rawData=[],currentFilteredRows=[],modalExportData=[],globalAllFilteredOffices=[],pliRawData=[],currentPliProcessedList=[],currentNilPliOfficesList=[],currentAllPliOfficesList=[],digitalRawData=[],pliModalExportData=[],idpCredentialsMap={},generatedReportsLog=[],loggedInAdminId="",digitalModalExportData=[],pmegpMasterMap={},pmegpMasterNormalizedMap={},pmegpUploadedRaw=[],pmegpProcessedDivisions=[],pmegpProcessedInspectors=[],pmegpModalExportData=[],officeIdRemapMap={};
 
@@ -1088,6 +1120,10 @@ let d0CombinedParcelMap={}, d0AllProductMap={}, d0MailOperationsMap={}, d0ModalE
 const divClassMap={
     "INDORE CITY":"div-bg-indore-city",
     "INDORE MFL":"div-bg-indore-mfl",
+    "INDORE":"div-bg-indore",
+    "DHAR":"div-bg-dhar",
+    "DEWAS":"div-bg-dewas",
+    "KHARGONE":"div-bg-khargone",
     "KHANDWA":"div-bg-khandwa",
     "MANDSAUR":"div-bg-mandsaur",
     "RATLAM":"div-bg-ratlam",
@@ -1163,22 +1199,22 @@ function openAdminDashboard(){renderAdminLogs(),openModal("adminDashboardModal")
 function clearAdminLogs(){generatedReportsLog=[],renderAdminLogs()}
 function renderAdminLogs(){const t=document.querySelector("#adminReportTable tbody"),e=document.getElementById("adminReportCountSpan");e&&(e.textContent=generatedReportsLog.length),t.innerHTML=0===generatedReportsLog.length?'<tr><td colspan="6" class="py-8 text-center text-slate-400 font-medium">No activity logged yet.</td></tr>':generatedReportsLog.map((t,e)=>`\n<tr class="hover:bg-slate-50 border-b border-slate-100">\n<td class="py-3 px-4 font-bold text-purple-950">${e+1}</td>\n<td class="py-3 px-4 font-semibold">${t.name}</td>\n<td class="py-3 px-4 font-bold text-blue-900">${t.user}</td>\n<td class="py-3 px-4 text-slate-600">${t.time}</td>\n<td class="py-3 px-4 text-center"><span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold">Logged</span></td>\n<td class="py-3 px-4 text-right">${t.action?`<button onclick="generatedReportsLog[${e}].action()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow">View / Repeat</button>`:"-"}</td>\n</tr>`).join("")}
 
-async function loadMasterData(){
-    loadIdpCredentials(),loadPmegpMasterData(),loadOfficeIdRemapMap();
+async function loadMasterData(skipAux){
+    if(!skipAux){loadIdpCredentials();loadPmegpMasterData();loadOfficeIdRemapMap();}
     try{
-        const[t,e]=await Promise.all([fetch(MASTER_CSV_URL),fetch(MAPPING_CSV_URL)]),o=XLSX.read(await t.text(),{type:"string"}),n=XLSX.utils.sheet_to_json(o.Sheets[o.SheetNames[0]],{header:1});
+        const[t,e]=await Promise.all([fetch(activeMasterUrl()),fetch(MAPPING_CSV_URL)]),o=XLSX.read(await t.text(),{type:"string"}),n=XLSX.utils.sheet_to_json(o.Sheets[o.SheetNames[0]],{header:1});
         masterOfficesMap={};
         for(let t=1;t<n.length;t++){
             const e=n[t],o=String(e[0]||"").trim();
             if(o){
-                let name=String(e[1]||"").trim(),sd=String(e[3]||"").trim(),division=String(e[4]||"").trim().toUpperCase(),cls=String(e[2]||"BO").trim().toUpperCase();
+                let name=String(e[1]||"").trim(),sd=String(e[3]||"").trim(),division=(mappingMode==="new"?(String(e[4]||"").trim()?normalizeDivMapped(e[4]):""):String(e[4]||"").trim().toUpperCase()),cls=String(e[2]||"BO").trim().toUpperCase();
                 
-                if(o==="23660715" || name.toUpperCase().includes("NODEL DELIVERY CENTER INDORE") || name.toUpperCase().includes("NODAL DELIVERY CENTER INDORE")){
+                if(mappingMode!=="new" && (o==="23660715" || name.toUpperCase().includes("NODEL DELIVERY CENTER INDORE") || name.toUpperCase().includes("NODAL DELIVERY CENTER INDORE"))){
                     name="NODAL DELIVERY CENTER INDORE";
                     cls="NODAL DELIVERY CENTER";
                     sd="INDORE CITY SD";
                     division="INDORE CITY";
-                } else if(name.toUpperCase().includes("KHUDEL")&&"BO"===cls){
+                } else if(mappingMode!=="new" && name.toUpperCase().includes("KHUDEL")&&"BO"===cls){
                     sd="INDORE EAST SD";
                     division="INDORE CITY";
                 }
@@ -1186,7 +1222,7 @@ async function loadMasterData(){
             }
         }
         
-        masterOfficesMap["23660715"] = {
+        if(mappingMode!=="new") masterOfficesMap["23660715"] = {
             name: "NODAL DELIVERY CENTER INDORE",
             class: "NODAL DELIVERY CENTER",
             sd: "INDORE CITY SD",
@@ -1196,7 +1232,7 @@ async function loadMasterData(){
 
         const i=XLSX.read(await e.text(),{type:"string"}),s=XLSX.utils.sheet_to_json(i.Sheets[i.SheetNames[0]],{header:1});
         serviceMapping=Object.fromEntries(s.slice(1).map(t=>[String(t[0]||"").trim().toLowerCase(),String(t[1]||"").trim().toUpperCase()]).filter(([t,e])=>t&&e)),
-        document.getElementById("masterStatus").innerHTML=`<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Live Synced (${Object.keys(masterOfficesMap).length} Offices)`
+        document.getElementById("masterStatus").innerHTML=`<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Live Synced (${Object.keys(masterOfficesMap).length} Offices) · ${mappingLabel()}`
     }catch(t){
         masterOfficesMap={
             23108926:{name:"AGARCANTT B.O",class:"BO",sd:"AGAR SD",division:"UJJAIN",ro:"INDORE REGION"},
@@ -1396,7 +1432,7 @@ function getD0ReportActiveDataset(){
 }
 
 function getEffectiveOfficeMaster(officeId, fallbackName, fallbackType){
-    if(officeId === "23660715" || String(fallbackName).toUpperCase().includes("NODEL DELIVERY CENTER INDORE") || String(fallbackName).toUpperCase().includes("NODAL DELIVERY CENTER INDORE")){
+    if(mappingMode!=="new" && (officeId === "23660715" || String(fallbackName).toUpperCase().includes("NODEL DELIVERY CENTER INDORE") || String(fallbackName).toUpperCase().includes("NODAL DELIVERY CENTER INDORE"))){
         return {
             name: "NODAL DELIVERY CENTER INDORE",
             class: "NODAL DELIVERY CENTER",
@@ -3484,10 +3520,47 @@ document.getElementById("rawFileInput").addEventListener("change",function(t){
 });
 
 ["filterDivision","filterClass","filterCategory"].forEach(t=>document.getElementById(t).addEventListener("change",updateDashboard));
+// ---------- Old / New mapping switch ----------
+function updateMappingToggleUI(){
+    const o=document.getElementById("btnMapOld"), n=document.getElementById("btnMapNew");
+    if(!o||!n) return;
+    o.classList.toggle("active",mappingMode==="old"); n.classList.toggle("active",mappingMode==="new");
+    o.disabled=n.disabled=mappingBusy;
+}
+function showMappingToast(msg){
+    let t=document.getElementById("mappingToast");
+    if(!t){ t=document.createElement("div"); t.id="mappingToast"; t.className="fixed bottom-5 right-5 z-[60] bg-purple-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl border border-purple-500 max-w-sm"; document.body.appendChild(t); }
+    t.textContent=msg; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>{t.style.display="none"},6000);
+}
+function refreshAfterMappingChange(){
+    const safe=f=>{try{f()}catch(e){console.error("mapping refresh:",e)}};
+    // PLI: BO list master se banti he — dobara banao
+    safe(()=>{ if(pliRawData&&pliRawData.length){ const c={}; Object.entries(masterOfficesMap).forEach(([k,e])=>{ const cl=String(e.class).toUpperCase(); if(String(e.name||"").toUpperCase().includes("KHUDEL")&&cl==="BO") return; if(cl==="BO") c[k]=e; }); pliBoCache=c; processPliData(c); } });
+    // Digital
+    safe(()=>{ if(digitalRawAll&&digitalRawAll.length){ digitalApplySehore(); processDigitalReport(); renderOfficeDigitalTable(); } });
+    // D+0
+    safe(()=>renderD0Table()); safe(()=>renderOfficeD0Table()); safe(()=>renderTopBottom20Table());
+    // SB open/close + POSB: uploads wahi rehte hain, bas dobara Calculate karna hoga
+    safe(()=>{ markSbStale(); });
+    safe(()=>{ buildPosbDivNameIndex(); posbSlotData.forEach(s=>{ if(s&&s.buffer){ const rr=posbGetRows(s.buffer); s.detect=rr?posbDetectDivision(rr,s.fileName):null; } }); updatePosbSlotStatuses(); markPosbStale(); });
+}
+async function setMappingMode(m){
+    if(mappingBusy||m===mappingMode||(m!=="old"&&m!=="new")) return;
+    mappingBusy=true; mappingMode=m;
+    try{localStorage.setItem("indoreMappingMode",m)}catch(e){}
+    updateMappingToggleUI();
+    ["masterStatus","sbMasterStatus"].forEach(id=>{const el=document.getElementById(id); if(el) el.textContent="⏳ Loading "+mappingLabel()+"..."});
+    try{ await Promise.all([loadMasterData(true), loadSbMasterData()]); }catch(e){ console.error(e); }
+    refreshAfterMappingChange();
+    mappingBusy=false; updateMappingToggleUI();
+    showMappingToast("✅ "+mappingLabel()+" lag gaya — Booking, PLI, Digital, D+0, SB & POSB. (SB/POSB me dobara Calculate dabayein)");
+}
+updateMappingToggleUI();
+
 loadMasterData();
 
 // ================= SB ACCOUNT OPEN/CLOSE MODULE (NEW - does not touch other modules) =================
-const SB_MASTER_CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1174909288&single=true&output=csv";
+const SB_MASTER_CSV_URL_OLD="https://docs.google.com/spreadsheets/d/e/2PACX-1vRP3rmfLuC9UGx2dgIi2yr7uCNsp-cnJfH0a1zCfDF6YuWlDMsNudN0fr3EtY2EResEpVeDKohUs7AF/pub?gid=1174909288&single=true&output=csv";
 const SB_SLOT_COUNT=7;
 const SB_EXCLUDE_COLS=["KVN","NSC8","MSSC"];
 
@@ -3683,7 +3756,7 @@ function handleSbBulkSelect(side, inputEl){
 
 async function loadSbMasterData(){
     try{
-        const res=await fetch(SB_MASTER_CSV_URL),
+        const res=await fetch(activeSbMasterUrl()),
               wb=XLSX.read(await res.text(),{type:"string"}),
               rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
         sbMasterMap={}; sbIdToOffices={}; sbOfficesByOfficeId={};
@@ -3697,14 +3770,14 @@ async function loadSbMasterData(){
                   name=String(row[3]||"").trim(),
                   cls=String(row[4]||"BO").trim().toUpperCase(),
                   sd=String(row[5]||"").trim(),
-                  division=normalizeDivName(row[6]);
+                  division=(mappingMode==="new"?normalizeDivMapped(row[6]):normalizeDivName(row[6]));
             const ids=[boId,extraId].filter(Boolean);
             const obj={officeId, name, class:cls, sd, division, ids};
             sbOfficesByOfficeId[officeId]=obj;
             ids.forEach(id=>{ sbMasterMap[id]=obj; (sbIdToOffices[id]=sbIdToOffices[id]||[]).push(obj); });
         }
         const st=document.getElementById("sbMasterStatus");
-        if(st) st.innerHTML=`<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> SB Master Synced (${Object.keys(sbOfficesByOfficeId).length} Offices)`;
+        if(st) st.innerHTML=`<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> SB Master Synced (${Object.keys(sbOfficesByOfficeId).length} Offices) · ${mappingLabel()}`;
     }catch(t){
         console.error("Error loading SB master sheet:",t);
         sbMasterMap={}; sbIdToOffices={}; sbOfficesByOfficeId={};
@@ -4106,7 +4179,7 @@ function guessPosbDivision(fileName){
     const opts=posbDivisionOptions();
     const norm=s=>String(s||"").toUpperCase().replace(/[^A-Z]/g,"");
     const fn=norm(fileName);
-    return opts.find(d=>fn.includes(norm(d)))||"";
+    return opts.filter(d=>fn.includes(norm(d))).sort((a,b)=>norm(b).length-norm(a).length)[0]||"";
 }
 
 // Finds the header row (the one containing a "NAME" column) — the sheet may have a
