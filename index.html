@@ -243,6 +243,7 @@
                             <button onclick='switchPmegpView("inspector")' id="btnPmegpViewInsp" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60">Inspected By List</button>
                             <button onclick='switchPmegpView("month")' id="btnPmegpViewMonth" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60">Month Wise Inspections</button>
                             <button onclick='switchPmegpView("pmg")' id="btnPmegpViewPmg" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60">PMG Report</button>
+                            <button onclick='switchPmegpView("pmg3")' id="btnPmegpViewPmg3" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60">PMG Report 3</button>
                             <button onclick='switchPmegpView("pmg2")' id="btnPmegpViewPmg2" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60">PMG Report 2</button>
                         </div>
                     </div>
@@ -374,6 +375,18 @@
                         <tfoot></tfoot>
                     </table>
                     <div id="pmgUnmatched2" class="mt-3 text-xs text-slate-600"></div>
+                </div>
+
+                <div id="pmegpPmg3View" class="overflow-x-auto p-1 hidden">
+                    <div class="text-center mb-3">
+                        <h2 class="text-lg font-extrabold text-[#31103f]">Department of Posts - Regional Office Indore</h2>
+                        <p class="text-xs font-bold text-slate-700">PMEGP (4th Phase) - Top 10 Highest Pendency &amp; Bottom 15 Enumerators (Overall)</p>
+                        <p class="text-xs text-slate-500" id="pmg3Date"></p>
+                    </div>
+                    <p class="text-xs font-bold text-slate-700 mb-1">Top 10 Highest Pendency (Enumerator Wise)</p>
+                    <table class="nil-table" id="tablePmgTop10"><thead></thead><tbody></tbody></table>
+                    <p class="text-xs font-bold text-slate-700 mt-5 mb-1">Bottom 15 Enumerators (Highest Pendency, Overall)</p>
+                    <table class="nil-table" id="tablePmgBottom15"><thead></thead><tbody></tbody></table>
                 </div>
 
                 <div id="pmegpMonthView" class="overflow-x-auto p-1 hidden">
@@ -2360,7 +2373,7 @@ let pmegpCurrentView="division";
 function switchPmegpView(t){
     pmegpCurrentView=t;
     const on="px-3 py-1.5 text-xs font-bold rounded-md bg-[#31103f] text-white shadow",off="px-3 py-1.5 text-xs font-bold rounded-md text-slate-700 hover:bg-purple-200/60";
-    [["division","pmegpDivisionView","btnPmegpViewDiv"],["inspector","pmegpInspectorView","btnPmegpViewInsp"],["month","pmegpMonthView","btnPmegpViewMonth"],["pmg","pmegpPmgView","btnPmegpViewPmg"],["pmg2","pmegpPmg2View","btnPmegpViewPmg2"]].forEach(([k,v,b])=>{
+    [["division","pmegpDivisionView","btnPmegpViewDiv"],["inspector","pmegpInspectorView","btnPmegpViewInsp"],["month","pmegpMonthView","btnPmegpViewMonth"],["pmg","pmegpPmgView","btnPmegpViewPmg"],["pmg2","pmegpPmg2View","btnPmegpViewPmg2"],["pmg3","pmegpPmg3View","btnPmegpViewPmg3"]].forEach(([k,v,b])=>{
         document.getElementById(v).classList.toggle("hidden",k!==t);
         document.getElementById(b).className=k===t?on:off;
     });
@@ -2448,6 +2461,7 @@ function exportPmgPDF3Pages(tid,ttl){
 }
 
 function exportPmegpPDF(){
+    if(pmegpCurrentView==="pmg3")return exportPmg3PDF();
     if(pmegpCurrentView==="pmg")return exportPmgPDF3Pages();
     if(pmegpCurrentView==="pmg2")return exportPmgPDF3Pages("tablePmgReport2","pmgTitle2");
     const m={division:["tablePmegpDivision","PMEGP Division Report"],inspector:["tablePmegpInspector","PMEGP Inspector Report"],month:["tablePmegpMonth","PMEGP Month Wise Inspection Report"],pmg:["tablePmgReport","PMEGP Enumerator Wise Report (4th Phase)"]}[pmegpCurrentView];
@@ -2931,7 +2945,7 @@ function pmgSV(i,k,d){return pmgSheetRes.loaded?((pmgSheetRes.vals[i]||{})[k]||0
 function pmgResolveSheet(){
     // Sheet ki har row seedha apne enumerator (PMG_DATA index) se judi hai - alag matching ki zarurat nahi
     const vals={};
-    pmg2Bank.forEach(b=>{vals[b.idx]={t:b.t,bp:b.bp,br:b.br}});
+    pmg2Bank.forEach(b=>{vals[b.idx]={t:b.t,bp:b.bp,br:b.br,p:b.p}});
     pmgSheetRes={vals,un:{},loaded:pmg2Bank.length>0};
 }
 // ---- Suggestion engine: "kya ye wahi banda hai?" ----
@@ -2978,6 +2992,19 @@ function pmgAddNew(key,selId){
     PMG_DATA.push([el.value,dist,u.name,0,0,0,0]);
     renderPmgReport();renderPmg2Report();
 }
+function pmgAddInsp(key){
+    const u=pmgCache&&pmgCache.unmatched[key];if(!u)return;
+    const tg=prompt("Naya enumerator: "+u.name+" ("+u.division+")\nIska Target kitna hai? (sirf number)","");
+    if(tg===null)return;
+    const t=parseInt(String(tg).replace(/[^0-9]/g,""),10);
+    if(isNaN(t)){alert("Target number me daalo");return}
+    const dist=Object.entries(u.dists).sort((a,b)=>b[1]-a[1])[0];
+    pmgExtra.push({d:u.division,t:dist?dist[0]:"-",n:u.name,tg:t});
+    try{localStorage.setItem("pmgExtraEnums",JSON.stringify(pmgExtra))}catch(e){}
+    pmgRebuild();
+}
+function pmgDelExtra(i){pmgExtra.splice(i,1);try{localStorage.setItem("pmgExtraEnums",JSON.stringify(pmgExtra))}catch(e){}pmgRebuild()}
+function pmgRebuild(){if(pmg2Text){try{pmg2Parse(pmg2Text)}catch(e){}}pmgCache=null;renderPmgReport();renderPmg2Report()}
 // Dono reports ke neeche wala "naam nahi mile" panel (p = id prefix)
 function pmgPanelsHTML(p){
     const c=pmgCache,allDivs=[...new Set(PMG_DATA.map(r=>r[0]))],esc=s=>String(s).replace(/"/g,"&quot;");
@@ -2987,8 +3014,9 @@ function pmgPanelsHTML(p){
     const um=Object.entries(c.unmatched),iu=um.reduce((a,x)=>a+x[1].count,0);
     if(um.length){
         um.sort((x,y)=>x[1].division.localeCompare(y[1].division)||x[1].name.localeCompare(y[1].name));
-        html+=`<div class="border border-rose-300 bg-rose-50 rounded-xl p-3 overflow-x-auto mb-3"><p class="font-bold text-rose-800 mb-2">⚠️ Error: ${iu} units (4th phase) ke Inspected By naam enumerator list me nahi mile. Suggestion sahi lage to "Haan, yahi hai" dabao, nahi to khud division aur enumerator chuno:</p><table class="w-full text-xs"><thead><tr class="text-left text-slate-600"><th class="py-1 pr-3">S.No.</th><th class="pr-3">Inspected By</th><th class="pr-3">Division</th><th class="pr-3">District</th><th class="pr-3">Units</th><th class="pr-3">Month (units)</th><th class="pr-3">Suggestion (kya ye yahi hai?)</th><th class="pr-3">Division chuno</th><th>Phir enumerator chuno</th></tr></thead><tbody>`+um.map(([k,v],i)=>`<tr class="border-t border-rose-200"><td class="py-1.5 pr-3">${i+1}</td><td class="pr-3 font-bold text-slate-800">${v.name}</td><td class="pr-3 font-semibold">${v.division}</td><td class="pr-3">${Object.entries(v.dists).map(([d,n])=>d+" ("+n+")").join(", ")}</td><td class="pr-3 font-bold text-rose-700">${v.count}</td><td class="pr-3 font-semibold text-slate-700 whitespace-nowrap">${Object.keys(v.months).sort().map(m=>pmgMonthLabel(m)+" ("+v.months[m]+")").join(", ")}</td><td class="pr-3">${pmgSugHtml(pmgSuggest(v.name,v.division,Object.keys(v.dists)[0]),"pmgSetManual",k)}</td><td class="pr-3"><select ${sel} onchange="pmgDivSel('${p}IE${i}',this.value)">${dOpts(v.division)}</select></td><td><select id="${p}IE${i}" data-key="${esc(k)}" ${sel} onchange="pmgSetManual(this.dataset.key,this.value)">${pmgEnumOpts(v.division)}</select></td></tr>`).join("")+`</tbody></table></div>`;
+        html+=`<div class="border border-rose-300 bg-rose-50 rounded-xl p-3 overflow-x-auto mb-3"><p class="font-bold text-rose-800 mb-2">⚠️ Error: ${iu} units (4th phase) ke Inspected By naam enumerator list me nahi mile. Suggestion sahi lage to "Haan, yahi hai" dabao, nahi to khud division aur enumerator chuno:</p><table class="w-full text-xs"><thead><tr class="text-left text-slate-600"><th class="py-1 pr-3">S.No.</th><th class="pr-3">Inspected By</th><th class="pr-3">Division</th><th class="pr-3">District</th><th class="pr-3">Units</th><th class="pr-3">Month (units)</th><th class="pr-3">Suggestion (kya ye yahi hai?)</th><th class="pr-3">Division chuno</th><th>Phir enumerator chuno</th><th>Ya naya jodo</th></tr></thead><tbody>`+um.map(([k,v],i)=>`<tr class="border-t border-rose-200"><td class="py-1.5 pr-3">${i+1}</td><td class="pr-3 font-bold text-slate-800">${v.name}</td><td class="pr-3 font-semibold">${v.division}</td><td class="pr-3">${Object.entries(v.dists).map(([d,n])=>d+" ("+n+")").join(", ")}</td><td class="pr-3 font-bold text-rose-700">${v.count}</td><td class="pr-3 font-semibold text-slate-700 whitespace-nowrap">${Object.keys(v.months).sort().map(m=>pmgMonthLabel(m)+" ("+v.months[m]+")").join(", ")}</td><td class="pr-3">${pmgSugHtml(pmgSuggest(v.name,v.division,Object.keys(v.dists)[0]),"pmgSetManual",k)}</td><td class="pr-3"><select ${sel} onchange="pmgDivSel('${p}IE${i}',this.value)">${dOpts(v.division)}</select></td><td><select id="${p}IE${i}" data-key="${esc(k)}" ${sel} onchange="pmgSetManual(this.dataset.key,this.value)">${pmgEnumOpts(v.division)}</select></td><td><button class="bg-purple-800 hover:bg-purple-900 text-white font-bold rounded-lg px-2 py-1 text-[11px] cursor-pointer whitespace-nowrap" data-key="${esc(k)}" onclick="pmgAddInsp(this.dataset.key)">➕ Add as new enumerator</button></td></tr>`).join("")+`</tbody></table></div>`;
     }else html+=pmegpUploadedRaw.length?'<p class="font-bold text-emerald-700 mb-2">✅ Saare 4th phase inspections enumerators se match ho gaye.</p>':'<p class="mb-2">Inspection file upload karne par Achieved aur date columns bhar jayenge.</p>';
+    if(pmgExtra.length)html+=`<div class="mb-3 text-slate-600"><b>Naye enumerator (manual target):</b> `+pmgExtra.map((x,i)=>`${x.n} (${x.d}) Target ${x.tg} <a href="#" class="text-rose-700 underline" onclick="pmgDelExtra(${i});return false">hatao</a>`).join(" &nbsp;|&nbsp; ")+`</div>`;
     const pm=Object.entries(pmgManualMap);
     if(pm.length)html+=`<div class="mb-3 text-slate-600"><b>Inspector manually joda gaya:</b> `+pm.map(([k,n])=>`${k.replace("|"," / ")} → <b>${n}</b> <a href="#" class="text-rose-700 underline" onclick="pmgSetManual('${k.replace(/'/g,"\\'")}','');return false">hatao</a>`).join(" &nbsp;|&nbsp; ")+`</div>`;
     const ue=Object.entries(pmgSheetRes.un).sort((x,y)=>y[1].t-x[1].t);
@@ -3000,6 +3028,8 @@ function pmgPanelsHTML(p){
     return html;
 }
 const PMG_OTHER_AFTER=20261030;
+function pmgOld(e,oth){return Math.max(0,Math.min(e.prev-oth.length,e.target-e.ach.length))}
+function pmgPendTxt(a){const o=a.old||0;return `${a.pend} <span style="font-size:.85em">(=${a.pend-o} 4th phase + ${o} older phases)</span>`}
 function computePmgData(){
     pmgResolveSheet();
     // uploaded file ki sabse latest inspection date -> "On dated" (last 3 din) aur "Unit Verified upto" columns
@@ -3007,7 +3037,7 @@ function computePmgData(){
     pmegpUploadedRaw.forEach(r=>{if(r.dayNum>latest)latest=r.dayNum});
     if(!latest)latest=20261030;
     pmgSetDateRanges(latest);
-    const enums=PMG_DATA.map((r,i)=>({i,div:r[0],dist:r[1],name:r[2],target:pmgSV(i,"t",r[3]),tt:r[4],bp:pmgSV(i,"bp",r[5]),br:pmgSV(i,"br",r[6]),tok:pmgNameTokens(r[2]),ach:[],n2:[],pre:[],oth2:[],v:[],nv:[],oth:[],dA:[],dB:[],dC:[],n:[]}));
+    const enums=PMG_DATA.map((r,i)=>({i,div:r[0],dist:r[1],name:r[2],target:pmgSV(i,"t",r[3]),prev:pmgSV(i,"p",r[7]||0),tt:r[4],bp:pmgSV(i,"bp",r[5]),br:pmgSV(i,"br",r[6]),tok:pmgNameTokens(r[2]),ach:[],n2:[],pre:[],oth2:[],v:[],nv:[],oth:[],dA:[],dB:[],dC:[],n:[]}));
     const unmatched={};
     pmegpUploadedRaw.forEach(r=>{
         const master=pmegpMasterMap[r.unitId.toUpperCase()]||pmegpMasterNormalizedMap[cleanUnitId(r.unitId)];
@@ -3055,11 +3085,11 @@ function renderPmgReport(){
     const H=(t,bg)=>`<th style="background-color:${bg}">${t}</th>`;
     th.innerHTML=`<tr><th>Name of Division</th><th>Name of Districts</th><th>Name of Enumerators</th><th>Target</th>${H("Achived","#e2efda")}${H("Pending","#fff2cc")}${H(PMG_RANGES.dA[2],"#fce4d6")}${H(PMG_RANGES.dB[2],"#fce4d6")}${H(PMG_RANGES.dC[2],"#fce4d6")}${H("Target till 05.11.2026","#fff2cc")}${H(PMG_RANGES.n[2].replace("Inspected ","Achieved<br>"),"#d9edf7")}${H(PMG_RANGES.v[2],"#fff2cc")}${H(PMG_RANGES.nv[2],"#ffe699")}<th>Form Pending at bank level</th><th>No. of Forms received from Bank</th><th>Rmark</th></tr>`;
     tb.innerHTML="";tf.innerHTML="";
-    const sum=l=>({target:0,ach:0,pend:0,tt:0,n:0,v:0,nv:0,oth:0,dA:0,dB:0,dC:0,bp:0,br:0});
-    const add=(a,e)=>{a.target+=e.target;a.ach+=e.ach.length;a.pend+=e.target-e.ach.length;a.tt+=e.tt;a.n+=e.n.length;a.v+=e.v.length;a.nv+=e.nv.length;a.oth+=e.oth.length;a.dA+=e.dA.length;a.dB+=e.dB.length;a.dC+=e.dC.length;a.bp+=e.bp;a.br+=e.br};
+    const sum=l=>({old:0,target:0,ach:0,pend:0,tt:0,n:0,v:0,nv:0,oth:0,dA:0,dB:0,dC:0,bp:0,br:0});
+    const add=(a,e)=>{a.target+=e.target;a.ach+=e.ach.length;a.pend+=e.target-e.ach.length;a.tt+=e.tt;a.n+=e.n.length;a.v+=e.v.length;a.nv+=e.nv.length;a.oth+=e.oth.length;a.dA+=e.dA.length;a.dB+=e.dB.length;a.dC+=e.dC.length;a.bp+=e.bp;a.br+=e.br;a.old+=pmgOld(e,e.oth)};
     const tot=sum(),divs=[...new Set(enums.map(e=>e.div))];
     const cnt=(e,k)=>{const c=e[k].length;return c?`<td class="clickable-cell font-bold text-emerald-800" onclick="openPmgUnitsModal(${e.i},'${k}')">${c}</td>`:`<td>0</td>`};
-    const totRow=(label,a,cls,sty)=>`<tr class="${cls}" style="${sty}"><td colspan="3" class="font-bold">${label}</td><td>${a.target}</td><td>${a.ach}</td><td>${a.pend}</td><td>${a.dA}</td><td>${a.dB}</td><td>${a.dC}</td><td>${a.tt}</td><td>${a.n}</td><td>${a.v}</td><td>${a.nv}</td><td>${a.bp}</td><td>${a.br}</td><td class="text-left px-2">${a.oth?`Total ${a.oth} inspections after 30.10.2026 other than 4th phase`:""}</td></tr>`;
+    const totRow=(label,a,cls,sty)=>`<tr class="${cls}" style="${sty}"><td colspan="3" class="font-bold">${label}</td><td>${a.target}</td><td>${a.ach}</td><td>${label==="Grand Total"?pmgPendTxt(a):a.pend}</td><td>${a.dA}</td><td>${a.dB}</td><td>${a.dC}</td><td>${a.tt}</td><td>${a.n}</td><td>${a.v}</td><td>${a.nv}</td><td>${a.bp}</td><td>${a.br}</td><td class="text-left px-2">${a.oth?`Total ${a.oth} inspections after 30.10.2026 other than 4th phase`:""}</td></tr>`;
     divs.forEach(d=>{
         const list=enums.filter(e=>e.div===d),a=sum();
         list.forEach((e,idx)=>{
@@ -3122,6 +3152,7 @@ function pmg2Find(name,sdiv,sdist){
     if(best.length>1){const b2=best.filter(i=>compat(PMG_DATA[i]));return b2.length===1?b2[0]:-1}
     return best.length?best[0]:-1;
 }
+let pmg2Text="";
 const PMG_DIV_ORDER=["INDORE","KHANDWA","KHARGONE","DHAR","DEWAS","UJJAIN","RATLAM","MANDSAUR","SEHORE"];
 function pmgSheetDiv(v){
     const d=String(v||"").toUpperCase().replace(/\s+/g," ").trim();
@@ -3150,18 +3181,22 @@ function pmg2Parse(text){
     rows.slice(1).forEach(r=>{
         const name=String(r[ci.name]||"").trim(),div=pmgSheetDiv(r[ci.div]);
         if(!name||!div)return;
-        const t=n(r[ci.prev])+n(r[ci.p4]),bp=n(r[ci.bp]),br=n(r[ci.br]);
+        const pv=n(r[ci.prev]),t=pv+n(r[ci.p4]),bp=n(r[ci.bp]),br=n(r[ci.br]);
         if(!t&&!bp&&!br)return; // jinke paas koi target/bank data nahi unhe report me nahi dikhate
         const k=div+"|"+pmgKey(name);
-        if(map[k]){map[k].t+=t;map[k].bp+=bp;map[k].br+=br;return}
+        if(map[k]){map[k].t+=t;map[k].bp+=bp;map[k].br+=br;map[k].p+=pv;return}
         const dist=(ci.dist>-1?String(r[ci.dist]||"").trim():"")||PMG_DIST_OLD[pmgKey(name)]||pmgTitle(div);
-        map[k]={div,name,dist,t,bp,br};list.push(map[k]);
+        map[k]={div,name,dist,t,bp,br,p:pv};list.push(map[k]);
     });
+    // Manually jode gaye (Add as new enumerator) - target aapne khud dala tha
+    pmgExtra.forEach(x=>{const div=pmgSheetDiv(x.d),k=div+"|"+pmgKey(x.n);
+        if(map[k])return;
+        map[k]={div,name:x.n,dist:x.t||pmgTitle(div),t:+x.tg||0,bp:0,br:0,p:0};list.push(map[k])});
     const ord=d=>{const i=PMG_DIV_ORDER.indexOf(d);return i<0?99:i};
     list.forEach((x,i)=>x.o=i);
     list.sort((a,b)=>ord(a.div)-ord(b.div)||a.o-b.o);
     PMG_DATA.length=0;
-    pmg2Bank=list.map((x,i)=>{PMG_DATA.push([pmgTitle(x.div),x.dist,x.name,x.t,0,x.bp,x.br]);return{idx:i,name:x.name,div:x.div,dist:x.dist,t:x.t,bp:x.bp,br:x.br}});
+    pmg2Bank=list.map((x,i)=>{PMG_DATA.push([pmgTitle(x.div),x.dist,x.name,x.t,0,x.bp,x.br,x.p]);return{idx:i,name:x.name,div:x.div,dist:x.dist,t:x.t,bp:x.bp,br:x.br,p:x.p}});
     return list.length;
 }
 async function pmg2LoadBank(){
@@ -3169,6 +3204,7 @@ async function pmg2LoadBank(){
     try{const r=await fetch(PMG2_BANK_URL+"&_="+Date.now());if(!r.ok)throw new Error(r.status);text=await r.text();try{localStorage.setItem("pmg2SheetCache",text)}catch(e){}}
     catch(e){try{text=localStorage.getItem("pmg2SheetCache");fromCache=!!text}catch(e2){}}
     if(text){
+        pmg2Text=text;
         try{const c=pmg2Parse(text);pmg2Status="Target + Bank data sheet se loaded ("+c+" enumerators)"+(fromCache?" - internet/sheet nahi mili, pichli saved copy use hui":"")}
         catch(e){pmg2Status="Sheet padhne me error - format check karo"}
     }else pmg2Status="Sheet load nahi hui (link check karo)";
@@ -3190,14 +3226,14 @@ function renderPmg2Report(){
     const H=(t,bg)=>`<th style="background-color:${bg}">${t}</th>`;
     th.innerHTML=`<tr><th>Name of Division</th><th>Name of Districts</th><th>Name of Enumerators</th><th>Target</th>${H("Achived","#e2efda")}${H("Pending","#fff2cc")}${H(G.dA[2],"#fce4d6")}${H(G.dB[2],"#fce4d6")}${H(G.dC[2],"#fce4d6")}${H("Target till 15.11.2026","#fff2cc")}${H("Achieved<br>06.11.2026 to till date","#d9edf7")}${H(G.v[2],"#fff2cc")}${H(G.nv[2],"#ffe699")}<th>Form Pending at bank level</th><th>No. of Forms received from Bank</th><th>Rmark</th></tr>`;
     tb.innerHTML="";pmg2Last=[];
-    const z=()=>({target:0,ach:0,pend:0,dA:0,dB:0,dC:0,tt:0,n:0,v:0,nv:0,bp:0,br:0,oth:0}),tot=z();
+    const z=()=>({old:0,target:0,ach:0,pend:0,dA:0,dB:0,dC:0,tt:0,n:0,v:0,nv:0,bp:0,br:0,oth:0}),tot=z();
     const cnt=(e,k)=>e[k].length?`<td class="clickable-cell font-bold text-emerald-800" onclick="openPmgUnitsModal(${e.i},'${k}')">${e[k].length}</td>`:`<td>0</td>`;
-    const totTds=a=>`<td>${a.target}</td><td>${a.ach}</td><td>${a.pend}</td><td>${a.dA}</td><td>${a.dB}</td><td>${a.dC}</td><td>${a.tt}</td><td>${a.n}</td><td>${a.v}</td><td>${a.nv}</td><td>${a.bp}</td><td>${a.br}</td><td class="text-left px-2">${a.oth?`Total ${a.oth} inspections from 06.11.2026 other than 4th phase`:""}</td>`;
+    const totTds=(a,gt)=>`<td>${a.target}</td><td>${a.ach}</td><td>${gt?pmgPendTxt(a):a.pend}</td><td>${a.dA}</td><td>${a.dB}</td><td>${a.dC}</td><td>${a.tt}</td><td>${a.n}</td><td>${a.v}</td><td>${a.nv}</td><td>${a.bp}</td><td>${a.br}</td><td class="text-left px-2">${a.oth?`Total ${a.oth} inspections from 06.11.2026 other than 4th phase`:""}</td>`;
     [...new Set(enums.map(e=>e.div))].forEach(d=>{
         const list=enums.filter(e=>e.div===d),a=z();
         list.forEach((e,idx)=>{
             const pend=e.target-e.ach.length,tt=Math.max(0,e.target-e.pre.length),b1=e.bp,b2=e.br;
-            a.target+=e.target;a.ach+=e.ach.length;a.pend+=pend;a.dA+=e.dA.length;a.dB+=e.dB.length;a.dC+=e.dC.length;a.tt+=tt;a.n+=e.n2.length;a.v+=e.v.length;a.nv+=e.nv.length;a.bp+=b1;a.br+=b2;a.oth+=e.oth2.length;
+            a.target+=e.target;a.ach+=e.ach.length;a.pend+=pend;a.dA+=e.dA.length;a.dB+=e.dB.length;a.dC+=e.dC.length;a.tt+=tt;a.n+=e.n2.length;a.v+=e.v.length;a.nv+=e.nv.length;a.bp+=b1;a.br+=b2;a.oth+=e.oth2.length;a.old+=pmgOld(e,e.oth2);
             pmg2Last.push({"Name of Division":e.div,"Name of Districts":e.dist,"Name of Enumerators":e.name,"Target":e.target,"Achived":e.ach.length,"Pending":pend,[G.dA[2]]:e.dA.length,[G.dB[2]]:e.dB.length,[G.dC[2]]:e.dC.length,"Target till 15.11.2026":tt,"Achieved 06.11.2026 to till date":e.n2.length,[G.v[2]]:e.v.length,[G.nv[2]]:e.nv.length,"Form Pending at bank level":b1,"No. of Forms received from Bank":b2,"Remark":e.oth2.length?`From 06.11.2026: ${e.oth2.length} inspections other than 4th phase`:""});
             const pc=pend<0?"background:#fbbf8f":pend===0?"background:#fca5a5":"background:#fde68a";
             const ac=e.ach.length?`<td class="clickable-cell font-bold" style="background:#c6e0b4" onclick="openPmgUnitsModal(${e.i},'ach')">${e.ach.length}</td>`:`<td class="font-bold" style="background:#f4b6b6">0</td>`;
@@ -3209,8 +3245,36 @@ function renderPmg2Report(){
         tr.innerHTML='<td colspan="2" class="font-bold">Total</td>'+totTds(a);tb.appendChild(tr);
         Object.keys(tot).forEach(k=>tot[k]+=a[k]);
     });
-    tf.innerHTML='<tr class="row-grand-total"><td colspan="3" class="font-bold">Grand Total</td>'+totTds(tot)+'</tr>';
+    tf.innerHTML='<tr class="row-grand-total"><td colspan="3" class="font-bold">Grand Total</td>'+totTds(tot,true)+'</tr>';
     document.getElementById("pmgUnmatched2").innerHTML=pmgPanelsHTML("b");
+    renderPmg3Report();
+}
+let pmg3Last=[];
+function renderPmg3Report(){
+    const t1=document.querySelector("#tablePmgTop10"),t2=document.querySelector("#tablePmgBottom15");if(!t1||!t2)return;
+    const c=pmgCache||(pmgCache=computePmgData());
+    const es=c.enums.filter(e=>!pmegpSkipDiv(e.div)).map(e=>({e,p:e.target-e.ach.length,pct:e.target>0?e.ach.length/e.target*100:0}));
+    document.getElementById("pmg3Date").textContent="Report Date: "+pmegpFmtDate(new Date());
+    const HB="background:#1f3864;color:#fff;font-weight:700",HR="background:#c00000;color:#fff;font-weight:700";
+    const cell='<td class="pmg3-pend font-bold" style="background:#ffe6c8;color:#c00000;font-size:1.1em">';
+    const top=es.filter(x=>x.p>0).sort((a,b)=>b.p-a.p||b.e.target-a.e.target).slice(0,10);
+    t1.querySelector("thead").innerHTML=`<tr><th style="${HB}">S.No</th><th style="${HB}">Name of Enumerator</th><th style="${HB}">District</th><th style="${HB}">Division</th><th class="pmg3-pend" style="${HR}">PENDING</th></tr>`;
+    t1.querySelector("tbody").innerHTML=top.map((x,i)=>`<tr><td>${i+1}</td><td class="text-left px-2 font-bold">${x.e.name}</td><td class="text-left px-2">${x.e.dist}</td><td class="text-left px-2">${x.e.div}</td>${cell}${x.p}</td></tr>`).join("")||'<tr><td colspan="5">Data nahi hai</td></tr>';
+    const bot=es.filter(x=>x.p>0).sort((a,b)=>b.p-a.p||b.e.target-a.e.target).slice(0,15);
+    t2.querySelector("thead").innerHTML=`<tr><th style="${HB}">S.No</th><th style="${HB}">Name of Enumerator</th><th style="${HB}">District</th><th style="${HB}">Division</th><th class="pmg3-pend" style="${HR}">PENDING</th></tr>`;
+    t2.querySelector("tbody").innerHTML=bot.map((x,i)=>`<tr><td>${i+1}</td><td class="text-left px-2 font-bold">${x.e.name}</td><td class="text-left px-2">${x.e.dist}</td><td class="text-left px-2">${x.e.div}</td>${cell}${x.p}</td></tr>`).join("")||'<tr><td colspan="5">Data nahi hai</td></tr>';
+    pmg3Last=[top.map((x,i)=>({"S.No":i+1,"Name of Enumerator":x.e.name,"District":x.e.dist,"Division":x.e.div,"PENDING":x.p})),bot.map((x,i)=>({"S.No":i+1,"Name of Enumerator":x.e.name,"District":x.e.dist,"Division":x.e.div,"PENDING":x.p}))];
+}
+function exportPmg3PDF(){
+    const{jsPDF:J}=window.jspdf,d=new J("p","mm","a4");
+    d.setFont("helvetica","bold");d.setFontSize(15);d.text("Department of Posts - Regional Office Indore",105,16,{align:"center"});
+    d.setFontSize(9);d.text("PMEGP (4th Phase) - Top 10 Highest Pendency (Enumerator Wise)",14,24);d.setFont("helvetica","normal");d.text("Report Date: "+pmegpFmtDate(new Date()),14,29);
+    const opt={theme:"grid",styles:{fontSize:8.5,cellPadding:2.2,lineColor:[150,150,150],lineWidth:.2},headStyles:{fillColor:[31,56,100],textColor:255,fontStyle:"bold"},
+        didParseCell:h=>{const r=h.cell.raw;if(r&&r.classList&&r.classList.contains("pmg3-pend")){if(h.section==="head")h.cell.styles.fillColor=[192,0,0];else{h.cell.styles.fillColor=[255,230,200];h.cell.styles.textColor=[192,0,0];h.cell.styles.fontStyle="bold"}}else if(h.section==="body"&&h.column.index===1)h.cell.styles.fontStyle="bold"}};
+    d.autoTable({...opt,html:"#tablePmgTop10",startY:32,margin:{left:14,right:14}});
+    let y=d.lastAutoTable.finalY+10;d.setFont("helvetica","bold");d.setFontSize(9);d.text("Bottom 15 Enumerators (Highest Pendency, Overall)",14,y);
+    d.autoTable({...opt,html:"#tablePmgBottom15",startY:y+3,margin:{left:14,right:14}});
+    d.save("PMEGP_Report_3.pdf");
 }
 renderPmg2Report();pmg2LoadBank();
 
@@ -3274,6 +3338,7 @@ function exportPmegpExcel(){
 
     XLSX.utils.book_append_sheet(t,XLSX.utils.json_to_sheet(getPmgExcelRows()),"PMG_Report");
     XLSX.utils.book_append_sheet(t,XLSX.utils.json_to_sheet(pmg2Last),"PMG_Report_2");
+    if(pmg3Last.length){XLSX.utils.book_append_sheet(t,XLSX.utils.json_to_sheet(pmg3Last[0]),"PMG3_Top10");XLSX.utils.book_append_sheet(t,XLSX.utils.json_to_sheet(pmg3Last[1]),"PMG3_Bottom15")}
 
     XLSX.writeFile(t,"PMEGP_Monitoring_Complete_Report.xlsx");
     logGeneratedReport("PMEGP Complete Report Excel",()=>exportPmegpExcel());
