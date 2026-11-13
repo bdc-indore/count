@@ -350,7 +350,7 @@
                 <div id="pmegpPmgView" class="overflow-x-auto p-1 hidden">
                     <div class="text-center mb-3">
                         <h2 class="text-lg font-extrabold text-[#31103f]" id="pmgTitle">PMEGP Enumerator Wise detailed report</h2>
-                        <p class="text-xs text-slate-500">4th Phase. Target & bank-level columns fixed; Achieved = units inspected (matched by Inspected By name), Pending = Target - Achieved. Click Achieved / date counts to view units.</p>
+                        <p class="text-xs text-slate-500">4th Phase. Target & bank-level columns Google Sheet (enumerator sheet) se aate hain; Achieved = units inspected (matched by Inspected By name), Pending = Target - Achieved. Click Achieved / date counts to view units.</p>
                     </div>
                     <table class="nil-table" id="tablePmgReport">
                         <thead></thead>
@@ -1175,11 +1175,10 @@ function remapOfficeId(id){
 
 function normalizeDivName(divStr){
     if(!divStr) return "NOT IN QC LIST";
-    let d = String(divStr).trim().toUpperCase().replace(/\s+DIVISION$/,"").trim();
+    let d = String(divStr).trim().toUpperCase().replace(/\s+/g," ").replace(/\s+DIVS?ION$/,"").trim();
     if(d.includes("UNKNOWN") || d.includes("OTHER") || !d) return "NOT IN QC LIST";
-    if(d.includes("MFL")) return "INDORE MFL";
-    if(d.includes("CITY")) return "INDORE CITY";
-    if(d.includes("INDORE") && !d.includes("MFL") && !d.includes("CITY")) return "INDORE CITY";
+    // Naye division: INDORE ab ek hi division hai (City / MFL alag nahi). Purani sheet me bhi CITY/MFL aaye to INDORE maano.
+    if(d.includes("INDORE")) return "INDORE";
     return d;
 }
 
@@ -2888,22 +2887,15 @@ function exportPmegpModalToExcel(){
 
 // ----------------- PMG REPORT (Enumerator wise, 4th Phase) -----------------
 // Fixed data copied from the enumerator report: [Division, District, Enumerator, Target, Target till 05.11.2026, Form Pending at bank level, Forms received from bank]
-const PMG_DATA=[
-["Indore City","Indore","Abhimanyu Bangariya",31,8,7,1],["Indore City","Indore","Anil Kumar Kaushal",13,6,3,7],["Indore City","Indore","Jalaj Rawat",31,15,3,12],["Indore City","Indore","Kamal Nwaya",9,0,1,1],["Indore City","Indore","Nitesh Meshram",30,9,11,2],["Indore City","Indore","Santulal Mourya",30,0,1,0],["Indore City","Indore","Jamunaprasad Maheshwari",17,0,0,0],["Indore City","Indore","Rajesh Yadav",30,11,5,11],["Indore City","Indore","Vivek Sharma",21,10,0,0],
-["Indore MFL","Dewas","Neeraj shukla",21,1,3,0],["Indore MFL","Dhar","Anil Alasar",58,10,2,4],["Indore MFL","Dhar","Pankaj Meena",4,4,0,0],["Indore MFL","Indore","Avinash Kaushal",4,4,0,0],["Indore MFL","Indore","Kuldeep Sharma",53,12,10,0],["Indore MFL","Dhar","Brajesh Ahirwar",39,10,3,6],["Indore MFL","Dewas","Gourav Yadav",10,10,0,7],["Indore MFL","Dewas","Sandeep Pandey",20,10,0,0],["Indore MFL","Dhar","Santosh Mahte",65,12,6,0],["Indore MFL","Dhar","Mukesh Bodade",55,12,3,10],["Indore MFL","Dewas","kailash chouhan",40,12,0,4],["Indore MFL","Dewas","DEEPAK YADAV",36,12,8,10],["Indore MFL","Dewas","SAGAR SWAMI",30,12,0,0],
-["Khandwa","Burhanpur","SHRI SUNIL BHOJWANI",61,10,7,5],["Khandwa","East Nimar (KHANDWA)","SHRI JUNED KHAN",32,9,6,4],["Khandwa","Khargaon","Vineet patel",11,0,0,12],["Khandwa","Khargaon","SHRI ADARSH MEENA",72,15,20,0],["Khandwa","Khargaon","SHRI VIJAY ASKE",144,8,1,0],["Khandwa","Khargaon","Rohit Patidar",20,10,20,0],["Khandwa","Khargaon","SAKET",4,0,0,0],["Khandwa","Burhanpur","SHRI DINESH KUMAR SINGH",35,15,9,18],["Khandwa","Khargaon","SHRI VIJAY KHODE",30,10,10,29],["Khandwa","Khargaon","SHRI SANTOSH RATHORE",69,10,23,3],["Khandwa","Barwani","SHRI SHUBHAM TAILOR",71,15,20,10],["Khandwa","Barwani","SHRI CHANDRAKANT PATLE",32,10,5,11],["Khandwa","Barwani","SHRI AASHISH NAWANGE",21,10,11,0],
-["Mandsaur","Mandsaur","Shri Satya Narayan Bhawsar",56,13,16,9],["Mandsaur","Mandsaur","Shri Vishal Soni",32,12,6,15],["Mandsaur","Mandsaur","Shri Arun Kumar Singh Niranjan",1,0,0,0],["Mandsaur","Mandsaur","Shri Ashish Kumar Meena",5,1,0,3],["Mandsaur","Neemuch","Shri Dilip Kumar Gupta",1,1,0,0],["Mandsaur","Mandsaur","Shri Mahesh Sharma",23,5,5,18],["Mandsaur","Mandsaur","Shri Yash Mittal",131,13,3,3],["Mandsaur","Mandsaur","Shri Kishor Varma",11,9,0,0],["Mandsaur","Neemuch","Shri Govind Oswal",26,18,0,0],["Mandsaur","Mandsaur","Shri Dilip Suryvanshi",4,3,3,0],["Mandsaur","Mandsaur","Shri Pritan Soni",6,5,0,0],
-["Ratlam","Jhabua","VIKAS DAMOR",79,30,0,17],["Ratlam","Ratlam","PRAMOD DOHRE",57,9,3,10],["Ratlam","Ratlam","VINAY KUMAR BARIYA",89,9,0,8],["Ratlam","Alirajpur","SHANKAR SINGH",51,0,0,6],["Ratlam","Ratlam","Narenra Sengar",38,15,23,9],["Ratlam","Ratlam","Mohd. Ansar",10,0,0,6],["Ratlam","Ratlam","Mayank Rajpoot",32,15,15,17],["Ratlam","Neemuch","Anirudh Kumar",10,10,2,8],["Ratlam","Ratlam","Kamlesh Bairagi",39,15,8,7],["Ratlam","Ratlam","Anil gehlot",22,10,0,0],["Ratlam","Ratlam","rinku",22,13,0,0],
-["Sehore","Sehore","Sh. Charan Singh",13,0,5,7],["Sehore","Sehore","Sh. Manav Mitra",27,0,0,27],["Sehore","Sehore","Sh. Ajay Shakyawar",9,0,4,5],["Sehore","Rajgarh","Sh. Rakesh Naharwal",10,0,0,0],["Sehore","Rajgarh","Sh. Sandeep Soni",21,0,0,21],["Sehore","Sehore","Sh. Himmat Singh Chouhan",20,0,0,20],["Sehore","Sehore","sh. Kushal Dangi",56,0,0,56],["Sehore","Sehore","sh. Ajeet Kumar",14,0,0,14],["Sehore","Rajgarh","Sh. Hariom Prajapati",19,0,0,0],["Sehore","Rajgarh","Sh. Devendra Visopiya",21,0,8,13],["Sehore","Rajgarh","sh. Srikant Lamba",16,0,0,16],["Sehore","Rajgarh","sh. Rahul",10,0,4,6],["Sehore","Rajgarh","Rahul Malviya",24,0,4,15],["Sehore","Rajgarh","Hemant Baghel",5,0,0,5],["Sehore","Rajgarh","Banwari Verma",5,0,0,0],
-["Ujjain","Ujjain","Shri Nikesh Kumar",41,15,25,8],["Ujjain","Agar-Malwa","Shri Ravindra Sharma",64,8,13,10],["Ujjain","Ujjain","Shri Bharat Dubey",23,8,10,4],["Ujjain","Ujjain","Shri Anil Kumar Kayasth",34,16,5,0],["Ujjain","Ujjain","Shri Arjun Malviya",36,10,0,0],["Ujjain","Ujjain","Shri Durgashankar Garasiya",37,16,3,0],["Ujjain","Ujjain","Shri Harshit Parmar",20,10,0,0],["Ujjain","Ujjain","Shri Mukesh Kumbhkar",23,10,0,0],["Ujjain","Ujjain","Shri F U Qureshi",21,15,0,0]
-];
+const PMG_DATA=[];
+// Enumerator list ab Google Sheet se banti hai (pmg2LoadBank). Purane naam -> district (sheet me district column nahi hai)
+const PMG_DIST_OLD={"abhimanyu bangariya":"Indore","anil kaushal kumar":"Indore","jalaj rawat":"Indore","kamal nwaya":"Indore","meshram nitesh":"Indore","mourya santulal":"Indore","jamunaprasad maheshwari":"Indore","rajesh yadav":"Indore","sharma vivek":"Indore","neeraj shukla":"Dewas","alasar anil":"Dhar","meena pankaj":"Dhar","avinash kaushal":"Indore","kuldeep sharma":"Indore","ahirwar brajesh":"Dhar","gourav yadav":"Dewas","pandey sandeep":"Dewas","mahte santosh":"Dhar","bodade mukesh":"Dhar","chouhan kailash":"Dewas","deepak yadav":"Dewas","sagar swami":"Dewas","bhojwani sunil":"Burhanpur","juned khan":"East Nimar (KHANDWA)","patel vineet":"Khargaon","adarsh meena":"Khargaon","aske vijay":"Khargaon","patidar rohit":"Khargaon","saket":"Khargaon","dinesh kumar singh":"Burhanpur","khode vijay":"Khargaon","rathore santosh":"Khargaon","shubham tailor":"Barwani","chandrakant patle":"Barwani","aashish nawange":"Barwani","bhawsar narayan satya":"Mandsaur","soni vishal":"Mandsaur","arun kumar niranjan singh":"Mandsaur","ashish kumar meena":"Mandsaur","dilip gupta kumar":"Neemuch","mahesh sharma":"Mandsaur","mittal yash":"Mandsaur","kishor varma":"Mandsaur","govind oswal":"Neemuch","dilip suryvanshi":"Mandsaur","pritan soni":"Mandsaur","damor vikas":"Jhabua","dohre pramod":"Ratlam","bariya kumar vinay":"Ratlam","shankar singh":"Alirajpur","narenra sengar":"Ratlam","ansar mohd":"Ratlam","mayank rajpoot":"Ratlam","anirudh kumar":"Neemuch","bairagi kamlesh":"Ratlam","anil gehlot":"Ratlam","rinku":"Ratlam","charan singh":"Sehore","manav mitra":"Sehore","ajay shakyawar":"Sehore","naharwal rakesh":"Rajgarh","sandeep soni":"Rajgarh","chouhan himmat singh":"Sehore","dangi kushal":"Sehore","ajeet kumar":"Sehore","hariom prajapati":"Rajgarh","devendra visopiya":"Rajgarh","lamba srikant":"Rajgarh","rahul":"Rajgarh","malviya rahul":"Rajgarh","baghel hemant":"Rajgarh","banwari verma":"Rajgarh","kumar nikesh":"Ujjain","ravindra sharma":"Agar-Malwa","bharat dubey":"Ujjain","anil kayasth kumar":"Ujjain","arjun malviya":"Ujjain","durgashankar garasiya":"Ujjain","harshit parmar":"Ujjain","kumbhkar mukesh":"Ujjain","f qureshi u":"Ujjain"};
 // ---- Sheet se aane wala Target + Bank data (PMG2_BANK_URL) ----
 let pmg2Bank=[],pmg2Map={};
 try{pmg2Map=JSON.parse(localStorage.getItem("pmg2BankMap")||"{}")||{}}catch(e){pmg2Map={}}
 let pmgSheetRes={vals:{},un:{},loaded:false};
 // sheet me jo naye enumerator hain (list me nahi the) unhe "Naya enumerator" se jodo to yahan save hote hain
 let pmgExtra=[];try{pmgExtra=JSON.parse(localStorage.getItem("pmgExtraEnums")||"[]")||[]}catch(e){pmgExtra=[]}
-pmgExtra.forEach(x=>PMG_DATA.push([x.d,x.t,x.n,0,0,0,0]));
 // Date windows (yyyymmdd) - change here if the report dates change
 const PMG_RANGES={v:[20261026,20261031,"Unit Verified In Oct 26 upto Dt. 31.10.2026"],nv:[20261101,20261130,"Unit Verified In Nov 26 upto Dt. 05.11.2026"],dA:[20261028,20261028,"On dated 28.10.2026"],dB:[20261029,20261029,"On dated 29.10.2026"],dC:[20261030,20261030,"On dated 30.10.2026"],n:[20261030,20261105,"Inspected 30.10.2026 to 05.11.2026"]};
 // yyyymmdd me din add/minus (month/year boundary sahi handle hota hai)
@@ -2937,13 +2929,10 @@ function pmgDKey(s){return String(s||"").toLowerCase().replace(/[^a-z]/g,"").sli
 function pmgSV(i,k,d){return pmgSheetRes.loaded?((pmgSheetRes.vals[i]||{})[k]||0):d}
 // Sheet ki har row -> enumerator. Target = Col E (previous pending) + Col F (4th phase unit), bank = Col G, H
 function pmgResolveSheet(){
-    const vals={},un={};
-    pmg2Bank.forEach(b=>{
-        if(!b.t&&!b.bp&&!b.br)return;
-        const i=pmg2Find(b.name,b.div,b.dist);
-        if(i<0){const k=pmgKey(b.name);un[k]=un[k]||{name:b.name,div:b.div,dist:b.dist,t:0,bp:0,br:0};un[k].t+=b.t;un[k].bp+=b.bp;un[k].br+=b.br;return}
-        const v=vals[i]=vals[i]||{t:0,bp:0,br:0};v.t+=b.t;v.bp+=b.bp;v.br+=b.br});
-    pmgSheetRes={vals,un,loaded:pmg2Bank.length>0};
+    // Sheet ki har row seedha apne enumerator (PMG_DATA index) se judi hai - alag matching ki zarurat nahi
+    const vals={};
+    pmg2Bank.forEach(b=>{vals[b.idx]={t:b.t,bp:b.bp,br:b.br}});
+    pmgSheetRes={vals,un:{},loaded:pmg2Bank.length>0};
 }
 // ---- Suggestion engine: "kya ye wahi banda hai?" ----
 const PMG_ALIAS={md:"mohammad",mohd:"mohammad",mohammed:"mohammad",muhammad:"mohammad",mohamad:"mohammad",mohammad:"mohammad",mo:"mohammad"};
@@ -3049,6 +3038,7 @@ function computePmgData(){
         best.ach.push(u);if(r.dayNum>=20261106)best.n2.push(u);if(!(r.dayNum>20261105))best.pre.push(u);
         Object.keys(PMG_RANGES).forEach(k=>{const g=PMG_RANGES[k];if(g&&r.dayNum>=g[0]&&r.dayNum<=g[1])best[k].push(u)});
     });
+    enums.forEach(e=>{e.tt=Math.max(0,e.target-e.pre.length)}); // Target till 05.11.2026 = 05.11 tak ka pending
     return{enums,unmatched};
 }
 let pmgCache=null;
@@ -3132,13 +3122,57 @@ function pmg2Find(name,sdiv,sdist){
     if(best.length>1){const b2=best.filter(i=>compat(PMG_DATA[i]));return b2.length===1?b2[0]:-1}
     return best.length?best[0]:-1;
 }
+const PMG_DIV_ORDER=["INDORE","KHANDWA","KHARGONE","DHAR","DEWAS","UJJAIN","RATLAM","MANDSAUR","SEHORE"];
+function pmgSheetDiv(v){
+    const d=String(v||"").toUpperCase().replace(/\s+/g," ").trim();
+    if(!d)return "";
+    const hit=PMG_DIV_ORDER.find(x=>d.includes(x));
+    return hit||d.replace(/\s+DIVS?ION$/,"").trim();
+}
+const pmgTitle=s=>String(s).toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+// Sheet (CSV text) se enumerator list + Target (Previous pending + 4th phase) + bank columns banata hai
+function pmg2Parse(text){
+    const wb=XLSX.read(text,{type:"string"}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
+    if(!rows.length)throw new Error("empty");
+    const H=rows[0].map(x=>String(x).toLowerCase());
+    const fi=(f,fb)=>{const i=H.findIndex(f);return i>-1?i:fb};
+    const ci={
+        div:fi(h=>h.includes("division"),1),
+        name:fi(h=>h.includes("enumerator"),2),
+        prev:fi(h=>h.includes("previous"),4),
+        p4:fi(h=>h.includes("4th"),5),
+        bp:fi(h=>h.includes("pending at bank"),6),
+        br:fi(h=>h.includes("received"),7),
+        dist:fi(h=>h.includes("district"),-1)
+    };
+    const n=v=>{const x=parseInt(String(v).replace(/[^0-9-]/g,""),10);return isNaN(x)?0:x};
+    const map={},list=[];
+    rows.slice(1).forEach(r=>{
+        const name=String(r[ci.name]||"").trim(),div=pmgSheetDiv(r[ci.div]);
+        if(!name||!div)return;
+        const t=n(r[ci.prev])+n(r[ci.p4]),bp=n(r[ci.bp]),br=n(r[ci.br]);
+        if(!t&&!bp&&!br)return; // jinke paas koi target/bank data nahi unhe report me nahi dikhate
+        const k=div+"|"+pmgKey(name);
+        if(map[k]){map[k].t+=t;map[k].bp+=bp;map[k].br+=br;return}
+        const dist=(ci.dist>-1?String(r[ci.dist]||"").trim():"")||PMG_DIST_OLD[pmgKey(name)]||pmgTitle(div);
+        map[k]={div,name,dist,t,bp,br};list.push(map[k]);
+    });
+    const ord=d=>{const i=PMG_DIV_ORDER.indexOf(d);return i<0?99:i};
+    list.forEach((x,i)=>x.o=i);
+    list.sort((a,b)=>ord(a.div)-ord(b.div)||a.o-b.o);
+    PMG_DATA.length=0;
+    pmg2Bank=list.map((x,i)=>{PMG_DATA.push([pmgTitle(x.div),x.dist,x.name,x.t,0,x.bp,x.br]);return{idx:i,name:x.name,div:x.div,dist:x.dist,t:x.t,bp:x.bp,br:x.br}});
+    return list.length;
+}
 async function pmg2LoadBank(){
-    try{
-        const r=await fetch(PMG2_BANK_URL),wb=XLSX.read(await r.text(),{type:"string"}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:""});
-        const n=v=>{const x=parseInt(String(v).replace(/[^0-9-]/g,""),10);return isNaN(x)?0:x};
-        pmg2Bank=rows.slice(1).filter(r=>String(r[2]).trim()).map(r=>({name:String(r[2]).trim(),div:String(r[1]).trim(),dist:String(r[8]||"").trim(),t:n(r[4])+n(r[5]),bp:n(r[6]),br:n(r[7])}));
-        pmg2Status="Target + Bank data sheet se loaded ("+pmg2Bank.length+" rows)";
-    }catch(e){pmg2Status="Sheet load nahi hui (link check karo) - abhi inbuilt target/bank use ho raha hai"}
+    let text=null,fromCache=false;
+    try{const r=await fetch(PMG2_BANK_URL+"&_="+Date.now());if(!r.ok)throw new Error(r.status);text=await r.text();try{localStorage.setItem("pmg2SheetCache",text)}catch(e){}}
+    catch(e){try{text=localStorage.getItem("pmg2SheetCache");fromCache=!!text}catch(e2){}}
+    if(text){
+        try{const c=pmg2Parse(text);pmg2Status="Target + Bank data sheet se loaded ("+c+" enumerators)"+(fromCache?" - internet/sheet nahi mili, pichli saved copy use hui":"")}
+        catch(e){pmg2Status="Sheet padhne me error - format check karo"}
+    }else pmg2Status="Sheet load nahi hui (link check karo)";
+    pmgCache=null;
     renderPmgReport();renderPmg2Report();
 }
 function pmg2IDiv(i,dv){const el=document.getElementById("pmg2IEnum"+i);if(el)el.innerHTML=pmgEnumOpts(dv)}
