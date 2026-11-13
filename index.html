@@ -267,6 +267,7 @@
                                 <option value="without">Without Sehore</option>
                             </select>
                         </div>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer"><input type="checkbox" id="pmgHideZero" onchange="pmgHideZeroChange()"> Zero (Target/Achieved/Pending = 0) wale hatao</label>
                     </div>
                 </div>
 
@@ -3072,13 +3073,15 @@ function computePmgData(){
     return{enums,unmatched};
 }
 let pmgCache=null;
+function pmgShow(e){const z=document.getElementById("pmgHideZero");return !(z&&z.checked&&e.target===0&&e.ach.length===0)}
+function pmgHideZeroChange(){renderPmgReport();renderPmg2Report()}
 function renderPmgReport(){
     const th=document.querySelector("#tablePmgReport thead"),tb=document.querySelector("#tablePmgReport tbody"),tf=document.querySelector("#tablePmgReport tfoot");
     if(!th)return;
     pmgCache=computePmgData();
     const selDiv=document.getElementById("pmegpFilterDivision")?document.getElementById("pmegpFilterDivision").value:"All";
     const allDivs=[...new Set(PMG_DATA.map(r=>r[0]))];
-    let enums=pmgCache.enums.filter(e=>!pmegpSkipDiv(e.div));
+    let enums=pmgCache.enums.filter(e=>!pmegpSkipDiv(e.div)&&pmgShow(e));
     if(selDiv!=="All"&&allDivs.some(d=>d.toUpperCase()===selDiv.toUpperCase()))enums=enums.filter(e=>e.div.toUpperCase()===selDiv.toUpperCase());
     const now=new Date();
     document.getElementById("pmgTitle").textContent="PMEGP Enumerator Wise detailed report on dated "+pmegpFmtDate(now).replace(/-/g,".");
@@ -3124,7 +3127,7 @@ function openPmgUnitsModal(i,k){
 function getPmgExcelRows(){
     const d=pmgCache||computePmgData();const rows=[];
     const G=PMG_RANGES;
-    d.enums.filter(e=>!pmegpSkipDiv(e.div)).forEach(e=>rows.push({"Name of Division":e.div,"Name of Districts":e.dist,"Name of Enumerators":e.name,"Target":e.target,"Achived":e.ach.length,"Pending":e.target-e.ach.length,[G.dA[2]]:e.dA.length,[G.dB[2]]:e.dB.length,[G.dC[2]]:e.dC.length,"Target till 05.11.2026":e.tt,[G.n[2]]:e.n.length,[G.v[2]]:e.v.length,[G.nv[2]]:e.nv.length,"Form Pending at bank level":e.bp,"No. of Forms received from Bank":e.br,"Remark":e.oth.length?`After 30.10.2026: ${e.oth.length} inspections other than 4th phase`:""}));
+    d.enums.filter(e=>!pmegpSkipDiv(e.div)&&pmgShow(e)).forEach(e=>rows.push({"Name of Division":e.div,"Name of Districts":e.dist,"Name of Enumerators":e.name,"Target":e.target,"Achived":e.ach.length,"Pending":e.target-e.ach.length,[G.dA[2]]:e.dA.length,[G.dB[2]]:e.dB.length,[G.dC[2]]:e.dC.length,"Target till 05.11.2026":e.tt,[G.n[2]]:e.n.length,[G.v[2]]:e.v.length,[G.nv[2]]:e.nv.length,"Form Pending at bank level":e.bp,"No. of Forms received from Bank":e.br,"Remark":e.oth.length?`After 30.10.2026: ${e.oth.length} inspections other than 4th phase`:""}));
     return rows;
 }
 renderPmgReport();
@@ -3219,7 +3222,7 @@ function renderPmg2Report(){
     const th=document.querySelector("#tablePmgReport2 thead"),tf=document.querySelector("#tablePmgReport2 tfoot");
     const c=pmgCache||(pmgCache=computePmgData()),G=PMG_RANGES;
     const selDiv=document.getElementById("pmegpFilterDivision")?document.getElementById("pmegpFilterDivision").value:"All",allDivs=[...new Set(PMG_DATA.map(r=>r[0]))];
-    let enums=c.enums.filter(e=>!pmegpSkipDiv(e.div));
+    let enums=c.enums.filter(e=>!pmegpSkipDiv(e.div)&&pmgShow(e));
     if(selDiv!=="All"&&allDivs.some(d=>d.toUpperCase()===selDiv.toUpperCase()))enums=enums.filter(e=>e.div.toUpperCase()===selDiv.toUpperCase());
     document.getElementById("pmgTitle2").textContent="PMEGP Enumerator Wise detailed report 2 on dated "+pmegpFmtDate(new Date()).replace(/-/g,".");
     document.getElementById("pmg2Status").textContent=pmg2Status;
