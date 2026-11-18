@@ -2945,7 +2945,16 @@ function pmgEnumOpts(dv){
     return '<option value="">-- Enumerator select karo --</option>'+PMG_DATA.map((r,i)=>r[0].toUpperCase()===String(dv).toUpperCase()?`<option value="${i}">${r[2]} (${r[1]})</option>`:"").join("");
 }
 function pmgDivChange(i,dv){const el=document.getElementById("pmgEnum"+i);if(el)el.innerHTML=pmgEnumOpts(dv)}
-function pmgSetManual(key,idx){if(idx===""){delete pmgManualMap[key]}else{pmgManualMap[key]=PMG_DATA[+idx][2]}pmgSaveMap();renderPmgReport();renderPmg2Report()}
+function pmgSetManual(key,idx){
+    if(idx===""){delete pmgManualMap[key]}
+    else{
+        const selected=PMG_DATA[+idx],dv=String(key).split("|").pop();
+        if(!selected)return;
+        if(String(selected[0]).toUpperCase()!==dv){alert("Inspection MPM mapping ke division me hi match karega. Is division ka enumerator select karo.");return}
+        pmgManualMap[key]=selected[2];
+    }
+    pmgSaveMap();pmgCache=null;renderPmgReport();renderPmg2Report();
+}
 function pmgDKey(s){return String(s||"").toLowerCase().replace(/[^a-z]/g,"").slice(0,5)}
 function pmgSV(i,k,d){return pmgSheetRes.loaded?((pmgSheetRes.vals[i]||{})[k]||0):d}
 // Sheet ki har row -> enumerator. Target = Col E (previous pending) + Col F (4th phase unit), bank = Col G, H
@@ -3019,10 +3028,17 @@ function pmgPanelsHTML(p){
     const sel='class="border border-purple-300 rounded-lg p-1 bg-white font-semibold"';
     let html="";
     const um=Object.entries(c.unmatched),iu=um.reduce((a,x)=>a+x[1].count,0);
+    const a=c.audit||{eligible:0,matched:0,errors:0,byDay:{}};
+    const dayKeys=Object.keys(a.byDay||{}).filter(k=>/^202611\d{2}$/.test(k)).sort().reverse();
+    html+=`<div class="border border-purple-200 bg-purple-50 rounded-xl p-3 mb-3"><b class="text-purple-950">Indore Region Inspection Reconciliation</b><p class="mt-1">All 4th Phase + November (01–30 Nov 2026) other phases: <b>${a.eligible} inspected</b> = <b>${a.matched} matched</b> + <b class="text-rose-700">${a.errors} error</b>.</p><p class="text-[11px] text-slate-600 mt-1">Unmatched inspections report ke Enumerator achievement me nahi jodenge jab tak aap match / add nahi karte. November daily details neeche hain.</p>`;
+    const divKeys=Object.keys(a.byDivision||{}).sort();
+    if(divKeys.length)html+=`<details class="mt-2"><summary class="cursor-pointer font-semibold">Division-wise inspection reconciliation (click)</summary><div class="overflow-x-auto mt-2"><table class="w-full text-xs"><thead><tr><th class="text-left">Division</th><th>Inspected</th><th>Matched</th><th>Errors</th></tr></thead><tbody>${divKeys.map(k=>`<tr class="border-t border-purple-200"><td>${pmgEscape(k)}</td><td class="text-center">${a.byDivision[k].eligible}</td><td class="text-center">${a.byDivision[k].matched}</td><td class="text-center font-bold text-rose-700">${a.byDivision[k].errors}</td></tr>`).join("")}</tbody></table></div></details>`;
+    if(dayKeys.length)html+=`<details class="mt-2"><summary class="cursor-pointer font-semibold">November date-wise inspection reconciliation (click)</summary><div class="overflow-x-auto mt-2"><table class="w-full text-xs"><thead><tr><th class="text-left">Date</th><th>Inspected</th><th>Matched</th><th>Errors</th></tr></thead><tbody>${dayKeys.map(k=>`<tr class="border-t border-purple-200"><td>${pmgDayLabel(+k)}</td><td class="text-center">${a.byDay[k].eligible}</td><td class="text-center">${a.byDay[k].matched}</td><td class="text-center font-bold text-rose-700">${a.byDay[k].errors}</td></tr>`).join("")}</tbody></table></div></details>`;
+    html+='</div>';
     if(um.length){
         um.sort((x,y)=>x[1].division.localeCompare(y[1].division)||x[1].name.localeCompare(y[1].name));
-        html+=`<div class="border border-rose-300 bg-rose-50 rounded-xl p-3 overflow-x-auto mb-3"><p class="font-bold text-rose-800 mb-2">⚠️ Error: ${iu} units (4th phase) ke Inspected By naam enumerator list me nahi mile. Suggestion sahi lage to "Haan, yahi hai" dabao, nahi to khud division aur enumerator chuno:</p><table class="w-full text-xs"><thead><tr class="text-left text-slate-600"><th class="py-1 pr-3">S.No.</th><th class="pr-3">Inspected By</th><th class="pr-3">Division</th><th class="pr-3">District</th><th class="pr-3">Units</th><th class="pr-3">Month (units)</th><th class="pr-3">Suggestion (kya ye yahi hai?)</th><th class="pr-3">Division chuno</th><th>Phir enumerator chuno</th><th>Ya naya jodo</th></tr></thead><tbody>`+um.map(([k,v],i)=>`<tr class="border-t border-rose-200"><td class="py-1.5 pr-3">${i+1}</td><td class="pr-3 font-bold text-slate-800">${v.name}</td><td class="pr-3 font-semibold">${v.division}</td><td class="pr-3">${Object.entries(v.dists).map(([d,n])=>d+" ("+n+")").join(", ")}</td><td class="pr-3 font-bold text-rose-700">${v.count}</td><td class="pr-3 font-semibold text-slate-700 whitespace-nowrap">${Object.keys(v.months).sort().map(m=>pmgMonthLabel(m)+" ("+v.months[m]+")").join(", ")}</td><td class="pr-3">${pmgSugHtml(pmgSuggest(v.name,v.division,Object.keys(v.dists)[0]),"pmgSetManual",k)}</td><td class="pr-3"><select ${sel} onchange="pmgDivSel('${p}IE${i}',this.value)">${dOpts(v.division)}</select></td><td><select id="${p}IE${i}" data-key="${esc(k)}" ${sel} onchange="pmgSetManual(this.dataset.key,this.value)">${pmgEnumOpts(v.division)}</select></td><td><button class="bg-purple-800 hover:bg-purple-900 text-white font-bold rounded-lg px-2 py-1 text-[11px] cursor-pointer whitespace-nowrap" data-key="${esc(k)}" onclick="pmgAddInsp(this.dataset.key)">➕ Add as new enumerator</button></td></tr>`).join("")+`</tbody></table></div>`;
-    }else html+=pmegpUploadedRaw.length?'<p class="font-bold text-emerald-700 mb-2">✅ Saare 4th phase inspections enumerators se match ho gaye.</p>':'<p class="mb-2">Inspection file upload karne par Achieved aur date columns bhar jayenge.</p>';
+        html+=`<div class="border border-rose-300 bg-rose-50 rounded-xl p-3 overflow-x-auto mb-3"><p class="font-bold text-rose-800 mb-2">⚠️ Error: ${iu} inspections (all 4th phase + November other phases) Indore Region me match nahi hue. Name confirm karo ya new enumerator add karo. Har row ke andar Unit ID, Phase, Date aur Status bhi hain.</p><table class="w-full text-xs"><thead><tr class="text-left text-slate-600"><th class="py-1 pr-3">S.No.</th><th class="pr-3">Inspected By</th><th class="pr-3">Division</th><th class="pr-3">District</th><th class="pr-3">Units</th><th class="pr-3">Month (units)</th><th class="pr-3">Reason & inspection details</th><th class="pr-3">Suggestion (kya ye yahi hai?)</th><th class="pr-3">Division chuno</th><th>Phir enumerator chuno</th><th>Ya naya jodo</th></tr></thead><tbody>`+um.map(([k,v],i)=>`<tr class="border-t border-rose-200"><td class="py-1.5 pr-3">${i+1}</td><td class="pr-3 font-bold text-slate-800">${pmgEscape(v.name)}</td><td class="pr-3 font-semibold">${pmgEscape(v.division)}</td><td class="pr-3">${Object.entries(v.dists).map(([d,n])=>pmgEscape(d)+" ("+n+")").join(", ")}</td><td class="pr-3 font-bold text-rose-700">${v.count}</td><td class="pr-3 font-semibold text-slate-700 whitespace-nowrap">${Object.keys(v.months).sort().map(m=>pmgMonthLabel(m)+" ("+v.months[m]+")").join(", ")}</td><td class="pr-3 min-w-[240px]"><div>${Object.entries(v.reasons).map(([reason,n])=>pmgEscape(reason)+" ("+n+")").join("; ")}</div><details class="mt-1"><summary class="cursor-pointer font-bold text-purple-800">View ${v.units.length} inspections</summary><div class="mt-1 max-h-48 overflow-y-auto">${v.units.map(u=>`<div class="border-t border-rose-200 py-1">${pmgEscape(u.appId)} | ${pmgEscape(u.phase)} | ${pmgEscape(u.date)} | ${pmgEscape(u.status)} | ${pmgEscape(u.reason)}</div>`).join("")}</div></details></td><td class="pr-3">${pmgSugHtml(pmgSuggest(v.name,v.division,Object.keys(v.dists)[0]),"pmgSetManual",k)}</td><td class="pr-3"><select ${sel} onchange="pmgDivSel('${p}IE${i}',this.value)">${dOpts(v.division)}</select></td><td class="pr-3"><select id="${p}IE${i}" data-key="${esc(k)}" ${sel} onchange="pmgSetManual(this.dataset.key,this.value)">${pmgEnumOpts(v.division)}</select></td><td><button class="bg-purple-800 hover:bg-purple-900 text-white font-bold rounded-lg px-2 py-1 text-[11px] cursor-pointer whitespace-nowrap" data-key="${esc(k)}" onclick="pmgAddInsp(this.dataset.key)">➕ Add as new enumerator</button></td></tr>`).join("")+`</tbody></table></div>`;
+    }else html+=pmegpUploadedRaw.length?'<p class="font-bold text-emerald-700 mb-2">✅ Indore Region ke eligible inspections enumerators se match ho gaye.</p>':'<p class="mb-2">Inspection file upload karne par Achieved aur date columns bhar jayenge.</p>';
     if(pmgExtra.length)html+=`<div class="mb-3 text-slate-600"><b>Naye enumerator (manual target):</b> `+pmgExtra.map((x,i)=>`${x.n} (${x.d}) Target ${x.tg} <a href="#" class="text-rose-700 underline" onclick="pmgDelExtra(${i});return false">hatao</a>`).join(" &nbsp;|&nbsp; ")+`</div>`;
     const pm=Object.entries(pmgManualMap);
     if(pm.length)html+=`<div class="mb-3 text-slate-600"><b>Inspector manually joda gaya:</b> `+pm.map(([k,n])=>`${k.replace("|"," / ")} → <b>${n}</b> <a href="#" class="text-rose-700 underline" onclick="pmgSetManual('${k.replace(/'/g,"\\'")}','');return false">hatao</a>`).join(" &nbsp;|&nbsp; ")+`</div>`;
@@ -3049,25 +3065,45 @@ function pmgOld(e,oth){return Math.max(0,Math.min(e.prev-oth.length,e.target-e.a
 function pmgPendTxt(a){const o=a.old||0;return `${a.pend} <span style="font-size:.85em">(=${a.pend-o} 4th phase + ${o} older phases)</span>`}
 function computePmgData(){
     pmgResolveSheet();
-    // uploaded file ki sabse latest inspection date -> "On dated" (last 3 din) aur "Unit Verified upto" columns
     let latest=0;
     pmegpUploadedRaw.forEach(r=>{if(r.dayNum>latest)latest=r.dayNum});
     if(!latest)latest=20261030;
     pmgSetDateRanges(latest);
     const enums=PMG_DATA.map((r,i)=>({i,div:r[0],dist:r[1],name:r[2],target:pmgSV(i,"t",r[3]),prev:pmgSV(i,"p",r[7]||0),tt:r[4],bp:pmgSV(i,"bp",r[5]),br:pmgSV(i,"br",r[6]),mobile:r[8]||"",tok:pmgNameTokens(r[2]),ach:[],n2:[],pre:[],oth2:[],v:[],nv:[],oth:[],dA:[],dB:[],dC:[],n:[]}));
-    const unmatched={};
+    const unmatched={}, audit={eligible:0,matched:0,errors:0,byDay:{},byDivision:{}};
+    const addUnmatched=(r,master,reason)=>{
+        const division=master.division||"UNKNOWN DIVISION",name=r.inspBy||"Unassigned";
+        const mk=pmgKey(name),k=(mk||"unassigned")+"|"+String(division).toUpperCase();
+        const dist=String(r.district||master.district||"").trim()||"-";
+        const u={appId:r.unitId,division,region:master.region,phase:master.phase,inspBy:name,date:r.dateDisp||r.date||"-",dayNum:r.dayNum,status:r.status,reason};
+        if(!unmatched[k])unmatched[k]={name,division,dists:{},months:{},count:0,units:[],reasons:{}};
+        const rec=unmatched[k];rec.count++;rec.units.push(u);
+        rec.reasons[reason]=(rec.reasons[reason]||0)+1;
+        rec.dists[dist]=(rec.dists[dist]||0)+1;
+        const mo=r.monthKey||"NA";rec.months[mo]=(rec.months[mo]||0)+1;
+        audit.errors++;
+        const day=String(r.dayNum||0);if(audit.byDay[day])audit.byDay[day].errors++;
+        if(audit.byDivision[division])audit.byDivision[division].errors++;
+    };
     pmegpUploadedRaw.forEach(r=>{
         const master=pmegpMasterMap[r.unitId.toUpperCase()]||pmegpMasterNormalizedMap[cleanUnitId(r.unitId)];
-        if(!master)return;
+        if(!master)return; // Non-mapped units cannot be classified as Indore without an authoritative mapping
+        if(String(master.region||"").trim().toUpperCase()!=="INDORE")return;
         const is4=master.phase==="4th";
-        if(!is4&&!(r.dayNum>PMG_OTHER_AFTER))return; // other phases: 01-Nov-2026 onward only
-        const tk=pmgNameTokens(r.inspBy);
+        if(!is4&&!(r.dayNum>=20261101&&r.dayNum<=20261130))return;
+        const division=master.division||"UNKNOWN DIVISION";
+        audit.eligible++;
+        const day=String(r.dayNum||0);
+        if(!audit.byDay[day])audit.byDay[day]={eligible:0,matched:0,errors:0};
+        audit.byDay[day].eligible++;
+        if(!audit.byDivision[division])audit.byDivision[division]={eligible:0,matched:0,errors:0};
+        audit.byDivision[division].eligible++;
+        const tk=pmgNameTokens(r.inspBy),mk=pmgKey(r.inspBy),dvU=division.toUpperCase(),mkd=mk+"|"+dvU;
+        const cand=enums.filter(e=>e.div.toUpperCase()===dvU);
+        if(!cand.length){addUnmatched(r,master,"Division ka enumerator sheet me nahi mila");return}
         let best=null,bs=0;
-        const mk=pmgKey(r.inspBy),dvU=String(master.division||"").toUpperCase(),mkd=mk+"|"+dvU;
-        let cand=enums.filter(e=>e.div.toUpperCase()===dvU);
-        if(!cand.length)return; // sirf photo wale 7 divisions ke inspections
         const man=Object.keys(pmgManualMap).length?(pmgManualMap[mkd]||pmgManualMap[mk]):null;
-        if(man){const me=enums.find(e=>e.name===man);if(me){best=me;bs=1000}}
+        if(man){const me=cand.find(e=>e.name===man);if(me){best=me;bs=1000}}
         if(!best)cand.forEach(e=>{
             if(!e.tok.length||!tk.length)return;
             const inter=tk.filter(t=>e.tok.includes(t)).length;
@@ -3076,22 +3112,21 @@ function computePmgData(){
             else if(inter===tk.length||inter===e.tok.length)sc=inter*10-Math.abs(tk.length-e.tok.length);
             if(sc>bs){bs=sc;best=e}
         });
-        const u={appId:r.unitId,division:master.division,region:master.region,phase:master.phase,inspBy:r.inspBy,date:r.dateDisp||r.date||"-",status:r.status};
-        if(!is4){if(best&&bs>0){
+        if(!best||bs<=0){addUnmatched(r,master,"Inspected By enumerator list me nahi mila");return}
+        audit.matched++;audit.byDay[day].matched++;audit.byDivision[division].matched++;
+        const u={appId:r.unitId,division,region:master.region,phase:master.phase,inspBy:r.inspBy,date:r.dateDisp||r.date||"-",status:r.status};
+        if(!is4){
             best.oth.push(u);
             if(r.dayNum>=20261101&&r.dayNum<=20261130)best.nv.push(u);
             if(r.dayNum>=20261106){best.oth2.push(u);best.n2.push(u)}
             Object.keys(PMG_RANGES).forEach(k=>{if(k==="nv")return;const g=PMG_RANGES[k];if(g&&r.dayNum>=g[0]&&r.dayNum<=g[1])best[k].push(u)});
-        }return}
-        if(!best||bs<=0){
-            const k=(mk||"unassigned")+"|"+dvU,dist=(r.district||master.district||"").trim()||"-";
-            unmatched[k]=unmatched[k]||{name:r.inspBy||"Unassigned",division:master.division,dists:{},months:{},count:0};
-            unmatched[k].count++;unmatched[k].dists[dist]=(unmatched[k].dists[dist]||0)+1;const mo=r.monthKey||"NA";unmatched[k].months[mo]=(unmatched[k].months[mo]||0)+1;return}
+            return;
+        }
         best.ach.push(u);if(r.dayNum>=20261106)best.n2.push(u);if(!(r.dayNum>20261105))best.pre.push(u);
         Object.keys(PMG_RANGES).forEach(k=>{const g=PMG_RANGES[k];if(g&&r.dayNum>=g[0]&&r.dayNum<=g[1])best[k].push(u)});
     });
-    enums.forEach(e=>{e.tt=Math.max(0,e.target-e.pre.length)}); // Target till 05.11.2026 = 05.11 tak ka pending
-    return{enums,unmatched};
+    enums.forEach(e=>{e.tt=Math.max(0,e.target-e.pre.length)});
+    return{enums,unmatched,audit};
 }
 let pmgCache=null;
 function pmgShow(e){const z=document.getElementById("pmgHideZero");return !(z&&z.checked&&e.target===0&&pmgAchCount(e)===0)}
